@@ -147,3 +147,6 @@ canvas {
 }
 }
 
+#calculator-body {
+  padding: 0px !important;
+}
