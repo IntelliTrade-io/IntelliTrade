@@ -38,8 +38,8 @@ export function LotSizeCalculator() {
       if (typeof window.RemoteCalc === 'function') {
         window.RemoteCalc({
           "Url": "https://www.cashbackforex.com",
-          "TopPaneStyle": "YmFja2dyb3VuZDogbGluZWFyLWdyYWRpZW50KCMwMDAwMDAgMCUsICMyNDI4MzEgMTAwJSk7IGNvbG9yOiB3aGl0ZTsgYm9yZGVyLWJvdHRvbTogbm9uZTs=",
-          "BottomPaneStyle": "YmFja2dyb3VuZDogIzE1MTgxZDsgYm9yZGVyOiBzb2xpZCAwcHggIzJhMmUzOTsgY29sb3I6ICM5MTk0YTE7",
+          "TopPaneStyle": "Ym9yZGVyOiB1bnNldCAhaW1wb3J0YW50O2JhY2tncm91bmQ6IGxpbmVhci1ncmFkaWVudCgjMDAwMDAwIDAlLCAjMjQyODMxIDEwMCUpICFpbXBvcnRhbnQ7Y29sb3I6IHdoaXRlICFpbXBvcnRhbnQ7fSBodG1sIHtiYWNrZ3JvdW5kOiAjMTUxODFkfQ==",
+          "BottomPaneStyle": "YmFja2dyb3VuZDogIzE1MTgxZDsgYm9yZGVyOiBzb2xpZCAwcHggIzJhMmUzOTsgY29sb3I6ICM5MTk0YTE7cGFkZGluZy1ib3R0b206MzBweCAhaW1wb3J0YW50Ow==",
           "ButtonStyle": "YmFja2dyb3VuZDogIzM0MzU0MDsgY29sb3I6IHdoaXRlOyBib3JkZXItcmFkaXVzOiAyMHB4Ow==",
           "TitleStyle": "dGV4dC1hbGlnbjogbGVmdDsgZm9udC1zaXplOiA0MHB4OyBmb250LXdlaWdodDogNTAwOw==",
           "TextboxStyle": "YmFja2dyb3VuZDogIzE1MTgxZDsgY29sb3I6ICM5MTk0YTE7IGJvcmRlcjogc29saWQgMHB4ICM5MTk0YTE7",
