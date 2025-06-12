@@ -43,7 +43,7 @@ export function LotSizeCalculator() {
           "ButtonStyle": "YmFja2dyb3VuZDogIzM0MzU0MDsgY29sb3I6IHdoaXRlOyBib3JkZXItcmFkaXVzOiAyMHB4Ow==",
           "TitleStyle": "dGV4dC1hbGlnbjogbGVmdDsgZm9udC1zaXplOiA0MHB4OyBmb250LXdlaWdodDogNTAwOw==",
           "TextboxStyle": "YmFja2dyb3VuZDogIzE1MTgxZDsgY29sb3I6ICM5MTk0YTE7IGJvcmRlcjogc29saWQgMHB4ICM5MTk0YTE7",
-          "ContainerWidth": "665",
+          "ContainerWidth": "40vw",
           "HighlightColor": "rgba(0,0,0,1.0)",
           "IsDisplayTitle": false,
           "IsShowChartLinks": false,
