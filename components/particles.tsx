@@ -3,7 +3,6 @@
 
 import { useEffect } from "react";
 
-// TypeScript declaration for the web-particles custom element
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
@@ -18,7 +17,6 @@ declare module "react" {
 }
 
 export default function Particles() {
-  // Convert your existing particles.js config to tsParticles format
   const tsParticlesConfig = {
     fps_limit: 60,
     interactivity: {
@@ -48,7 +46,7 @@ export default function Particles() {
         enable: true,
         outMode: "out",
         random: false,
-        speed: 6, // Using your original speed value
+        speed: 5,
         straight: false,
       },
       number: {
@@ -57,7 +55,7 @@ export default function Particles() {
       },
       opacity: { value: 0.5 },
       shape: { type: "circle" },
-      size: { random: true, value: 3 }, // Using your original size value
+      size: { random: true, value: 3 },
     },
     detectRetina: true,
   };
@@ -104,13 +102,15 @@ export default function Particles() {
     <web-particles
       id="tsparticles"
       options={JSON.stringify(tsParticlesConfig)}
-      className="absolute top-0 left-0 w-full h-full -z-10"
+      className="fixed top-0 left-0 w-full h-full"
       style={{
         backgroundColor: "black",
         backgroundImage: 'url("")',
         backgroundRepeat: "no-repeat",
         backgroundSize: "cover",
         backgroundPosition: "50% 50%",
+        zIndex: 0,
+        pointerEvents: "auto",
       }}
     />
   );
