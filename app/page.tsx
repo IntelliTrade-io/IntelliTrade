@@ -1,6 +1,6 @@
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+// import { ThemeSwitcher } from "@/components/theme-switcher";
 
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
@@ -8,6 +8,8 @@ import { LotSizeCalculator } from "@/components/lot-size-calculator";
 import Image from 'next/image';
 import IntelliTradeLogo from '@/assets/images/intelliTrade.png';
 import  Particles  from "@/components/particles";
+
+
 
 export default function Home() {
   return (
@@ -40,7 +42,7 @@ export default function Home() {
           <p>
             Powered by {"IntelliTrade"}
           </p>
-          <ThemeSwitcher />
+          {/* <ThemeSwitcher /> */}
         </footer>
     </main>
   );
