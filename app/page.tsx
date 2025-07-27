@@ -7,7 +7,7 @@ import Link from "next/link";
 import { LotSizeCalculator } from "@/components/lot-size-calculator";
 import Image from 'next/image';
 import IntelliTradeLogo from '@/assets/images/intelliTrade.png';
-import  Particles  from "@/components/particles";
+import ParticlesBackground from "@/components/particles";
 
 
 
@@ -15,7 +15,7 @@ export default function Home() {
   return (
     
     <main className="relative min-h-screen flex flex-col items-center">
-      <Particles></Particles>
+      <ParticlesBackground />
       <div className="flex-1 w-full flex flex-col justify-content items-center">
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-[3]">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
