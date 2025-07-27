@@ -1,91 +1,117 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 "use client";
 
 import { useEffect } from "react";
 
-declare global {
-    interface Window {
-      particlesJS: (
-        tagId: string,
-        params: object,
-        callback?: () => void
-      ) => void;
+// TypeScript declaration for the web-particles custom element
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "web-particles": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      > & {
+        options?: string;
+      };
     }
   }
-
-
+}
 
 export default function Particles() {
-
-    const particleJsonObject : object = {
-        particles: {
-          number: {
-            value: 80,
-            density: { enable: true, value_area: 800 },
-          },
-          color: { value: "#ffffff" },
-          shape: {
-            type: "circle",
-            stroke: { width: 0, color: "#000000" },
-            polygon: { nb_sides: 5 },
-          },
-          opacity: { value: 0.5 },
-          size: { value: 3, random: true },
-          line_linked: {
-            enable: true,
-            distance: 150,
-            color: "#ffffff",
-            opacity: 0.4,
-            width: 1,
-          },
-          move: {
-            enable: true,
-            speed: 6,
-            direction: "none",
-            out_mode: "out",
-          },
-        },
-        interactivity: {
-          detect_on: "canvas",
-          events: {
-            onhover: { enable: true, mode: "repulse" },
-            onclick: { enable: true, mode: "push" },
-          },
-          modes: {
-            repulse: { distance: 200, duration: 0.4 },
-            push: { particles_nb: 4 },
-          },
-        },
-        retina_detect: true,
-    }
-
+  // Convert your existing particles.js config to tsParticles format
+  const tsParticlesConfig = {
+    fps_limit: 60,
+    interactivity: {
+      detectsOn: "canvas",
+      events: {
+        onClick: { enable: true, mode: "push" },
+        onHover: { enable: true, mode: "repulse" },
+        resize: true,
+      },
+      modes: {
+        push: { particles_nb: 4 },
+        repulse: { distance: 200, duration: 0.4 },
+      },
+    },
+    particles: {
+      color: { value: "#ffffff" },
+      links: {
+        color: "#ffffff",
+        distance: 150,
+        enable: true,
+        opacity: 0.4,
+        width: 1,
+      },
+      move: {
+        bounce: false,
+        direction: "none",
+        enable: true,
+        outMode: "out",
+        random: false,
+        speed: 6, // Using your original speed value
+        straight: false,
+      },
+      number: {
+        density: { enable: true, area: 800 },
+        value: 80,
+      },
+      opacity: { value: 0.5 },
+      shape: { type: "circle" },
+      size: { random: true, value: 3 }, // Using your original size value
+    },
+    detectRetina: true,
+  };
 
   useEffect(() => {
-    // Dynamically load the script into the browser
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js";
+    const scripts = [
+      "https://cdn.jsdelivr.net/npm/tsparticles@1.28.0/dist/tsparticles.min.js",
+      "https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.5.0/custom-elements-es5-adapter.js",
+      "https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2.5.0/webcomponents-loader.js",
+      "https://cdn.jsdelivr.net/npm/web-particles@1.1.0/dist/web-particles.min.js",
+    ];
 
-    script.async = true;
-    document.head.appendChild(script);
-    
+    const loadedScripts: HTMLScriptElement[] = [];
 
-    script.onload = () => {
-      if (typeof window !== "undefined" && window.particlesJS) {
-        window.particlesJS("particles-js", particleJsonObject);
-      } else {
-        console.error("particlesJS not available on window");
+    scripts.forEach((src) => {
+      // Check if script is already loaded
+      if (!document.querySelector(`script[src="${src}"]`)) {
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        
+        // Set type="module" for the web-particles script
+        if (src.includes("web-particles")) {
+          script.type = "module";
+        }
+        
+        document.head.appendChild(script);
+        loadedScripts.push(script);
       }
-    };
+    });
 
-    // Cleanup script tag on unmount
+    // Cleanup function to remove scripts on unmount
     return () => {
-      document.body.removeChild(script);
+      loadedScripts.forEach((script) => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      });
     };
   }, []);
 
   return (
-    <div
-      id="particles-js"
+    <web-particles
+      id="tsparticles"
+      options={JSON.stringify(tsParticlesConfig)}
       className="absolute top-0 left-0 w-full h-full -z-10"
+      style={{
+        backgroundColor: "black",
+        backgroundImage: 'url("")',
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "50% 50%",
+      }}
     />
   );
 }
