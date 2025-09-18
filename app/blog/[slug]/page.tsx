@@ -75,7 +75,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </nav>
 
         {/* Blog content */}
-        <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10">
+        <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10 text-white">
           <div className="px-4 blog-container">
             <Link href="/" className="hover:underline">
               ← Back to posts

@@ -1,7 +1,7 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Where smarted trading starts',
-  author: 'Intellitrade designs',
+  title: 'Where Smarter Trading Starts',
+  author: 'IntelliTrade designs',
   headerTitle: 'TailwindBlog',
   description: 'Intellitrade Blog',
   language: 'en-us',
