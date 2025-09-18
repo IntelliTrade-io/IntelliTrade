@@ -19,7 +19,9 @@ const urlFor = (source: SanityImageSource) =>
     : null;
 
 const options = { next: { revalidate: 30 } };
-export async function generateStaticParams() {
+
+
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const slugs: { slug: { current: string } }[] = await client.fetch(
     `*[_type == "post"]{ slug }`
   );
@@ -29,12 +31,12 @@ export async function generateStaticParams() {
   }));
 }
 
+
 interface PostPageProps {
   params: {
     slug: string;
   };
 }
-
 export default async function PostPage({ params }: PostPageProps) {
   const post = await client.fetch<SanityDocument>(
     POST_QUERY,
