@@ -6,7 +6,6 @@ import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
 import ParticlesBackground from "@/components/particles";
-import Footer from "@/components/blog/Footer";
 import { type SanityDocument } from "next-sanity";
 
 export default async function BlogPage() {
