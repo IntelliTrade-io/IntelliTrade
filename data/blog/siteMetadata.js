@@ -3,7 +3,7 @@ const siteMetadata = {
   title: 'Where Smarter Trading Starts',
   author: 'IntelliTrade designs',
   headerTitle: 'TailwindBlog',
-  description: 'Intellitrade Blog',
+  description: 'Daily market updates',
   language: 'en-us',
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',

@@ -77,9 +77,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           enableSystem
           disableTransitionOnChange
         >
-          <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+          <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} />
           {/* <SectionContainer> */}
-            <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+            <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
               {children}
               <Footer  /> {/* only 1 footer */}
             </SearchProvider>

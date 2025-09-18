@@ -44,7 +44,9 @@ export default async function BlogPage() {
   return (
     <main className="relative min-h-[80vh] flex flex-col">
       {/* Particle background */}
-      <ParticlesBackground className="absolute inset-0 -z-10" />
+      <div className="absolute inset-0 -z-10">
+        <ParticlesBackground />
+      </div>
 
       {/* Header */}
       <div className="flex-1 w-full flex flex-col justify-content items-center">
