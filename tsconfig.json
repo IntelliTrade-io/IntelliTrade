@@ -33,12 +33,12 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "/types/**/*.ts",
     "next-env.d.ts",
     "types",
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next"
   ]
 }
