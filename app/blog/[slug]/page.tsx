@@ -19,7 +19,6 @@ const urlFor = (source: SanityImageSource) =>
     : null;
 
 const options = { next: { revalidate: 30 } };
-
 export async function generateStaticParams() {
   const slugs: { slug: { current: string } }[] = await client.fetch(
     `*[_type == "post"]{ slug }`
@@ -30,8 +29,18 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug: params.slug }, options);
+interface PostPageProps {
+  params: {
+    slug: string;
+  };
+}
+
+export default async function PostPage({ params }: PostPageProps) {
+  const post = await client.fetch<SanityDocument>(
+    POST_QUERY,
+    { slug: params.slug },
+    options
+  );
 
   if (!post) return <div>Post not found</div>;
 
