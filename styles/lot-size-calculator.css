@@ -16,7 +16,6 @@ body {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background: #343434;
   background: linear-gradient(180deg, #343434 0%, #252525 100%);
   font-family: "Mona-Sans", sans-serif;
@@ -49,7 +48,7 @@ body {
   overflow: hidden;
 }
 
-.container::before {
+.container::before, .blog-container::before {
   content: '';
   position: absolute;
   top: 0;
@@ -64,7 +63,7 @@ body {
   );
 }
 
-.container::after {
+.container::after,.blog-container::after {
   content: '';
   position: absolute;
   top: 0;
@@ -79,6 +78,21 @@ body {
   );
 }
 
+
+.blog-container {
+      z-index: 1000;
+    background: #ffffff1a;
+    border: 1px solid #ffffff4d;
+    border-radius: 20px;
+    padding: 20px 50px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px #0000001a, inset 0 1px #ffffff80, inset 0 -1px #ffffff1a, inset 0 0 4px 2px #fff3;
+        position: absolute;
+    top: 0;
+    left: 0;
+    width: 70vw;
+    transform: translateX(15vw);
+}
 
 
 #app {

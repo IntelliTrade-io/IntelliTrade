@@ -1,0 +1,46 @@
+2025-09-02 20:19:32,644 [INFO] === Economic Calendar Scraper — Final (Ultimate + Codex Patches) ===
+2025-09-02 20:19:32,645 [INFO] Window: 0 .. 60 days  |  Global: False  |  CB: False
+2025-09-02 20:19:33,280 [INFO] EUROSTAT_ICS: 0
+2025-09-02 20:19:33,462 [INFO] BLS_ICS: 0
+2025-09-02 20:19:33,747 [WARNING] cached_get failed https://www150.statcan.gc.ca/n1/dq-atom-eng.xml: 404
+2025-09-02 20:19:33,993 [ERROR] fetch_abs_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:19:35,127 [ERROR] fetch_ons_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:19:36,109 [ERROR] fetch_statcan_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:19:40,535 [INFO] STATS_NZ_ICS: 0
+2025-09-02 20:19:40,536 [INFO] Collected: 0  |  Unique: 0
+2025-09-02 20:19:40,538 [INFO] Wrote: events.json
+2025-09-02 20:20:42,792 [INFO] === Economic Calendar Scraper — Final (Ultimate + Codex Patches) ===
+2025-09-02 20:20:42,793 [INFO] Window: 0 .. 60 days  |  Global: False  |  CB: False
+2025-09-02 20:20:43,356 [WARNING] cached_get failed https://www.bls.gov/schedule/news_release/bls.ics: 403
+2025-09-02 20:20:43,356 [WARNING] BLS ICS fetch failed
+2025-09-02 20:20:43,366 [INFO] EUROSTAT_ICS: 0
+2025-09-02 20:20:43,660 [ERROR] fetch_abs_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:20:43,861 [WARNING] cached_get failed https://www150.statcan.gc.ca/n1/dq-atom-eng.xml: 404
+2025-09-02 20:20:45,252 [ERROR] fetch_statcan_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:20:45,273 [ERROR] fetch_ons_events: error Couldn't find a tree builder with the features you requested: lxml. Do you need to install a parser library?
+2025-09-02 20:21:02,750 [INFO] STATS_NZ_ICS: 0
+2025-09-02 20:21:21,361 [INFO] Collected: 0  |  Unique: 0
+2025-09-02 20:21:21,363 [INFO] Wrote: events.json
+2025-09-02 20:21:31,522 [INFO] === Economic Calendar Scraper — Final (Ultimate + Codex Patches) ===
+2025-09-02 20:21:31,522 [INFO] Window: 0 .. 60 days  |  Global: False  |  CB: False
+2025-09-02 20:21:32,081 [INFO] EUROSTAT_ICS: 0
+2025-09-02 20:21:32,139 [WARNING] cached_get failed https://www.bls.gov/schedule/news_release/bls.ics: 403
+2025-09-02 20:21:32,140 [WARNING] BLS ICS fetch failed
+2025-09-02 20:21:32,543 [WARNING] cached_get failed https://www150.statcan.gc.ca/n1/dq-atom-eng.xml: 404
+2025-09-02 20:21:32,858 [INFO] ABS_HTML: 0
+2025-09-02 20:21:39,844 [INFO] STATS_NZ_ICS: 0
+2025-09-02 20:21:44,797 [INFO] ONS_RSS: 2 (RSS)
+2025-09-02 20:22:16,910 [INFO] STATCAN_ATOM: 2
+2025-09-02 20:22:16,912 [INFO] Collected: 4  |  Unique: 4
+2025-09-02 20:22:16,913 [INFO] Wrote: events.json
+2025-09-10 21:05:26,893 [INFO] === Economic Calendar Scraper — Final (Ultimate + Codex Patches) ===
+2025-09-10 21:05:26,895 [INFO] Window: 0 .. 60 days  |  Global: False  |  CB: False
+2025-09-10 21:05:27,752 [INFO] EUROSTAT_ICS: 0
+2025-09-10 21:05:27,853 [INFO] BLS_ICS: 0
+2025-09-10 21:05:28,400 [WARNING] cached_get failed https://www150.statcan.gc.ca/n1/dq-atom-eng.xml: 404
+2025-09-10 21:05:29,364 [INFO] ABS_HTML: 0
+2025-09-10 21:05:36,709 [INFO] STATS_NZ_ICS: 0
+2025-09-10 21:05:40,223 [INFO] ONS_RSS: 3 (RSS)
+2025-09-10 21:06:08,819 [INFO] STATCAN_ATOM: 8
+2025-09-10 21:06:08,821 [INFO] Collected: 11  |  Unique: 11
+2025-09-10 21:06:08,826 [INFO] Wrote: events.json

@@ -18,6 +18,9 @@ export async function AuthButton() {
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>
+        <Link href="/alt">Lot size calculator</Link>
+      </Button>
+      <Button asChild size="sm" variant={"outline"}>
         <Link href="/auth/login">Sign in</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
