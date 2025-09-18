@@ -24,7 +24,10 @@ export async function generateStaticParams() {
   const slugs: { slug: { current: string } }[] = await client.fetch(
     `*[_type == "post"]{ slug }`
   );
-  return slugs.map((s) => ({ slug: s.slug.current }));
+
+  return slugs.map((s) => ({
+    slug: s.slug.current,
+  }));
 }
 
 export default async function PostPage({ params }: { params: { slug: string } }) {
