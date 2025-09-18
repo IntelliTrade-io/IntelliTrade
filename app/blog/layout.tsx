@@ -1,5 +1,5 @@
 import 'styles/tailwind.css'
-import 'pliny/search/algolia.css'
+import '@node_modules/pliny/search/algolia.css'
 import 'remark-github-blockquote-alert/alert.css'
 
 import { Space_Grotesk } from 'next/font/google'

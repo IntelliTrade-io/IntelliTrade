@@ -1,7 +1,7 @@
 import Link from '@/components/blog/Link'
 import Tag from '@/components/blog/Tag'
 import siteMetadata from '@/data/blog/siteMetadata'
-import { formatDate } from 'pliny/utils/formatDate'
+import { formatDate } from '@/node_modules/pliny/utils/formatDate'
 import "@/styles/lot-size-calculator.css";
 
 const MAX_DISPLAY = 5
