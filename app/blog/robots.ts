@@ -1,15 +1,15 @@
-import { MetadataRoute } from 'next'
-import siteMetadata from '@/data/blog/siteMetadata'
+// import { MetadataRoute } from 'next'
+// import siteMetadata from '@/data/blog/siteMetadata'
 
-export const dynamic = 'force-static'
+// export const dynamic = 'force-static'
 
-export default function robots(): MetadataRoute.Robots {
-  return {
-    rules: {
-      userAgent: '*',
-      allow: '/',
-    },
-    sitemap: `${siteMetadata.siteUrl}/sitemap.xml`,
-    host: siteMetadata.siteUrl,
-  }
-}
+// export default function robots(): MetadataRoute.Robots {
+//   return {
+//     rules: {
+//       userAgent: '*',
+//       allow: '/',
+//     },
+//     sitemap: `${siteMetadata.siteUrl}/sitemap.xml`,
+//     host: siteMetadata.siteUrl,
+//   }
+// }
