@@ -46,8 +46,11 @@ const geistSans = Geist({
 });
 
 
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   const basePath = process.env.BASE_PATH || ''
   return (
     <html
