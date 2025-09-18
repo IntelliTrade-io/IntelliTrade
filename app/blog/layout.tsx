@@ -45,9 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <body className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white">
         <ThemeProviders>
-          <Analytics analyticsConfig={siteMetadata.analytics as AnalyticsConfig} />
+          <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} />
           {/* <SectionContainer> */}
-            <SearchProvider searchConfig={siteMetadata.search as SearchConfig}>
+            <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
               {children}
               <Footer  /> {/* only 1 footer */}
             </SearchProvider>
