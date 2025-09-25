@@ -540,3 +540,81 @@ width: 100%;
 .svg-style {
   position: absolute; width: 0; height: 0;
 }
+
+
+/*ALEJO ZN NIEUWSLETTER DING*/
+.sib-form {
+  text-align: center;
+  background-color: transparent;                                 
+}
+
+.sib-form-message-panel {
+  font-size:16px; text-align:left; font-family:Helvetica, sans-serif; color:#661d1d; background-color:#ffeded; border-radius:3px; border-color:#ff4949;max-width:540px;
+}
+
+.sib-form-message-panel {
+  font-size:16px; text-align:left; font-family:Helvetica, sans-serif; color:#085229; background-color:#e7faf0; border-radius:3px; border-color:#13ce66;max-width:540px;
+}
+
+
+.sib-container--large {
+  text-align:center; background-color:transparent; max-width:540px; border-radius:10px; border-width:1px; border-color:#C0CCD9; border-style:solid; direction:ltr
+}
+
+.sib-form-first-div {
+  padding: 8px 0;
+}
+
+.sib-form-block {
+  font-size:32px; text-align:left; font-weight:700; font-family:Helvetica, sans-serif; color:#fafafa; background-color:transparent; text-align:left
+}
+
+
+.sib-form-block {
+  font-size:16px; text-align:left; font-family:Helvetica, sans-serif; color:#f6f7f9; background-color:transparent; text-align:left
+}
+
+.entry__label {
+font-weight: 700; text-align:left; font-size:16px; text-align:left; font-weight:700; font-family:Helvetica, sans-serif; color:#fdfeff;
+}
+
+.entry__error {
+  font-size:16px; text-align:left; font-family:Helvetica, sans-serif; color:#661d1d; background-color:#ffeded; border-radius:3px; border-color:#ff4949;
+}
+
+.entry__specification {
+  font-size:12px; text-align:left; font-family:Helvetica, sans-serif; color:#f9f9fa; text-align:left
+}
+
+.g-recaptcha-v3 {
+  display: none;
+}
+
+.sib-form-block__button {
+  font-size:16px; text-align:left; font-weight:700; font-family:Helvetica, sans-serif; color:#FFFFFF; background-color:transparent; border-radius:3px; border-width:0px;
+}
+
+
+#sib-container input:-ms-input-placeholder {
+    text-align: left;
+    font-family: Helvetica, sans-serif;
+    color: #c0ccda;
+  }
+
+  #sib-container input::placeholder {
+    text-align: left;
+    font-family: Helvetica, sans-serif;
+    color: #c0ccda;
+  }
+
+  #sib-container textarea::placeholder {
+    text-align: left;
+    font-family: Helvetica, sans-serif;
+    color: #c0ccda;
+  }
+
+  #sib-container a {
+    text-decoration: underline;
+    color: transparent;
+  }
+
