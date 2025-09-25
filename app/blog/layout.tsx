@@ -5,7 +5,7 @@ import 'remark-github-blockquote-alert/alert.css'
 import { Space_Grotesk } from 'next/font/google'
 import { Analytics, AnalyticsConfig } from 'pliny/analytics'
 import { SearchProvider, SearchConfig } from 'pliny/search'
-import Footer from '@/components/blog/Footer'
+// import Footer from '@/components/blog/Footer'
 import siteMetadata from '@/data/blog/siteMetadata'
 import { ThemeProviders } from './theme-providers'
 import { Metadata } from 'next'
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* <SectionContainer> */}
             <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
               {children}
-              <Footer  /> {/* only 1 footer */}
+              {/* <Footer  />  */}
             </SearchProvider>
           {/* </SectionContainer> */}
         </ThemeProviders>
