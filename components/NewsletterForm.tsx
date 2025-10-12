@@ -74,7 +74,7 @@ export default function NewsletterForm() {
   };
 
   return (
-    <div className="w-full max-w-[540px] mx-auto text-center">
+    <div className="w-full max-w-[540px] mx-auto text-center overflow-hidden">
       <div className="border border-[#C0CCD9] rounded-[10px] p-8 bg-transparent">
         {/* Error Message */}
         {status === "error" && (
@@ -113,28 +113,24 @@ export default function NewsletterForm() {
         )}
 
         <form onSubmit={handleSubmit}>
+            <div className="flex">
+            <div className="flex flex-col">
           {/* Title */}
           <div className="py-2">
-            <h2 className="text-[32px] font-bold font-sans text-[#fafafa] text-left">
+            <span className="text-[1.5rem] font-bold font-sans text-[#fafafa] text-center">
               Subscribe to our newsletter!
-            </h2>
+            </span>
           </div>
 
           {/* Description */}
           <div className="py-2">
-            <p className="text-base font-sans text-[#f6f7f9] text-left">
-              Subscribe and be the first to receive market updates daily.
+            <p className="text-[1rem] text-base font-sans text-[#f6f7f9] text-center">
+              Subscribe to receive market updates daily.
             </p>
           </div>
-
+</div>
           {/* Email Input */}
-          <div className="py-2 mt-4">
-            <label
-              htmlFor="EMAIL"
-              className="block text-left text-base font-bold font-sans text-[#fdfeff] mb-2"
-            >
-              Enter your email address to subscribe
-            </label>
+          <div className="py-2 mt-4 flex justify-center align-center flex-col">
             <input
               type="email"
               id="EMAIL"
@@ -151,7 +147,7 @@ export default function NewsletterForm() {
               Provide your email address to subscribe. For e.g abc@xyz.com
             </p>
           </div>
-
+</div>
           {/* Hidden honeypot field */}
           <input
             type="text"
@@ -163,13 +159,51 @@ export default function NewsletterForm() {
           />
 
           {/* Submit Button */}
-          <div className="py-2 mt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-transparent hover:bg-white/10 text-white font-bold py-3 px-6 rounded-[3px] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-0 flex items-center justify-center gap-2"
-            >
-              {isSubmitting && (
+          <div className="py-2 mt-4 flex-none">
+
+            <div className="body-row-5 justify-center relative">
+          <input
+            type="button"
+            className="submit-button backdrop-blur-sm"
+            value="Subscribe"
+          />
+          {/* <button className="button-33" role="button">
+  <span className="text">Subscribe</span>
+</button> */}
+
+
+
+
+<svg className="svg-style">
+  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq">
+    <feColorMatrix
+      values="1 0 0 0 0 
+            0 1 0 0 0 
+            0 0 1 0 0 
+            0 0 0 9 0"
+    ></feColorMatrix>
+  </filter>
+  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq2">
+    <feColorMatrix
+      values="1 0 0 0 0 
+            0 1 0 0 0 
+            0 0 1 0 0 
+            0 0 0 3 0"
+    ></feColorMatrix>
+  </filter>
+  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq3">
+    <feColorMatrix
+      values="1 0 0 0.2 0 
+            0 1 0 0.2 0 
+            0 0 1 0.2 0 
+            0 0 0 2 0"
+    ></feColorMatrix>
+  </filter>
+</svg>
+<button 
+value="Subscribe"
+className="real-button">
+    {isSubmitting && (
                 <svg
                   className="animate-spin h-5 w-5"
                   viewBox="0 0 512 512"
@@ -179,7 +213,23 @@ export default function NewsletterForm() {
                 </svg>
               )}
               {isSubmitting ? "SUBSCRIBING..." : "SUBSCRIBE"}
-            </button>
+</button>
+<div className="button-backdrop"></div>
+<div className="button-container">
+  <div className="spin spin-blur"></div>
+  <div className="spin spin-intense"></div>
+  <div className="button-backdrop"></div>
+  <div className="button-border">
+    <div className="spin spin-inside"></div>
+    <div className="button"
+    >Subscribe</div>
+  </div>
+</div>
+
+
+        </div>
+
+
           </div>
         </form>
       </div>

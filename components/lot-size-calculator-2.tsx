@@ -1,4 +1,4 @@
-'use client'; // Add this if you're using Next.js 13+ with app router
+'use client';
 import { useState } from "react";
 import "../styles/lot-size-calculator.css";
 
@@ -13,39 +13,35 @@ export default function LotSizeCalculator() {
   const [riskAmount, setRiskAmount] = useState("");
   const [pipValue, setPipValue] = useState("");
 
-const handleCalculate = () => {
-  const balanceNum = parseFloat(balance);
-  const riskPercentNum = parseFloat(riskPercent);
-  const stopLossNum = parseFloat(stopLoss);
+  const handleCalculate = () => {
+    const balanceNum = parseFloat(balance);
+    const riskPercentNum = parseFloat(riskPercent);
+    const stopLossNum = parseFloat(stopLoss);
 
-  if (isNaN(balanceNum) || isNaN(riskPercentNum) || isNaN(stopLossNum)) {
-    alert("Please fill all required fields with valid numbers");
-    return;
-  }
+    if (isNaN(balanceNum) || isNaN(riskPercentNum) || isNaN(stopLossNum)) {
+      alert("Please fill all required fields with valid numbers");
+      return;
+    }
 
-  const riskAmt = (balanceNum * (riskPercentNum / 100)).toFixed(2);
-  const pipVal = (parseFloat(riskAmt) / stopLossNum).toFixed(2);
-  const posSize = (parseFloat(pipVal) * 10000).toFixed(2);
+    const riskAmt = (balanceNum * (riskPercentNum / 100)).toFixed(2);
+    const pipVal = (parseFloat(riskAmt) / stopLossNum).toFixed(2);
+    const posSize = (parseFloat(pipVal) * 10000).toFixed(2);
 
-  setRiskAmount(`${riskAmt} ${currency}`);
-  setPipValue(`${pipVal} ${currency}`);
-  setPositionSize(`${posSize} units`);
-};
-
+    setRiskAmount(`${riskAmt} ${currency}`);
+    setPipValue(`${pipVal} ${currency}`);
+    setPositionSize(`${posSize} units`);
+  };
 
   return (
-    
-    <div className="container backdrop-blur-[1px]">
-    <div className="top-light"></div>
+    <div className="!max-w-[80vw] lg:!max-w-[50vw] mt-8 mb-8 px-4 container backdrop-blur-[1px] ">
+      <div className="top-light"></div>
 
       <div className="body">
-        <div className="body-header">
-          <span>Trade parameters</span>
-        </div>
+        {/* Trade parameters */}
+        <div className="body-header"><span>Trade parameters</span></div>
 
-        {/* Account currency */}
         <div className="body-row">
-          <div className="body-row-1"><span>Account currency</span></div>
+          <div className="body-row-1">Account currency</div>
           <div className="body-row-2">
             <select
               className="currency-input backdrop-blur-sm"
@@ -61,9 +57,8 @@ const handleCalculate = () => {
           </div>
         </div>
 
-        {/* Currency pair */}
         <div className="body-row">
-          <div className="body-row-1"><span>Currency pair</span></div>
+          <div className="body-row-1">Currency pair</div>
           <div className="body-row-2">
             <select
               className="currency-pair-input backdrop-blur-sm"
@@ -89,9 +84,8 @@ const handleCalculate = () => {
           </div>
         </div>
 
-        {/* Account balance */}
         <div className="body-row">
-          <div className="body-row-1"><span>Account balance</span></div>
+          <div className="body-row-1">Account balance</div>
           <div className="body-row-2">
             <input
               type="number"
@@ -102,9 +96,8 @@ const handleCalculate = () => {
           </div>
         </div>
 
-        {/* Risk percentage */}
         <div className="body-row">
-          <div className="body-row-1"><span>Risk percentage</span></div>
+          <div className="body-row-1">Risk percentage</div>
           <div className="body-row-2">
             <input
               type="number"
@@ -115,9 +108,8 @@ const handleCalculate = () => {
           </div>
         </div>
 
-        {/* Stop loss */}
         <div className="body-row-5">
-          <div className="body-row-1"><span>Stop loss (pips)</span></div>
+          <div className="body-row-1">Stop loss (pips)</div>
           <div className="body-row-2">
             <input
               type="number"
@@ -136,62 +128,11 @@ const handleCalculate = () => {
             value="Calculate"
             onClick={handleCalculate}
           />
-          {/* <button className="button-33" role="button">
-  <span className="text">Calculate</span>
-</button> */}
-
-
-
-
-<svg className="svg-style">
-  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq">
-    <feColorMatrix
-      values="1 0 0 0 0 
-            0 1 0 0 0 
-            0 0 1 0 0 
-            0 0 0 9 0"
-    ></feColorMatrix>
-  </filter>
-  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq2">
-    <feColorMatrix
-      values="1 0 0 0 0 
-            0 1 0 0 0 
-            0 0 1 0 0 
-            0 0 0 3 0"
-    ></feColorMatrix>
-  </filter>
-  <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq3">
-    <feColorMatrix
-      values="1 0 0 0.2 0 
-            0 1 0 0.2 0 
-            0 0 1 0.2 0 
-            0 0 0 2 0"
-    ></feColorMatrix>
-  </filter>
-</svg>
-<button 
-value="Calculate"
-            onClick={handleCalculate}
-className="real-button"></button>
-<div className="button-backdrop"></div>
-<div className="button-container">
-  <div className="spin spin-blur"></div>
-  <div className="spin spin-intense"></div>
-  <div className="button-backdrop"></div>
-  <div className="button-border">
-    <div className="spin spin-inside"></div>
-    <div className="button"
-    >Calculate</div>
-  </div>
-</div>
-
-
+          {/* Add your fancy SVG/button effects here if needed */}
         </div>
 
         {/* Trade details */}
-        <div className="body-header">
-          <span>Trade details</span>
-        </div>
+        <div className="body-header"><span>Trade details</span></div>
         <div className="body-row">
           <div className="body-row-1">Position size</div>
           <div className="body-row-2"><span>{positionSize}</span></div>
@@ -205,7 +146,6 @@ className="real-button"></button>
           <div className="body-row-2"><span>{pipValue}</span></div>
         </div>
       </div>
-      
     </div>
   );
 }

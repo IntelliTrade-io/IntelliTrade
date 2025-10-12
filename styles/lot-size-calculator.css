@@ -26,7 +26,6 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
- width: 50vw;
   height: 80vh;
   overflow: hidden;
   z-index: 1000;
@@ -87,11 +86,8 @@ body {
     padding: 20px 50px;
     overflow: hidden;
     box-shadow: 0 8px 32px #0000001a, inset 0 1px #ffffff80, inset 0 -1px #ffffff1a, inset 0 0 4px 2px #fff3;
-        position: absolute;
     top: 0;
     left: 0;
-    width: 70vw;
-    transform: translateX(15vw);
 }
 
 

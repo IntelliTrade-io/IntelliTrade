@@ -1,10 +1,8 @@
 import Link from '@/components/blog/Link'
 import Tag from '@/components/blog/Tag'
 import siteMetadata from '@/data/blog/siteMetadata'
-import { formatDate } from '@/node_modules/pliny/utils/formatDate' // fixed import path (no /node_modules)
+import { formatDate } from '@/node_modules/pliny/utils/formatDate'
 import '@/styles/lot-size-calculator.css'
-
-const MAX_DISPLAY = 5
 
 // Define the shape of a blog post
 interface BlogPost {
@@ -18,9 +16,13 @@ interface BlogPost {
 // Props for Home component
 interface HomeProps {
   posts: BlogPost[]
+  showAll?: boolean // New prop to control if we show all posts or just 5
 }
 
-export default function Home({ posts }: HomeProps) {
+export default function Home({ posts, showAll = false }: HomeProps) {
+  const MAX_DISPLAY = 5
+  const displayPosts = showAll ? posts : posts.slice(0, MAX_DISPLAY)
+
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700 blog-container">
@@ -33,7 +35,7 @@ export default function Home({ posts }: HomeProps) {
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {!posts.length && 'No posts found.'}
 
-          {posts.slice(0, MAX_DISPLAY).map((post) => {
+          {displayPosts.map((post) => {
             const { slug, date, title, summary, tags } = post
             return (
               <li key={slug} className="py-12">
@@ -89,20 +91,22 @@ export default function Home({ posts }: HomeProps) {
             )
           })}
         </ul>
-      </div>
 
-      {/* Show "All Posts" link if more than MAX_DISPLAY */}
-      {posts.length > MAX_DISPLAY && (
-        <div className="flex justify-end text-base leading-6 font-medium">
-          <Link
-            href="/blog"
-            className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-            aria-label="All posts"
-          >
-            All Posts &rarr;
-          </Link>
-        </div>
-      )}
+        {/* Show "All Posts" link if more than MAX_DISPLAY and not already showing all */}
+        {posts.length > MAX_DISPLAY && !showAll && (
+          <div className="flex justify-end text-base leading-6 font-medium mt-8">
+            <Link
+              href="/blog/all"
+              className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+              aria-label="All posts"
+            >
+              All Posts &rarr;
+            </Link>
+          </div>
+        )}
+
+       
+      </div>
     </>
   )
 }
