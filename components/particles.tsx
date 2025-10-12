@@ -50,7 +50,7 @@ export default function ParticlesBackground() {
         enable: true,
         outModes: "out" as const,
         random: false,
-        speed: 1,
+        speed: 2,
         straight: false,
       },
       number: {
