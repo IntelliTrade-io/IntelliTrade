@@ -46,7 +46,7 @@ export default function LotSizeCalculator() {
   const [positionSize, setPositionSize] = useState("");
   const [riskAmount, setRiskAmount] = useState("");
   const [pipValue, setPipValue] = useState("");
-  const [rateNote, setRateNote] = useState("");
+  // const [rateNote, setRateNote] = useState("");
 
   // Returns BASEQUOTE (quote per base) using CurrencyFreaks (USD base)
   const fetchExchangeRate = async (pairSymbol: string) => {
@@ -64,7 +64,7 @@ export default function LotSizeCalculator() {
 
       // CurrencyFreaks returns rates relative to USD (USD->CCY).
       const rates = data.rates as Record<string, string>;
-      const asOf = data.date ?? data.timestamp ?? "";
+      // const asOf = data.date ?? data.timestamp ?? "";
 
       const usdToBase = parseFloat(rates[base]);   // BASE per USD
       const usdToQuote = parseFloat(rates[quote]); // QUOTE per USD
@@ -85,7 +85,7 @@ export default function LotSizeCalculator() {
         rate = usdToQuote / usdToBase;
       }
 
-      setRateNote(`${normalizePair(pairSymbol)} = ${rate.toFixed(6)} (as of ${asOf})`);
+      // setRateNote(`${normalizePair(pairSymbol)} = ${rate.toFixed(6)} (as of ${asOf})`);
       return rate;
     } catch (error) {
       console.error("Exchange rate error:", error);
@@ -102,14 +102,14 @@ export default function LotSizeCalculator() {
     if (fromCcy === toCcy) return 1;
 
     // CORRECT ORIENTATION: try FROM->TO first (no inversion needed)
-    let direct = await fetchExchangeRate(`${fromCcy}${toCcy}`);
+    const direct = await fetchExchangeRate(`${fromCcy}${toCcy}`);
     if (direct && Number.isFinite(direct) && direct > 0) {
       // console.log(`[conv] ${fromCcy}->${toCcy}: direct ${fromCcy}${toCcy} = ${direct}`);
       return direct;
     }
 
     // Fallback to inverse: TO->FROM, then invert
-    let inverse = await fetchExchangeRate(`${toCcy}${fromCcy}`);
+    const inverse = await fetchExchangeRate(`${toCcy}${fromCcy}`);
     if (inverse && Number.isFinite(inverse) && inverse > 0) {
       // console.log(`[conv] ${fromCcy}->${toCcy}: inverse ${toCcy}${fromCcy} = ${inverse}, using 1/r`);
       return 1 / inverse;
@@ -164,6 +164,7 @@ export default function LotSizeCalculator() {
       setRiskAmount(`${riskAmt.toFixed(2)} ${currency}`);
       setPipValue(`${pipValuePerLot.toFixed(2)} ${currency}`);
       setPositionSize(`${lots.toFixed(2)} lots`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       console.error(e);
       alert(e?.message || "Calculation failed");
