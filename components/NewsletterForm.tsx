@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 declare global {
   interface Window {
@@ -16,23 +16,6 @@ export default function NewsletterForm() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const RECAPTCHA_SITE_KEY = "6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP";
-/*test*/
-  useEffect(() => {
-    // Load reCAPTCHA script
-    const script = document.createElement("script");
-    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}&hl=en`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup
-      const existingScript = document.querySelector(`script[src*="recaptcha"]`);
-      if (existingScript) {
-        document.head.removeChild(existingScript);
-      }
-    };
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,42 +23,52 @@ export default function NewsletterForm() {
     setStatus("idle");
 
     try {
-      // Get reCAPTCHA token
-      await window.grecaptcha.ready(async () => {
-        const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, {
-          action: "submit",
-        });
+      // Wait for reCAPTCHA to be ready
+      if (typeof window.grecaptcha === "undefined") {
+        throw new Error("reCAPTCHA not loaded");
+      }
 
-        // Submit form with reCAPTCHA token
-        const formData = new URLSearchParams({
-          EMAIL: email,
-          email_address_check: "", // Honeypot field
-          locale: "en",
-          "g-recaptcha-response": token,
-        });
+      window.grecaptcha.ready(async () => {
+        try {
+          const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, {
+            action: "submit",
+          });
 
-        const response = await fetch(
-          "https://e2c25aa6.sibforms.com/serve/MUIFAFTQ6bjuaYhsWDX31Yy-k_CEfsOgfcw4rc8qrLzS12hZfUohDXNCkwvTRPQSTF1Dgn4lYj6PrKKiXkU-JWA8auyfKxhIzIqYVeOFWIqnut_Y_M0xlmLJmB51729t9dCOnJE1sAZUVKusfKdtEB4rg6bWHssMTGNTOj-iy5KpnwmWIPBl5xJvo2tzjWT3Sy2jEylFBXNsLpxh",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-            body: formData.toString(),
+          // Submit form with reCAPTCHA token
+          const formData = new URLSearchParams({
+            EMAIL: email,
+            email_address_check: "", // Honeypot field
+            locale: "en",
+            "g-recaptcha-response": token,
+          });
+
+          const response = await fetch(
+            "https://e2c25aa6.sibforms.com/serve/MUIFAFTQ6bjuaYhsWDX31Yy-k_CEfsOgfcw4rc8qrLzS12hZfUohDXNCkwvTRPQSTF1Dgn4lYj6PrKKiXkU-JWA8auyfKxhIzIqYVeOFWIqnut_Y_M0xlmLJmB51729t9dCOnJE1sAZUVKusfKdtEB4rg6bWHssMTGNTOj-iy5KpnwmWIPBl5xJvo2tzjWT3Sy2jEylFBXNsLpxh",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: formData.toString(),
+            }
+          );
+
+          if (response.ok) {
+            setStatus("success");
+            setEmail("");
+          } else {
+            setStatus("error");
           }
-        );
-
-        if (response.ok) {
-          setStatus("success");
-          setEmail("");
-        } else {
+        } catch (error) {
+          console.error("Form submission error:", error);
           setStatus("error");
+        } finally {
+          setIsSubmitting(false);
         }
       });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.error("reCAPTCHA error:", error);
       setStatus("error");
-    } finally {
       setIsSubmitting(false);
     }
   };

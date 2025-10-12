@@ -65,7 +65,7 @@ export default function RootLayout({
       <link rel="manifest" href={`${basePath}/static/favicons/site.webmanifest`} />
       <link rel="stylesheet" href="https://sibforms.com/forms/end-form/build/sib-styles.css"></link>
       <script defer src="https://sibforms.com/forms/end-form/build/main.js"></script>
-<script src="https://www.google.com/recaptcha/api.js?render=6LcqNtUrAAAAAH_k1LXOi73Tm4RDidPwwACiNiuM&hl=en" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?render=6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP&hl=en" async defer></script>
       <meta name="msapplication-TileColor" content="#000000" />
       <meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)" />
       <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
