@@ -16,7 +16,7 @@ export default function NewsletterForm() {
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const RECAPTCHA_SITE_KEY = "6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP";
-
+/*test*/
   useEffect(() => {
     // Load reCAPTCHA script
     const script = document.createElement("script");
