@@ -9,13 +9,6 @@ import ParticlesBackground from "@/components/particles";
 import { type SanityDocument } from "next-sanity";
 
 export default async function BlogPage() {
-  // Debug query to see ALL posts
-  const DEBUG_QUERY = `*[_type == "post"]{
-      _id,
-      title,
-      slug,
-      "hasSlug": defined(slug.current)
-  }`;
 
   // Fetch ALL posts without any limit
   const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
