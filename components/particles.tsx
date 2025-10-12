@@ -79,12 +79,12 @@ export default function ParticlesBackground() {
     },
   } as const;
 
-  return (
-    <Particles
-      id="tsparticles"
-      init={particlesInit}
-      options={options}
-      className="fixed top-0 left-0 w-full h-full"
-    />
-  );
+return (
+  <Particles
+    id="tsparticles"
+    init={particlesInit}
+    options={options}
+    className="fixed top-0 left-0 w-full h-full -z-10"
+  />
+);
 }

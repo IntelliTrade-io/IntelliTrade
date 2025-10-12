@@ -2,18 +2,17 @@ import Link from './Link'
 import siteMetadata from '@/data/blog/siteMetadata'
 import SocialIcon from '@/components/blog/social-icons'
 // import NewsletterForm from '@/node_modules/pliny/ui/NewsletterForm'
+import NewsletterForm from '../NewsletterForm'
 
 export default function Footer() {
   return (
-    <footer className='z-10 flex items-center justify-around relative text-white'>
+    <footer className='z-10 flex items-center justify-around relative text-white mt-[25vh]'>
       {siteMetadata.newsletter?.provider && (
         <div className="flex items-center justify-center pt-4">
           {/* <NewsletterForm />
            */}
-
-            <iframe width="540" height="305" src="https://e2c25aa6.sibforms.com/serve/MUIFALejH0WZ43XeOwFP5k4uu3B4phdRbcSbjC2xLmQ_NVPvbuk87o2JO36zWeb_b5IVLpccOY9PC6pNmATaO-XfVCfSBQwB8VdHGngpqrriuoebC_dSo01maD799n9K_wcWEudHCx3jWMzk-denLSWoCbpVSOaN9BNj-a8KadQrMWZGjSkyxX3nT6CJsS8BESoNip1GUG3d2djf" frameBorder="0" scrolling="auto" allowFullScreen className="newsletterIFrame"></iframe>
-
-
+    <NewsletterForm/>
+            
 
         </div>
       )}

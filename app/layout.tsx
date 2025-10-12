@@ -11,7 +11,7 @@ import { ThemeProvider } from 'next-themes'
 import { Metadata } from 'next'
 import '@/styles/lot-size-calculator.css'; 
 import "./globals.css";
-
+import ParticlesBackground from "@/components/particles";
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -77,6 +77,7 @@ export default function RootLayout({
         ></script>
         </head>
       <body className={`${geistSans.className} antialiased`}>
+        <ParticlesBackground />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

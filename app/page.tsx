@@ -5,7 +5,6 @@ import Image from "next/image";
 import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
-import ParticlesBackground from "@/components/particles";
 import { type SanityDocument } from "next-sanity";
 
 export default async function BlogPage() {
@@ -42,14 +41,8 @@ export default async function BlogPage() {
   }
 
   return (
-    <main className="relative min-h-[80vh] flex flex-col">
-      {/* Particle background */}
-      <div className="absolute inset-0 -z-10">
-        <ParticlesBackground />
-      </div>
-
+    <main className="relative min-h-screen flex flex-col">
       {/* Header */}
-      <div className="flex-1 w-full flex flex-col justify-content items-center">
       <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-[3] relative">
         <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
           <div className="flex gap-5 items-center font-semibold">
@@ -68,7 +61,7 @@ export default async function BlogPage() {
       </nav>
 
       {/* Blog content */}
-      <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10">
+      <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10 pb-20">
         <div className="w-full max-w-5xl px-4">
           {posts.length > 0 ? (
             <Main posts={posts} />
@@ -79,7 +72,6 @@ export default async function BlogPage() {
           )}
         </div>
       </div>
-</div>
     </main>
   );
 }
