@@ -1,5 +1,4 @@
 import LotSizeCalculator from "@/components/lot-size-calculator-2";
-import ParticlesBackground from "@/components/particles";
 
 export default function Page() {
   return (
