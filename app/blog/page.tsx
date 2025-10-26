@@ -29,27 +29,27 @@ export default async function BlogPage() {
     tags: string[];
   }[] = [];
 
-  try {
-    const rawPosts: SanityDocument[] = await client.fetch(
-      POSTS_QUERY,
-      {},
-      { next: { revalidate: 30 } }
-    );
+  // try {
+  //   const rawPosts: SanityDocument[] = await client.fetch(
+  //     POSTS_QUERY,
+  //     {},
+  //     { next: { revalidate: 30 } }
+  //   );
 
-    console.log("Total posts fetched from Sanity:", rawPosts.length);
+  //   console.log("Total posts fetched from Sanity:", rawPosts.length);
 
-    posts = rawPosts.map((post) => ({
-      slug: post.slug?.current || "",
-      date: post.publishedAt || new Date().toISOString(),
-      title: post.title || "",
-      summary: post.summary || "",
-      tags: post.tags || [],
-    }));
+  //   posts = rawPosts.map((post) => ({
+  //     slug: post.slug?.current || "",
+  //     date: post.publishedAt || new Date().toISOString(),
+  //     title: post.title || "",
+  //     summary: post.summary || "",
+  //     tags: post.tags || [],
+  //   }));
 
-    console.log("Posts after mapping:", posts.length);
-  } catch (err) {
-    console.error("Error fetching posts from Sanity:", err);
-  }
+  //   console.log("Posts after mapping:", posts.length);
+  // } catch (err) {
+  //   console.error("Error fetching posts from Sanity:", err);
+  // }
 
   return (
     <main className="relative min-h-screen flex flex-col">
@@ -60,22 +60,22 @@ export default async function BlogPage() {
 
       {/* Header */}
       <div className="flex-1 w-full flex flex-col justify-content items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-[3] relative">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href="/">
-                <Image
-                  src={IntelliTradeLogo}
-                  width={500}
-                  height={500}
-                  className="nav-header-logo"
-                  alt="IntelliTrade"
-                />
-              </Link>
+          {/* <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-[3] relative">
+            <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
+              <div className="flex gap-5 items-center font-semibold">
+                <Link href="/">
+                  <Image
+                    src={IntelliTradeLogo}
+                    width={500}
+                    height={500}
+                    className="nav-header-logo"
+                    alt="IntelliTrade"
+                  />
+                </Link>
+              </div>
+              {!hasEnvVars ? <div>EnvVars missing</div> : <AuthButton />}
             </div>
-            {!hasEnvVars ? <div>EnvVars missing</div> : <AuthButton />}
-          </div>
-        </nav>
+          </nav> */}
 
         {/* Blog content */}
         <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10 pb-20">
