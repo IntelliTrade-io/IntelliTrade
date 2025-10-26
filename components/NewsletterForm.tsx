@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 
-declare global {
-  interface Window {
-    grecaptcha: {
-      ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
-    };
-  }
-}
+
 
 export default function NewsletterForm() {
   const [email, setEmail] = useState("");
@@ -18,7 +11,7 @@ export default function NewsletterForm() {
 
 
 
- const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setIsSubmitting(true);
   setStatus("idle");
@@ -26,12 +19,12 @@ export default function NewsletterForm() {
   try {
     const formData = new URLSearchParams({
       EMAIL: email,
-      email_address_check: "", // Honeypot field
+      email_address_check: "", // honeypot field
       locale: "en",
     });
 
     const response = await fetch(
-      "https://e2c25aa6.sibforms.com/serve/MUIFAFTQ6bjuaYhsWDX31Yy-k_CEfsOgfcw4rc8qrLzS12hZfUohDXNCkwvTRPQSTF1Dgn4lYj6PrKKiXkU-JWA8auyfKxhIzIqYVeOFWIqnut_Y_M0xlmLJmB51729t9dCOnJE1sAZUVKusfKdtEB4rg6bWHssMTGNTOj-iy5KpnwmWIPBl5xJvo2tzjWT3Sy2jEylFBXNsLpxh",
+      "https://e2c25aa6.sibforms.com/serve/MUIFAG_OYAHrqC4-s-344lPokNpv22D0uyD-cRSZWvWpHs9AlNt2jnByYLR9xKHZX8CNEo0NSotqGM070K0DO06IeOF0sQQ9GZ0k8J_3OKj7bzSjrS8gb76eTv28q8HvOJLUCfBMqCkTvGCqiajoHZDMFIc47hm8IsAjAl47Tp-a_RG1jY7HIyoEcYPdtE9BvAxSnx3ReTrAxM9i",
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -44,12 +37,13 @@ export default function NewsletterForm() {
     setStatus("success");
     setEmail("");
   } catch (error) {
-    console.error("Form submission error:", error);
+    console.error(error);
     setStatus("error");
   } finally {
     setIsSubmitting(false);
   }
 };
+
 
 
   return (
