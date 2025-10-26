@@ -4,11 +4,6 @@ import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
 import Link from "next/link";
 import Image from "next/image";
-import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
-import { AuthButton } from "@/components/auth-button";
-import { hasEnvVars } from "@/lib/utils";
-import ParticlesBackground from "@/components/particles";
-import "@/styles/lot-size-calculator.css";
 
 const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]`;
 
@@ -51,30 +46,9 @@ export default async function PostPage({ params }: PostPageProps) {
     : null;
 
   return (
-    <main className="relative min-h-[80vh] flex flex-col">
-      {/* Particle background */}
-      <div className="absolute inset-0 -z-10">
-      <ParticlesBackground  />
-</div>
-      {/* Header */}
+    
       <div className="flex-1 w-full flex flex-col justify-start items-center">
-        <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 z-[3] relative">
-          <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
-            <div className="flex gap-5 items-center font-semibold">
-              <Link href="/">
-                <Image
-                  src={IntelliTradeLogo}
-                  width={500}
-                  height={500}
-                  className="nav-header-logo"
-                  alt="IntelliTrade"
-                />
-              </Link>
-            </div>
-            {!hasEnvVars ? <div>EnvVars missing</div> : <AuthButton />}
-          </div>
-        </nav>
-
+        
         {/* Blog content */}
         <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10 text-white">
           <div className="px-4 blog-container">
@@ -101,6 +75,5 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
         </div>
       </div>
-    </main>
   );
 }
