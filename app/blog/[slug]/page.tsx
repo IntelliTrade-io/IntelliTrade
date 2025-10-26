@@ -4,11 +4,6 @@ import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
 import Link from "next/link";
 import Image from "next/image";
-import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
-import { AuthButton } from "@/components/auth-button";
-import { hasEnvVars } from "@/lib/utils";
-import ParticlesBackground from "@/components/particles";
-import "@/styles/lot-size-calculator.css";
 
 const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]`;
 
