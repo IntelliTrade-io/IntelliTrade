@@ -44,11 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-        <script
-  src="https://www.google.com/recaptcha/api.js?render=6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP"
-  async
-  defer
-></script>
+        
       </head>
       <body className="relative min-h-screen bg-black">
         {/* Fixed background */}
