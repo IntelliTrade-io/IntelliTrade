@@ -17,20 +17,14 @@ const handleSubmit = async (e: React.FormEvent) => {
   setStatus("idle");
 
   try {
-    const formData = new URLSearchParams({
-      EMAIL: email,
-      email_address_check: "", // honeypot field
-      locale: "en",
-    });
+  
 
-    const response = await fetch(
-      "https://e2c25aa6.sibforms.com/serve/MUIFAG_OYAHrqC4-s-344lPokNpv22D0uyD-cRSZWvWpHs9AlNt2jnByYLR9xKHZX8CNEo0NSotqGM070K0DO06IeOF0sQQ9GZ0k8J_3OKj7bzSjrS8gb76eTv28q8HvOJLUCfBMqCkTvGCqiajoHZDMFIc47hm8IsAjAl47Tp-a_RG1jY7HIyoEcYPdtE9BvAxSnx3ReTrAxM9i",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData.toString(),
-      }
-    );
+   const response = await fetch("/api/newsletter", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email }),
+});
+
 
     if (!response.ok) throw new Error("Form submission failed");
 
