@@ -49,49 +49,35 @@ export default function LotSizeCalculator() {
   // const [rateNote, setRateNote] = useState("");
 
   // Returns BASEQUOTE (quote per base) using CurrencyFreaks (USD base)
-  const fetchExchangeRate = async (pairSymbol: string) => {
-    const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-    if (!apiKey) {
-      console.warn("Missing NEXT_PUBLIC_CURRENCYFREAKS_API_KEY");
-    }
-    const baseUrl = `https://api.currencyfreaks.com/latest?apikey=${apiKey}`;
-    const { base, quote } = parsePair(pairSymbol);
+const fetchExchangeRate = async (pairSymbol: string) => {
+  const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
+  if (!apiKey) throw new Error("Missing API key");
 
-    try {
-      const res = await fetch(`${baseUrl}&symbols=${base},${quote}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch exchange rate");
-      const data = await res.json();
+  const baseUrl = `https://api.currencyfreaks.com/latest?apikey=${apiKey}`;
+  const { base, quote } = parsePair(pairSymbol);
 
-      // CurrencyFreaks returns rates relative to USD (USD->CCY).
-      const rates = data.rates as Record<string, string>;
-      // const asOf = data.date ?? data.timestamp ?? "";
+  try {
+    const res = await fetch(`${baseUrl}&symbols=${base},${quote}`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Failed to fetch exchange rate");
+    const data = await res.json();
+    const rates = data.rates as Record<string, string>;
 
-      const usdToBase = parseFloat(rates[base]);   // BASE per USD
-      const usdToQuote = parseFloat(rates[quote]); // QUOTE per USD
+    const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
+    const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);
 
-      if (!isFinite(usdToBase) || !isFinite(usdToQuote) || usdToBase <= 0 || usdToQuote <= 0) {
-        throw new Error("Invalid API rates");
-      }
+    if (!isFinite(usdToBase) || !isFinite(usdToQuote)) throw new Error("Invalid API rates");
 
-      let rate: number;
-      if (base === "USD") {
-        // USD/QUOTE = QUOTE per USD
-        rate = usdToQuote;
-      } else if (quote === "USD") {
-        // BASE/USD = USD per BASE = 1 / (BASE per USD)
-        rate = 1 / usdToBase;
-      } else {
-        // Cross: (QUOTE per USD) / (BASE per USD) = QUOTE per BASE
-        rate = usdToQuote / usdToBase;
-      }
+    let rate: number;
+    if (base === "USD") rate = usdToQuote;
+    else if (quote === "USD") rate = 1 / usdToBase;
+    else rate = usdToQuote / usdToBase;
 
-      // setRateNote(`${normalizePair(pairSymbol)} = ${rate.toFixed(6)} (as of ${asOf})`);
-      return rate;
-    } catch (error) {
-      console.error("Exchange rate error:", error);
-      return null;
-    }
-  };
+    return rate;
+  } catch (error) {
+    console.error("Exchange rate error:", error);
+    return null;
+  }
+};
 
   /**
    * Convert an amount in `fromCcy` to `toCcy`.
