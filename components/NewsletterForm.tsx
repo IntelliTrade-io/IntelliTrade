@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 declare global {
   interface Window {
@@ -15,7 +15,22 @@ export default function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [grecaptchaReady, setGrecaptchaReady] = useState(false);
+
   const RECAPTCHA_SITE_KEY = "6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP";
+
+  // Wait until reCAPTCHA is loaded
+  useEffect(() => {
+    const checkGRecaptcha = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any).grecaptcha?.execute) {
+        setGrecaptchaReady(true);
+      } else {
+        setTimeout(checkGRecaptcha, 50);
+      }
+    };
+    checkGRecaptcha();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,20 +38,14 @@ export default function NewsletterForm() {
     setStatus("idle");
 
     try {
-      if (typeof window.grecaptcha === "undefined") {
-        throw new Error("reCAPTCHA not loaded");
-      }
-
-      // Wait for reCAPTCHA to be ready
+      // Wait until grecaptcha is ready
       await new Promise<void>((resolve) => window.grecaptcha.ready(resolve));
 
-      const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, {
-        action: "submit",
-      });
+      const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "submit" });
 
       const formData = new URLSearchParams({
         EMAIL: email,
-        email_address_check: "", // Honeypot
+        email_address_check: "",
         locale: "en",
         "g-recaptcha-response": token,
       });
@@ -55,7 +64,7 @@ export default function NewsletterForm() {
       setStatus("success");
       setEmail("");
     } catch (error) {
-      console.error("Newsletter error:", error);
+      console.error("reCAPTCHA error:", error);
       setStatus("error");
     } finally {
       setIsSubmitting(false);
@@ -118,7 +127,7 @@ export default function NewsletterForm() {
                 placeholder="EMAIL"
                 autoComplete="off"
                 required
-                disabled={isSubmitting}
+                disabled={isSubmitting || !grecaptchaReady}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-black"
               />
               <p className="text-xs text-[#f9f9fa] text-left mt-2">
@@ -136,17 +145,21 @@ export default function NewsletterForm() {
               <button
                 type="submit"
                 className="real-button"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !grecaptchaReady}
               >
                 {isSubmitting && (
-                  <svg className="animate-spin h-5 w-5 inline-block mr-2" viewBox="0 0 512 512" fill="currentColor">
-                    <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874..." />
+                  <svg
+                    className="animate-spin h-5 w-5"
+                    viewBox="0 0 512 512"
+                    fill="currentColor"
+                  >
+                    <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z" />
                   </svg>
                 )}
                 {isSubmitting ? "SUBSCRIBING..." : "SUBSCRIBE"}
               </button>
 
-              {/* Keep all original glow/spin divs */}
+              {/* Keep all your original glow/spin divs */}
               <div className="button-backdrop"></div>
               <div className="button-container">
                 <div className="spin spin-blur"></div>
