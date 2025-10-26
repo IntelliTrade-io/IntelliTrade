@@ -22,7 +22,8 @@ export default function NewsletterForm() {
   // Wait until reCAPTCHA is loaded
   useEffect(() => {
     const checkGRecaptcha = () => {
-      if (window.grecaptcha?.execute) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any).grecaptcha?.execute) {
         setGrecaptchaReady(true);
       } else {
         setTimeout(checkGRecaptcha, 50);
