@@ -15,61 +15,42 @@ export default function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [grecaptchaReady, setGrecaptchaReady] = useState(false);
 
-  const RECAPTCHA_SITE_KEY = "6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP";
 
-  // Wait until reCAPTCHA is loaded
-  useEffect(() => {
-    const checkGRecaptcha = () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((window as any).grecaptcha?.execute) {
-        setGrecaptchaReady(true);
-      } else {
-        setTimeout(checkGRecaptcha, 50);
+
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setStatus("idle");
+
+  try {
+    const formData = new URLSearchParams({
+      EMAIL: email,
+      email_address_check: "", // Honeypot field
+      locale: "en",
+    });
+
+    const response = await fetch(
+      "https://e2c25aa6.sibforms.com/serve/MUIFAFTQ6bjuaYhsWDX31Yy-k_CEfsOgfcw4rc8qrLzS12hZfUohDXNCkwvTRPQSTF1Dgn4lYj6PrKKiXkU-JWA8auyfKxhIzIqYVeOFWIqnut_Y_M0xlmLJmB51729t9dCOnJE1sAZUVKusfKdtEB4rg6bWHssMTGNTOj-iy5KpnwmWIPBl5xJvo2tzjWT3Sy2jEylFBXNsLpxh",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
       }
-    };
-    checkGRecaptcha();
-  }, []);
+    );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setStatus("idle");
+    if (!response.ok) throw new Error("Form submission failed");
 
-    try {
-      // Wait until grecaptcha is ready
-      await new Promise<void>((resolve) => window.grecaptcha.ready(resolve));
+    setStatus("success");
+    setEmail("");
+  } catch (error) {
+    console.error("Form submission error:", error);
+    setStatus("error");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-      const token = await window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: "submit" });
-
-      const formData = new URLSearchParams({
-        EMAIL: email,
-        email_address_check: "",
-        locale: "en",
-        "g-recaptcha-response": token,
-      });
-
-      const response = await fetch(
-        "https://e2c25aa6.sibforms.com/serve/MUIFAFTQ6bjuaYhsWDX31Yy-k_CEfsOgfcw4rc8qrLzS12hZfUohDXNCkwvTRPQSTF1Dgn4lYj6PrKKiXkU-JWA8auyfKxhIzIqYVeOFWIqnut_Y_M0xlmLJmB51729t9dCOnJE1sAZUVKusfKdtEB4rg6bWHssMTGNTOj-iy5KpnwmWIPBl5xJvo2tzjWT3Sy2jEylFBXNsLpxh",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: formData.toString(),
-        }
-      );
-
-      if (!response.ok) throw new Error("Form submission failed");
-
-      setStatus("success");
-      setEmail("");
-    } catch (error) {
-      console.error("reCAPTCHA error:", error);
-      setStatus("error");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="w-full max-w-[540px] mx-auto text-center overflow-hidden">
@@ -127,7 +108,7 @@ export default function NewsletterForm() {
                 placeholder="EMAIL"
                 autoComplete="off"
                 required
-                disabled={isSubmitting || !grecaptchaReady}
+                disabled={isSubmitting}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-black"
               />
               <p className="text-xs text-[#f9f9fa] text-left mt-2">
@@ -145,7 +126,7 @@ export default function NewsletterForm() {
               <button
                 type="submit"
                 className="real-button"
-                disabled={isSubmitting || !grecaptchaReady}
+                disabled={isSubmitting}
               >
                 {isSubmitting && (
                   <svg
