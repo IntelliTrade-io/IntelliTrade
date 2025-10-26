@@ -1,7 +1,7 @@
 import '@/styles/tailwind.css';
 import 'remark-github-blockquote-alert/alert.css';
 import { Space_Grotesk } from 'next/font/google';
-import { Analytics, AnalyticsConfig } from 'pliny/analytics';
+// import { Analytics, AnalyticsConfig } from 'pliny/analytics';
 import { SearchProvider, SearchConfig } from 'pliny/search';
 import Footer from '@/components/blog/Footer';
 import siteMetadata from '@/data/blog/siteMetadata';
@@ -14,6 +14,7 @@ import Image from "next/image";
 import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
+import { Analytics } from '@vercel/analytics/react';
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -43,13 +44,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
+        <script
+  src="https://www.google.com/recaptcha/api.js?render=6Ld_hWErAAAAAOESFLa9SSrFFVEuC9chPz4Hk8QP"
+  async
+  defer
+></script>
       </head>
       <body className="relative min-h-screen bg-black">
         {/* Fixed background */}
         <ParticlesBackground />
 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} />
+          {/* <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} /> */}
           <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
             
             {/* Header */}
@@ -77,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Footer */}
             <Footer />
+            <Analytics />
           </SearchProvider>
         </ThemeProvider>
       </body>
