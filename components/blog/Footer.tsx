@@ -37,6 +37,13 @@ export default function Footer() {
           <div>{` • `}</div>
           <Link href="/">{siteMetadata.title}</Link>
         </div>
+        <div className="mb-2 flex space-x-2 text-sm">
+          <Link href="/privacyStatement">Privacy statement</Link>
+          <div>{` • `}</div>
+          <Link href="/cookieStatement">Cookie statement</Link>
+          <div>{` • `}</div>
+          <Link href="termsOfService">Terms of service</Link>
+        </div>
         <div className="mb-8 text-sm">
          
         </div>
