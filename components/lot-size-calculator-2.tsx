@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../styles/lot-size-calculator.css";
 
 // ---------- Helpers ----------
@@ -15,25 +15,88 @@ const parsePair = (pair: string) => {
 // Pip size per instrument (your broker may differ for metals/CFDs/crypto)
 const pipSizeFor = (p: string) => {
   const s = normalizePair(p);
-  if (s.endsWith("JPY")) return 0.01;                 // FX JPY pairs: 0.01
-  if (s.startsWith("XAU")) return 0.01;               // XAUUSD: $0.01 per oz
-  if (s.startsWith("XAG")) return 0.01;               // XAGUSD: $0.01 per oz
-  if (s.startsWith("WTI")) return 0.01;               // WTIUSD: $0.01 per barrel
-  if (s.startsWith("BTC")) return 1;                  // define "pip" = $1
-  if (s.startsWith("ETH")) return 1;                  // define "pip" = $1
-  return 0.0001;                                      // Most FX
+  if (s.endsWith("JPY")) return 0.01; // FX JPY pairs: 0.01
+  if (s.startsWith("XAU")) return 0.01; // XAUUSD: $0.01 per oz
+  if (s.startsWith("XAG")) return 0.01; // XAGUSD: $0.01 per oz
+  if (s.startsWith("WTI")) return 0.01; // WTIUSD: $0.01 per barrel (only if supported elsewhere)
+  if (s.startsWith("BTC")) return 1; // define "pip" = $1
+  if (s.startsWith("ETH")) return 1; // define "pip" = $1
+  return 0.0001; // Most FX
 };
 
 // Contract size per lot (typical broker conventions; adjust if needed)
 const contractSizeFor = (p: string) => {
   const s = normalizePair(p);
-  if (s.startsWith("XAU")) return 100;   // 1 lot = 100 oz
-  if (s.startsWith("XAG")) return 5000;  // 1 lot = 5,000 oz
-  if (s.startsWith("WTI")) return 1000;  // 1 lot = 1,000 barrels
-  if (s.startsWith("BTC")) return 1;     // 1 lot = 1 BTC (broker dependent)
-  if (s.startsWith("ETH")) return 1;     // 1 lot = 1 ETH (broker dependent)
-  return 100000;                         // FX: 1 lot = 100,000 units
+  if (s.startsWith("XAU")) return 100; // 1 lot = 100 oz
+  if (s.startsWith("XAG")) return 5000; // 1 lot = 5,000 oz
+  if (s.startsWith("WTI")) return 1000; // 1 lot = 1,000 barrels
+  if (s.startsWith("BTC")) return 1; // 1 lot = 1 BTC (broker dependent)
+  if (s.startsWith("ETH")) return 1; // 1 lot = 1 ETH (broker dependent)
+  return 100000; // FX: 1 lot = 100,000 units
 };
+
+// ---------- Dynamic pairs ----------
+// We pull supported currency codes from CurrencyFreaks' public endpoint (no API key).
+// Then we compose a curated but dynamic list (majors + popular crosses + metals + crypto) only if codes exist.
+
+const CF_SUPPORTED_URL = "https://api.currencyfreaks.com/v2.0/supported-currencies";
+
+const PREFERRED_BASES = [
+  "EUR",
+  "USD",
+  "GBP",
+  "JPY",
+  "AUD",
+  "CAD",
+  "CHF",
+  "NZD",
+  // extended asset codes that CurrencyFreaks lists when available
+  "XAU",
+  "XAG",
+  "BTC",
+  "ETH",
+];
+
+function composePairsFrom(codes: Set<string>) {
+  // Keep only codes we actually have
+  const avail = PREFERRED_BASES.filter((c) => codes.has(c));
+
+  const fxMajors = [
+    // majors vs USD in both directions
+    ...["EUR", "GBP", "AUD", "NZD", "CAD", "CHF", "JPY"]
+      .filter((c) => c !== "USD" && avail.includes(c) && avail.includes("USD"))
+      .flatMap((c) => [`${c}USD`, `USD${c}`]),
+  ];
+
+  const popularCrossPairsDefs: Array<[string, string]> = [
+    ["EUR", "GBP"],
+    ["EUR", "JPY"],
+    ["GBP", "JPY"],
+    ["EUR", "AUD"],
+    ["EUR", "CAD"],
+    ["EUR", "CHF"],
+    ["EUR", "NZD"],
+    ["GBP", "AUD"],
+    ["GBP", "CAD"],
+    ["GBP", "CHF"],
+    ["GBP", "NZD"],
+    ["AUD", "JPY"],
+    ["CAD", "JPY"],
+    ["CHF", "JPY"],
+    ["NZD", "JPY"],
+  ];
+
+  const crosses = popularCrossPairsDefs
+    .filter(([a, b]) => avail.includes(a) && avail.includes(b))
+    .map(([a, b]) => `${a}${b}`);
+
+  const metalsCrypto = ["XAU", "XAG", "BTC", "ETH"]
+    .filter((c) => avail.includes(c) && avail.includes("USD"))
+    .map((c) => `${c}USD`);
+
+  const out = Array.from(new Set([...fxMajors, ...crosses, ...metalsCrypto])).sort();
+  return out;
+}
 
 // ---------- Component ----------
 export default function LotSizeCalculator() {
@@ -46,38 +109,94 @@ export default function LotSizeCalculator() {
   const [positionSize, setPositionSize] = useState("");
   const [riskAmount, setRiskAmount] = useState("");
   const [pipValue, setPipValue] = useState("");
-  // const [rateNote, setRateNote] = useState("");
+
+  // dynamic pairs state
+  const [pairs, setPairs] = useState<string[]>([]);
+  const [loadingPairs, setLoadingPairs] = useState(true);
+  const [pairsError, setPairsError] = useState<string | null>(null);
+
+  // Load available codes and compose pairs on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingPairs(true);
+        setPairsError(null);
+        const res = await fetch(CF_SUPPORTED_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to fetch supported currencies");
+        const data = await res.json();
+        const map = (data?.supportedCurrenciesMap || {}) as Record<string, unknown>;
+        const codes = new Set(Object.keys(map));
+        // Ensure USD is in the set; if the endpoint ever omits it, add defensively
+        codes.add("USD");
+        const composed = composePairsFrom(codes);
+        if (!cancelled) {
+          setPairs(composed);
+          // If current selected pair isn't available, pick a sensible default
+          const fallback = composed.includes("EURUSD") ? "EURUSD" : composed[0] || "EURUSD";
+          if (!composed.includes(pair)) setPair(fallback);
+        }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (e: any) {
+        if (!cancelled) {
+          setPairsError(e?.message || "Could not load pairs");
+          // still provide a minimal fallback so the UI is usable
+          setPairs([
+            "EURUSD",
+            "GBPUSD",
+            "USDJPY",
+            "AUDUSD",
+            "USDCAD",
+            "USDCHF",
+            "NZDUSD",
+            "EURGBP",
+            "EURJPY",
+            "GBPJPY",
+            "XAUUSD",
+            "XAGUSD",
+            "BTCUSD",
+            "ETHUSD",
+          ]);
+        }
+      } finally {
+        if (!cancelled) setLoadingPairs(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Returns BASEQUOTE (quote per base) using CurrencyFreaks (USD base)
-const fetchExchangeRate = async (pairSymbol: string) => {
-  const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-  if (!apiKey) throw new Error("Missing API key");
+  const fetchExchangeRate = async (pairSymbol: string) => {
+    const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
+    if (!apiKey) throw new Error("Missing API key");
 
-  const baseUrl = `https://api.currencyfreaks.com/latest?apikey=${apiKey}`;
-  const { base, quote } = parsePair(pairSymbol);
+    const baseUrl = `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`;
+    const { base, quote } = parsePair(pairSymbol);
 
-  try {
-    const res = await fetch(`${baseUrl}&symbols=${base},${quote}`, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to fetch exchange rate");
-    const data = await res.json();
-    const rates = data.rates as Record<string, string>;
+    try {
+      const res = await fetch(`${baseUrl}&symbols=${base},${quote}`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to fetch exchange rate");
+      const data = await res.json();
+      const rates = data.rates as Record<string, string>;
 
-    const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
-    const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);
+      const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
+      const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);
 
-    if (!isFinite(usdToBase) || !isFinite(usdToQuote)) throw new Error("Invalid API rates");
+      if (!isFinite(usdToBase) || !isFinite(usdToQuote)) throw new Error("Invalid API rates");
 
-    let rate: number;
-    if (base === "USD") rate = usdToQuote;
-    else if (quote === "USD") rate = 1 / usdToBase;
-    else rate = usdToQuote / usdToBase;
+      let rate: number;
+      if (base === "USD") rate = usdToQuote;
+      else if (quote === "USD") rate = 1 / usdToBase;
+      else rate = usdToQuote / usdToBase;
 
-    return rate;
-  } catch (error) {
-    console.error("Exchange rate error:", error);
-    return null;
-  }
-};
+      return rate;
+    } catch (error) {
+      console.error("Exchange rate error:", error);
+      return null;
+    }
+  };
 
   /**
    * Convert an amount in `fromCcy` to `toCcy`.
@@ -90,14 +209,12 @@ const fetchExchangeRate = async (pairSymbol: string) => {
     // CORRECT ORIENTATION: try FROM->TO first (no inversion needed)
     const direct = await fetchExchangeRate(`${fromCcy}${toCcy}`);
     if (direct && Number.isFinite(direct) && direct > 0) {
-      // console.log(`[conv] ${fromCcy}->${toCcy}: direct ${fromCcy}${toCcy} = ${direct}`);
       return direct;
     }
 
     // Fallback to inverse: TO->FROM, then invert
     const inverse = await fetchExchangeRate(`${toCcy}${fromCcy}`);
     if (inverse && Number.isFinite(inverse) && inverse > 0) {
-      // console.log(`[conv] ${fromCcy}->${toCcy}: inverse ${toCcy}${fromCcy} = ${inverse}, using 1/r`);
       return 1 / inverse;
     }
 
@@ -110,8 +227,12 @@ const fetchExchangeRate = async (pairSymbol: string) => {
     const stopLossNum = parseFloat(stopLoss);
 
     if (
-      isNaN(balanceNum) || isNaN(riskPercentNum) || isNaN(stopLossNum) ||
-      balanceNum <= 0 || riskPercentNum <= 0 || stopLossNum <= 0
+      isNaN(balanceNum) ||
+      isNaN(riskPercentNum) ||
+      isNaN(stopLossNum) ||
+      balanceNum <= 0 ||
+      riskPercentNum <= 0 ||
+      stopLossNum <= 0
     ) {
       alert("Please fill all fields with valid positive numbers");
       return;
@@ -157,6 +278,11 @@ const fetchExchangeRate = async (pairSymbol: string) => {
     }
   };
 
+  const accountCurrencyOptions = useMemo(
+    () => ["EUR", "USD", "JPY", "CHF", "GBP"],
+    []
+  );
+
   return (
     <div className="!w-[80vw] lg:!w-[50vw] mt-8 mb-8 px-4 container backdrop-blur-[1px] ">
       <div className="top-light"></div>
@@ -173,11 +299,11 @@ const fetchExchangeRate = async (pairSymbol: string) => {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
-              <option value="EUR">EUR</option>
-              <option value="USD">USD</option>
-              <option value="JPY">JPY</option>
-              <option value="CHF">CHF</option>
-              <option value="GBP">GBP</option>
+              {accountCurrencyOptions.map((ccy) => (
+                <option key={ccy} value={ccy}>
+                  {ccy}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -189,24 +315,19 @@ const fetchExchangeRate = async (pairSymbol: string) => {
               className="currency-pair-input backdrop-blur-sm"
               value={pair}
               onChange={(e) => setPair(e.target.value)}
+              disabled={loadingPairs || !pairs.length}
             >
-              <option value="EURUSD">EURUSD</option>
-              <option value="GBPUSD">GBPUSD</option>
-              <option value="USDJPY">USDJPY</option>
-              <option value="AUDUSD">AUDUSD</option>
-              <option value="USDCAD">USDCAD</option>
-              <option value="USDCHF">USDCHF</option>
-              <option value="NZDUSD">NZDUSD</option>
-              <option value="EURGBP">EURGBP</option>
-              <option value="EURJPY">EURJPY</option>
-              <option value="GBPJPY">GBPJPY</option>
-              {/* CFDs / Metals / Crypto */}
-              <option value="XAUUSD">XAUUSD</option>
-              <option value="XAGUSD">XAGUSD</option>
-              <option value="WTIUSD">WTIUSD</option>
-              <option value="BTCUSD">BTCUSD</option>
-              <option value="ETHUSD">ETHUSD</option>
+              {loadingPairs && <option>Loading pairs…</option>}
+              {!loadingPairs &&
+                pairs.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
             </select>
+            {pairsError && (
+              <div className="mt-1 text-xs opacity-70">{pairsError}</div>
+            )}
           </div>
         </div>
 
@@ -273,12 +394,6 @@ const fetchExchangeRate = async (pairSymbol: string) => {
           <div className="body-row-1">Pip value</div>
           <div className="body-row-2"><span>{pipValue}</span></div>
         </div>
-        {/* {rateNote && (
-          <div className="body-row">
-            <div className="body-row-1">Rate used</div>
-            <div className="body-row-2"><span>{rateNote}</span></div>
-          </div>
-        )} */}
       </div>
     </div>
   );
