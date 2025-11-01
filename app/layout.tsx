@@ -15,6 +15,10 @@ import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth-button";
 import { hasEnvVars } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react';
+import Script from "next/script";
+import { GA_TRACKING_ID } from "@/lib/gtag";
+import GATracker from '@/components/GAtracker';
+
 
 const space_grotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -44,7 +48,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-        
+         <Script
+    strategy="afterInteractive"
+    src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+  />
+  <Script id="gtag-init" strategy="afterInteractive">
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${GA_TRACKING_ID}', { page_path: window.location.pathname });
+    `}
+  </Script>
       </head>
       <body className="relative min-h-screen bg-black">
         {/* Fixed background */}
@@ -80,6 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Footer */}
             <Footer />
             <Analytics />
+             <GATracker />
           </SearchProvider>
         </ThemeProvider>
       </body>
