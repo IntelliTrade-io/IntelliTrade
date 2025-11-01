@@ -136,6 +136,7 @@ export default function LotSizeCalculator() {
           const fallback = composed.includes("EURUSD") ? "EURUSD" : composed[0] || "EURUSD";
           if (!composed.includes(pair)) setPair(fallback);
         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         if (!cancelled) {
           setPairsError(e?.message || "Could not load pairs");
@@ -270,6 +271,7 @@ export default function LotSizeCalculator() {
       setRiskAmount(`${riskAmt.toFixed(2)} ${currency}`);
       setPipValue(`${pipValuePerLot.toFixed(2)} ${currency}`);
       setPositionSize(`${lots.toFixed(2)} lots`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       console.error(e);
       alert(e?.message || "Calculation failed");
