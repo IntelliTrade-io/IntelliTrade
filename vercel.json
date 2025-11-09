@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/**/*.py": {
+    "functions/**/*.py": {
       "runtime": "vercel-python@0.9.0"
     }
   }
