@@ -59,6 +59,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       gtag('js', new Date());
       gtag('config', '${GA_TRACKING_ID}', { page_path: window.location.pathname });
     `}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4817545358384465"
+     crossOrigin="anonymous"></script>
   </Script>
       </head>
       <body className="relative min-h-screen bg-black">
