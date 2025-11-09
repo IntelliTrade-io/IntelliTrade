@@ -21,6 +21,9 @@ export async function AuthButton() {
         <Link href="/lotsizecalculator">Lot size calculator</Link>
       </Button>
       {/* <Button asChild size="sm" variant={"outline"}>
+        <Link href="/dashboard">Dashboard</Link>
+      </Button> */}
+      {/* <Button asChild size="sm" variant={"outline"}>
         <Link href="/auth/login">Sign in</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
