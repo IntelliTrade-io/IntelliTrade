@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="msapplication-TileColor" content="#000000" />
         <meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
+        <meta name="google-adsense-account" content="ca-pub-4817545358384465"></meta>
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
          <Script
     strategy="afterInteractive"
