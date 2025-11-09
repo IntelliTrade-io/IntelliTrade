@@ -1,0 +1,10 @@
+{
+  "timestamp": 1762026058512,
+  "events": [],
+  "params": {
+    "since": "0",
+    "until": "1",
+    "central_banks": "false",
+    "include_global": "false"
+  }
+}

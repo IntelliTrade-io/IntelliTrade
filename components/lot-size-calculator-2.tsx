@@ -98,8 +98,13 @@ function composePairsFrom(codes: Set<string>) {
   return out;
 }
 
+  interface LotSizeCalculatorProps {
+    className?: string;
+  }
+
+
 // ---------- Component ----------
-export default function LotSizeCalculator() {
+export default function LotSizeCalculator({ className }: LotSizeCalculatorProps) {
   const [currency, setCurrency] = useState("EUR"); // account currency
   const [pair, setPair] = useState("EURUSD");
   const [balance, setBalance] = useState("");
@@ -283,8 +288,9 @@ export default function LotSizeCalculator() {
     []
   );
 
+
   return (
-    <div className="!w-[80vw] lg:!w-[50vw] mt-8 mb-8 px-4 container backdrop-blur-[1px] ">
+    <div className={`w-[80vw] lg:w-[60vw] mt-8 mb-8 px-4 lot-size-container backdrop-blur-[1px] ${className || ""}`}>
       <div className="top-light"></div>
 
       <div className="body">
