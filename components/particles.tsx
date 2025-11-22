@@ -40,9 +40,9 @@ export default function ParticlesBackground() {
       },
       links: {
         color: "#ffffff",
-        distance: 150,
+        distance: 100,
         enable: true,
-        opacity: 0.4,
+        opacity: 0.6,
         width: 1,
       },
       move: {
@@ -50,24 +50,24 @@ export default function ParticlesBackground() {
         enable: true,
         outModes: "out" as const,
         random: false,
-        speed: 2,
+        speed: 1,
         straight: false,
       },
       number: {
         density: {
           enable: true,
-          area: 800,
+          area: 900,
         },
-        value: 80,
+        value: 35,
       },
       opacity: {
-        value: 0.5,
+        value: 0.7,
       },
       shape: {
         type: "circle" as const,
       },
       size: {
-        value: 3,
+        value: 2,
         random: true,
       },
     },
