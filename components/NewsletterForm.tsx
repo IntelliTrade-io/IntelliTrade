@@ -86,7 +86,9 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
 
             {/* Email Input */}
-            <div className="py-2 mt-4 flex justify-center flex-col">
+            <div className="flex justify-center flex-col">
+
+              <div className="py-2">
               <input
                 type="email"
                 id="EMAIL"
@@ -99,21 +101,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 disabled={isSubmitting}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-black"
               />
-              <p className="text-xs text-[#f9f9fa] text-left mt-2">
+              <p className="text-xs text-[#f9f9fa] text-center mt-2">
                 Provide your email address to subscribe. For e.g abc@xyz.com
               </p>
-            </div>
-          </div>
+              </div>
 
-          {/* Hidden honeypot field */}
-          <input type="text" name="email_address_check" value="" className="hidden" tabIndex={-1} autoComplete="off" />
-
-          {/* Submit Button */}
-          <div className="py-2 mt-4 flex-none">
-            <div className="body-row-5 justify-center relative">
+<div className="py-2 flex justify-center">
               <button
                 type="submit"
-                className="real-button"
+                className="subscribe-button"
                 disabled={isSubmitting}
               >
                 {isSubmitting && (
@@ -126,49 +122,32 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </svg>
                 )}
                 {isSubmitting ? "SUBSCRIBING..." : "SUBSCRIBE"}
+                <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="4"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M14 5l7 7m0 0l-7 7m7-7H3"
+    ></path>
+  </svg>
               </button>
-
-              {/* Keep all your original glow/spin divs */}
-              <div className="button-backdrop"></div>
-              <div className="button-container">
-                <div className="spin spin-blur"></div>
-                <div className="spin spin-intense"></div>
-                <div className="button-backdrop"></div>
-                <div className="button-border">
-                  <div className="spin spin-inside"></div>
-                  <div className="button">Subscribe</div>
-                </div>
               </div>
-
-              {/* SVG Filters (original) */}
-              <svg className="svg-style">
-                <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq">
-                  <feColorMatrix
-                    values="1 0 0 0 0 
-                            0 1 0 0 0 
-                            0 0 1 0 0 
-                            0 0 0 9 0"
-                  ></feColorMatrix>
-                </filter>
-                <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq2">
-                  <feColorMatrix
-                    values="1 0 0 0 0 
-                            0 1 0 0 0 
-                            0 0 1 0 0 
-                            0 0 0 3 0"
-                  ></feColorMatrix>
-                </filter>
-                <filter width="300%" x="-100%" height="300%" y="-100%" id="unopaq3">
-                  <feColorMatrix
-                    values="1 0 0 0.2 0 
-                            0 1 0 0.2 0 
-                            0 0 1 0.2 0 
-                            0 0 0 2 0"
-                  ></feColorMatrix>
-                </filter>
-              </svg>
             </div>
+
+
+
           </div>
+
+          {/* Hidden honeypot field */}
+          <input type="text" name="email_address_check" value="" className="hidden" tabIndex={-1} autoComplete="off" />
+
+          
         </form>
       </div>
     </div>
