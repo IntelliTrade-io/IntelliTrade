@@ -128,11 +128,11 @@ const handleSubmit = async (e: React.FormEvent) => {
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
-    stroke-width="4"
+    strokeWidth="4"
   >
     <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       d="M14 5l7 7m0 0l-7 7m7-7H3"
     ></path>
   </svg>
@@ -145,7 +145,13 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           {/* Hidden honeypot field */}
-          <input type="text" name="email_address_check" value="" className="hidden" tabIndex={-1} autoComplete="off" />
+         <input
+  type="text"
+  name="email_address_check"
+  className="hidden"
+  tabIndex={-1}
+  autoComplete="off"
+/>
 
           
         </form>

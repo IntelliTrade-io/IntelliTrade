@@ -5,7 +5,7 @@ html {
 
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
-  --font-size: 13px;
+  --font-size: 14pt;
   --line-height: 1.4;
   font-family: "Segoe UI Web (West European)", Segoe UI, -apple-system,
     BlinkMacSystemFont, Roboto, Helvetica Neue, sans-serif;
@@ -19,6 +19,7 @@ body {
   background: linear-gradient(180deg, #343434 0%, #252525 100%);
   font-family: "Mona-Sans", sans-serif;
   font-family: "Mona Sans", sans-serif;
+  font-size: 12pt;
 }
 
 .lot-size-container {

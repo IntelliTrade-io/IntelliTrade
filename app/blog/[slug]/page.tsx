@@ -46,12 +46,12 @@ export default async function PostPage({ params }: PostPageProps) {
     : null;
 
   return (
-    
       <div className="flex-1 w-full flex flex-col justify-start items-center">
         
         {/* Blog content */}
-        <div className="flex-1 w-full flex flex-col items-center mt-8 relative z-10 text-white">
-          <div className="px-4 blog-container">
+        <div className="flex-1 w-full flex flex-col items-center mt-8 mb-8 relative z-10 text-white">
+          <div className="px-4 blog-container !w-[80vw]">
+             <div className="button-backdrop"></div>
             <Link href="/" className="hover:underline">
               ← Back to posts
             </Link>
@@ -62,13 +62,13 @@ export default async function PostPage({ params }: PostPageProps) {
                 alt={post.title}
                 width={550}
                 height={310}
-                className="aspect-video rounded-xl"
+                className="aspect-video rounded-xl m-auto"
               />
             )}
 
-            <h1 className="text-4xl font-bold mb-8">{post.title}</h1>
+            <h1 className="text-4xl font-bold mb-8 mt-8 text-center">{post.title}</h1>
 
-            <div className="prose max-w-none">
+            <div className="prose max-w-none text-center">
               <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p>
               {Array.isArray(post.body) && <PortableText value={post.body} />}
             </div>
