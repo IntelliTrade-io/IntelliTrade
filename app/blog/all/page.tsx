@@ -1,5 +1,5 @@
 import { client } from "@/sanity/client";
-import Main from "@/app/blog/Main";
+import Blog from "@/app/blog/page";
 import { type SanityDocument } from "next-sanity";
 
 export default async function AllBlogsPage() {
@@ -45,7 +45,7 @@ export default async function AllBlogsPage() {
         All Blog Posts
       </h1>
       {posts.length > 0 ? (
-        <Main posts={posts} showAll={true} />
+        <Blog posts={posts} showAll={true} />
       ) : (
         <p className="text-center mt-20">
           No posts found. Check your Sanity content or make sure posts have slugs.
