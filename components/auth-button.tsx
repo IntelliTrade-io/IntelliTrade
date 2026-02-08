@@ -29,6 +29,9 @@ export async function AuthButton() {
       <Button asChild size="sm" className="button-class">
         <Link href="/auth/sign-up">Sign up</Link>
       </Button>
+      <Button asChild size="sm" className="button-class button-class-white">
+        <Link href="/about">About</Link>
+      </Button>
     </div>
   );
 }

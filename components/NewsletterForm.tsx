@@ -71,17 +71,18 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="flex">
             <div className="flex flex-col">
               {/* Title */}
-              <div className="py-2">
+              <div className="py-2 w-4/5 mx-auto">
                 <span className="text-[1.5rem] font-bold font-sans text-[#fafafa] text-center">
-                  Subscribe to our newsletter!
+                  Decode macro like a pro
                 </span>
               </div>
 
               {/* Description */}
               <div className="py-2">
                 <p className="text-[1rem] text-base font-sans text-[#f6f7f9] text-center">
-                  Subscribe to receive market updates daily.
+                  Join IntelliTrade and get the Macro Decoder e-book free.
                 </p>
+                
               </div>
             </div>
 
@@ -102,7 +103,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-black"
               />
               <p className="text-xs text-[#f9f9fa] text-center mt-2">
-                Provide your email address to subscribe. For e.g abc@xyz.com
+                No spam. Just the framework and the best updates.
               </p>
               </div>
 
@@ -121,18 +122,18 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z" />
                   </svg>
                 )}
-                {isSubmitting ? "SUBSCRIBING..." : "SUBSCRIBE"}
+                {isSubmitting ? "SUBSCRIBING..." : "Unlock the e-book"}
                 <svg
     xmlns="http://www.w3.org/2000/svg"
     className="h-6 w-6"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
-    stroke-width="4"
+    strokeWidth="4"
   >
     <path
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       d="M14 5l7 7m0 0l-7 7m7-7H3"
     ></path>
   </svg>
@@ -145,7 +146,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
 
           {/* Hidden honeypot field */}
-          <input type="text" name="email_address_check" value="" className="hidden" tabIndex={-1} autoComplete="off" />
+          <input type="text" name="email_address_check" defaultValue="" className="hidden" tabIndex={-1} autoComplete="off" />
 
           
         </form>

@@ -967,6 +967,15 @@ html {
   transition: 100ms;
 }
 
+.button-class-white {
+  background: #d6d6d6;
+  color: #2e2d2d;
+}
+
+.button-class-white:hover {
+  color: #212121;
+  background: #d6d6d6;
+}
 
 .subscribe-button, .read-more-button {
   padding: 0;
