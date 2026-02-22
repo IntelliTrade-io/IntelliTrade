@@ -1,8 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from 'next/link';
 import { motion } from "framer-motion";
 import "@/styles/lot-size-calculator.css";
+
+
+type SectionBullet = {
+  title: string;
+  desc: string;
+};
+
+type Section = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  body?: string[];
+  bullets?: SectionBullet[];
+};
 
 // -----------------------------
 // Hooks (Macro Mastery feel)
@@ -74,7 +90,7 @@ function useActiveSection(sectionIds: string[]) {
 // Page
 // -----------------------------
 export default function AboutPage() {
-  const sections = useMemo(
+const sections = useMemo<Section[]>(
     () => [
       {
         id: "about-intro",
@@ -379,9 +395,9 @@ export default function AboutPage() {
                           ))}
                         </div>
 
-                        {!!(s as any).bullets?.length && (
+                        {!!s.bullets?.length && (
                           <div className="mt-8 grid gap-4 md:grid-cols-2">
-                            {(s as any).bullets.map((b: any, idx: number) => (
+                            {s.bullets.map((b, idx) => (
                               <div
                                 key={idx}
                                 className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl"
@@ -399,18 +415,18 @@ export default function AboutPage() {
 
                         {isHero && (
                           <div className="mt-8 flex flex-wrap gap-3">
-                            <a
+                            <Link
                               href="/lotsizecalculator"
                               className="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(90deg,#1FE4FF,rgba(31,228,255,0.15))] px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95"
                             >
                               Try the calculator
-                            </a>
-                            <a
+                            </Link>
+                            <Link
                               href="/blog"
                               className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-100 transition hover:bg-white/10"
                             >
                               Read the blog
-                            </a>
+                            </Link>
                           </div>
                         )}
                       </>
