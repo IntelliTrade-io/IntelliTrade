@@ -42,7 +42,7 @@ export default function Footer() {
           <div>{` • `}</div>
           <Link href="/cookieStatement">Cookie statement</Link>
           <div>{` • `}</div>
-          <Link href="termsOfService">Terms of service</Link>
+          <Link href="/termsOfService">Terms of service</Link>
         </div>
         <div className="mb-8 text-sm">
          
