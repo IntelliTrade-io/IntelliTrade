@@ -1,215 +1,288 @@
-"use client"
+"use client";
 
-import "../../styles/lot-size-calculator.css";
+import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import "@/styles/lot-size-calculator.css";
 
-export default function TermsOfServicePage() {
-    return (
-        <div className="flex-1 w-full flex flex-col justify-center items-center">
-            <div className="!w-[80vw] lg:!w-[50vw] mt-8 mb-8 px-4 container backdrop-blur-[1px]">
-                <div className="body overflow-y-auto max-h-[80vh]">
+// -----------------------------
+// Hooks
+// -----------------------------
+function useScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const scrollTop = window.scrollY || doc.scrollTop || 0;
+      const scrollHeight = doc.scrollHeight || 1;
+      const clientHeight = window.innerHeight || doc.clientHeight || 1;
+      const denom = Math.max(1, scrollHeight - clientHeight);
+      setProgress(Math.min(1, Math.max(0, scrollTop / denom)));
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return progress;
+}
 
-                    <div className="body-header"><span>Terms of Service for IntelliTrade.tech</span></div>
-                    <div className="body-row">
-                        <ul>
-                        <li>Effective date: November 1, 2025</li>
-                        <li>Welcome to IntelliTrade.tech. These Terms of Service (the “Terms”) govern your access to and use of our websites, applications, tools, data, content, and services (collectively, the “Service”). By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not use the Service.</li>
-                    </ul>
-                    </div>
-
-                    <div className="body-header"><span>1. Overview and Acceptance</span></div>
-                    <div className="body-row">
-                        <p>These Terms form a binding contract between you and IntelliTrade Technologies, the operator of IntelliTrade.tech. If you are using the Service on behalf of a company or other entity, you represent that you have authority to bind that entity, in which case “you” means that entity.</p>
-                    </div>
-
-                    <div className="body-header"><span>2. Definitions</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li><strong>Account:</strong> a registered user profile that allows access to certain features.</li>
-                            <li><strong>Content:</strong> text, images, video, audio, code, data, and other materials available through the Service.</li>
-                            <li><strong>Output:</strong> insights, calculations, or other results produced by the Service, including AI‑generated outputs.</li>
-                            <li><strong>Subscription:</strong> a paid plan that provides access to premium features for a recurring period.</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>3. Eligibility</span></div>
-                    <div className="body-row">
-                        <p>You must be at least 18 years of age and capable of entering into a binding contract to use the Service.</p>
-                    </div>
-
-                    <div className="body-header"><span>4. Account Registration and Security</span></div>
-                    <div className="body-row">
-                        <p>You may need an Account to use some features. Provide accurate information and keep it current. You are responsible for maintaining the confidentiality of your credentials and for all activity under your Account. Notify us immediately of suspected unauthorized use.</p>
-                    </div>
-
-                    <div className="body-header"><span>5. The Service; Tools and Data</span></div>
-                    <div className="body-row">
-                        <p>The Service currently includes a premium Lot Size Calculator and may include additional tools such as economic calendars, market news feeds, widgets, trading alerts, AI assistants, and educational content. Some features may depend on third‑party data or services. We may add, modify, or discontinue features at any time.</p>
-                    </div>
-
-                    <div className="body-header"><span>6. No Financial Advice; Risk Disclosure</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>IntelliTrade does not provide investment, financial, legal, tax, or other professional advice.</li>
-                            <li>All tools, calculators, content, and AI outputs are for educational and informational purposes only.</li>
-                            <li>They do not constitute an offer or solicitation to buy or sell any financial instrument.</li>
-                            <li>Trading involves substantial risk. Past performance, including hypothetical or back‑tested results, does not guarantee future outcomes. You are solely responsible for your decisions and for verifying any Output before acting.</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>7. Market Data, Third‑Party Services, and Outages</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>Data and content may be provided by third parties. They may be delayed, incomplete, inaccurate, interrupted, or unavailable.</li>
-                            <li>We do not control third-party services and are not responsible for their availability, accuracy, or fees.</li>
-                            <li>The Service may experience maintenance windows, network problems, or outages. We do not guarantee continuous operation.</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>8. Acceptable Use</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>Violate any applicable law, regulation, or sanction.</li>
-                            <li>Scrape, spider, harvest, bulk download, or otherwise copy data or Content except as expressly permitted.</li>
-                            <li>Circumvent rate limits, access controls, or security features.</li>
-                            <li>Reverse engineer, decompile, or attempt to extract source code.</li>
-                            <li>Introduce malware or interfere with the Service’s operation.</li>
-                            <li>Use the Service to provide regulated financial advice or to operate a competing service without written consent.</li>
-                            <li>Resell, sublicense, or white‑label the Service without our written permission.</li>
-                            <li>Frame, mirror, or otherwise impersonate the Service.</li>
-                            <li>We may monitor and throttle usage to protect the Service.</li>
-                        </ul>
-                        
-                    </div>
-
-                    <div className="body-header"><span>9. Plans, Billing, Taxes, Refunds, and Cancellations</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>Auto-renewal: Paid Subscriptions renew by default for the same term unless you cancel.</li>
-                            <li>How to cancel: You can cancel at any time in Account Settings. Cancellation takes effect at the end of the current billing period and you will retain access until then.</li>
-                            <li>Refunds: No refunds are provided for partial periods except where required by law.</li>
-                            <li>Trials and promo codes: If provided, we may limit eligibility and duration. Trials convert to paid plans unless canceled before the end of the trial.</li>
-                            <li>Price changes: We may change prices with at least 30 days’ notice by email or in-app notice.</li>
-                            <li>Taxes and VAT: Prices exclude taxes unless stated. You are responsible for any applicable taxes and VAT.</li>
-                            <li>Chargebacks: Filing a chargeback may result in immediate suspension of your Account.</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>10. Intellectual Property; License; Feedback</span></div>
-                    <div className="body-row">
-                        <p>The Service, including Content, design, software, data models, and branding, is owned by IntelliTrade or its licensors and is protected by intellectual property laws. We grant you a limited, non‑exclusive, non‑transferable, revocable license to use the Service for your personal or internal business purposes in accordance with these Terms. We may use any feedback you provide without restriction or obligation.</p>
-                    </div>
-
-                    <div className="body-header"><span>11. User Content; Notice-and-Takedown</span></div>
-                    <div className="body-row">
-                        <p>If you upload or submit content, you represent that you have the rights to do so and that your content does not violate law or third-party rights. We may remove content that we believe violates these Terms. For IP complaints or takedown requests, contact info@intellitrade.tech with your contact details, a description of the work and the allegedly infringing material, the location URL, a statement of good-faith belief, and a statement made under penalty of perjury that you are authorized to act. We will respond promptly in accordance with applicable law.</p>
-                    </div>
-
-                    <div className="body-header"><span>12. Privacy, Cookies, and Communications</span></div>
-                    <div className="body-row">
-                        <p>Your use of the Service is subject to our Privacy Policy and Cookie Policy. These explain what data we collect, how we use it, and your choices. We may send you transactional emails related to your Account and Service. Where required, we will obtain consent for marketing communications and cookies.</p>
-                    </div>
-
-                    <div className="body-header"><span>13. AI Outputs & Automation</span></div>
-                    <div className="body-row">
-                        <p>AI features may generate incorrect, incomplete, or inappropriate outputs. You must review and validate outputs and not rely on them as the sole basis for trading or financial decisions. You are responsible for human oversight of any automated actions you enable.</p>
-                    </div>
-
-                    <div className="body-header"><span>14. Disclaimer of Warranties</span></div>
-                    <div className="body-row">
-                        <p>The Service, including all Content, tools, data, and AI-generated outputs, is provided “as is” and “as available.” To the maximum extent permitted by law, IntelliTrade disclaims all warranties, express or implied, including merchantability, fitness for a particular purpose, accuracy, non-infringement, and non-interruption. You assume all risk of use.</p>
-                    </div>
-
-                    <div className="body-header"><span>15. Limitation of Liability</span></div>
-                    <div className="body-row">
-                        <p>To the maximum extent permitted by law, IntelliTrade will not be liable for any indirect, incidental, special, punitive, or consequential damages, or for lost profits, revenues, data, goodwill, or business interruption. In any event, IntelliTrade’s aggregate liability for all claims relating to the Service will not exceed the amounts you paid to IntelliTrade for the Service during the twelve months before the event giving rise to liability. Nothing in these Terms excludes liability that cannot be excluded by law.</p>
-                    </div>
-
-                    <div className="body-header"><span>16. Indemnification</span></div>
-                    <div className="body-row">
-                        <p>You will indemnify, defend, and hold harmless IntelliTrade and its officers, directors, employees, and agents from and against any claims, liabilities, damages, losses, and expenses, including reasonable legal fees, arising out of or in any way connected with your use of the Service, your violation of these Terms, your violation of law, or your infringement of any third-party right.</p>
-                    </div>
-
-                    <div className="body-header"><span>17. Compliance, Sanctions, and Export Control</span></div>
-                    <div className="body-row">
-                        <p>You may not use the Service if you are subject to sanctions or are in a country embargoed by the EU, the United States, or other applicable jurisdictions. You agree to comply with all export control and sanctions laws and to ensure that the Service is not used for prohibited purposes.</p>
-                    </div>
-
-                    <div className="body-header"><span>18. Beta and Experimental Features</span></div>
-                    <div className="body-row">
-                        <p>From time to time we may offer beta or experimental features. These may be incomplete, may change, and may be withdrawn at any time. They are provided as is and are subject to these Terms.</p>
-                    </div>
-
-                    <div className="body-header"><span>19. Termination and Suspension</span></div>
-                    <div className="body-row">
-                        <p>We may suspend or terminate your access to the Service at any time if we believe you have violated these Terms or pose a risk to the Service or other users. You may stop using the Service at any time. Sections that by their nature should survive termination will survive, including Sections 10 through 28.</p>
-                    </div>
-
-                    <div className="body-header"><span>20. Governing Law and Venue</span></div>
-                    <div className="body-row">
-                        <p>These Terms are governed by the laws of the Netherlands. The courts of Amsterdam, the Netherlands have exclusive jurisdiction and venue for disputes, subject to any mandatory consumer protections that apply in your country of residence.</p>
-                    </div>
-
-                    <div className="body-header"><span>21. EU and EEA Consumer Information</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>You may have statutory rights that cannot be waived.</li>
-                            <li>You may bring claims in the courts of your place of residence where required by law.</li>
-                            <li>You can access the European Commission’s Online Dispute Resolution platform at <a href="https://ec.europa.eu/odr" className="text-blue-600 underline">https://ec.europa.eu/odr</a>.</li>
-                            <li>For digital content delivered immediately upon purchase, the 14-day withdrawal right may not apply once delivery begins with your express consent.</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>22. Force Majeure</span></div>
-                    <div className="body-row">
-                        <p>We will not be liable for delays or failures caused by events beyond our reasonable control, including natural disasters, acts of government, labor disputes, internet failures, and third-party service outages.</p>
-                    </div>
-
-                    <div className="body-header"><span>23. Assignment</span></div>
-                    <div className="body-row">
-                        <p>You may not assign or transfer these Terms or your rights under them without our prior written consent. We may assign these Terms in connection with a merger, acquisition, corporate reorganization, or sale of assets.</p>
-                    </div>
-
-                    <div className="body-header"><span>24. Severability</span></div>
-                    <div className="body-row">
-                        <p>If any provision is held to be invalid or unenforceable, the remaining provisions will remain in full force and effect.</p>
-                    </div>
-
-                    <div className="body-header"><span>25. Waiver</span></div>
-                    <div className="body-row">
-                        <p>Failure to enforce a provision is not a waiver of our right to enforce it later.</p>
-                    </div>
-
-                    <div className="body-header"><span>26. Notices</span></div>
-                    <div className="body-row">
-                        <p>We may provide notices by email, in-app messages, or by posting on the Service. You consent to receive notices electronically.</p>
-                    </div>
-
-                    <div className="body-header"><span>27. Changes to These Terms</span></div>
-                    <div className="body-row">
-                        <p>We may modify these Terms. Material changes will be notified at least 14 days before they take effect, by email or in-app notice. Your continued use of the Service after the effective date constitutes acceptance of the changes.</p>
-                    </div>
-
-                    <div className="body-header"><span>28. Contact and Legal Entity Information</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>Operator: IntelliTrade Technologies</li>
-                            <li>Business correspondence address: Parnassusweg 298, 1076 AV Amsterdam, Netherlands</li>
-                            <li>Email: info@intellitrade.tech</li>
-                        </ul>
-                    </div>
-
-                    <div className="body-header"><span>Summary of Key Disclaimers</span></div>
-                    <div className="body-row">
-                        <ul>
-                            <li>No financial advice and no fiduciary duty.</li>
-                            <li>AI outputs and market data may be incorrect or delayed.</li>
-                            <li>Service provided as is without warranties.</li>
-                            <li>Liability is limited and you are responsible for your decisions.</li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-        </div>
+function useActiveSection(sectionIds: string[]) {
+  const [activeId, setActiveId] = useState(sectionIds?.[0] ?? "");
+  useEffect(() => {
+    if (!sectionIds?.length) return;
+    const els = sectionIds.map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0));
+        if (visible[0]?.target && (visible[0].target as HTMLElement).id) {
+          setActiveId((visible[0].target as HTMLElement).id);
+        }
+      },
+      { root: null, rootMargin: "-25% 0px -55% 0px", threshold: [0.05, 0.2] }
     );
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [sectionIds]);
+  return activeId;
+}
+
+// -----------------------------
+// Page Component
+// -----------------------------
+export default function TermsOfServicePage() {
+  const sections = useMemo(
+    () => [
+      {
+        id: "tos-welcome",
+        eyebrow: "LEGAL • TERMS",
+        title: "Terms of Service",
+        subtitle: "Effective date: November 1, 2025",
+        body: [
+          "Welcome to IntelliTrade.tech. These Terms of Service (the “Terms”) govern your access to and use of our websites, applications, tools, data, and content.",
+          "By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, you must immediately cease use of the Service.",
+        ],
+      },
+      {
+        id: "tos-definitions",
+        eyebrow: "SECTION 02",
+        title: "Definitions",
+        bullets: [
+          { title: "Account", desc: "A registered user profile that allows access to certain platform features." },
+          { title: "Content", desc: "Text, images, video, audio, code, and data available through the Service." },
+          { title: "Output", desc: "Insights, calculations, or results produced by the Service, including AI-generated data." },
+          { title: "Subscription", desc: "A paid plan providing access to premium features for a recurring period." },
+        ],
+      },
+      {
+        id: "tos-accounts",
+        eyebrow: "SECTION 03-04",
+        title: "Eligibility & Security",
+        body: [
+          "You must be at least 18 years of age and capable of entering into a binding contract to use the Service.",
+          "You are responsible for maintaining the confidentiality of your credentials. Notify us immediately of any suspected unauthorized use of your Account.",
+        ],
+      },
+      {
+        id: "tos-risk",
+        eyebrow: "IMPORTANT • RISK",
+        title: "No Financial Advice",
+        body: [
+          "IntelliTrade does not provide investment, financial, legal, or tax advice. All tools and AI outputs are for educational and informational purposes only.",
+          "Trading involves substantial risk. You are solely responsible for your decisions and for verifying any Output before acting.",
+        ],
+        bullets: [
+          { title: "No Solicitation", desc: "Our tools do not constitute an offer to buy or sell any financial instrument." },
+          { title: "Past Performance", desc: "Hypothetical or back-tested results do not guarantee future outcomes." },
+        ],
+      },
+      {
+        id: "tos-usage",
+        eyebrow: "SECTION 08",
+        title: "Acceptable Use",
+        body: ["You agree not to engage in the following prohibited activities:"],
+        bullets: [
+          { title: "Data Scraping", desc: "Bulk downloading, harvesting, or scraping data without express permission." },
+          { title: "Reverse Engineering", desc: "Attempting to extract source code or bypass security controls." },
+          { title: "Commercial Abuse", desc: "Reselling or white-labeling the Service without written consent." },
+          { title: "Malicious Acts", desc: "Introducing malware or interfering with Service operation." },
+        ],
+      },
+      {
+        id: "tos-billing",
+        eyebrow: "SECTION 09",
+        title: "Billing & Refunds",
+        bullets: [
+          { title: "Auto-Renewal", desc: "Paid plans renew automatically unless canceled in Account Settings." },
+          { title: "Refunds", desc: "No refunds are provided for partial periods except where required by law." },
+          { title: "Price Changes", desc: "We may modify pricing with 30 days’ notice via email or in-app notice." },
+          { title: "Chargebacks", desc: "Filing a chargeback may result in immediate account suspension." },
+        ],
+      },
+      {
+        id: "tos-ip",
+        eyebrow: "SECTION 10-11",
+        title: "Intellectual Property",
+        body: [
+          "The Service and its design, software, and data models are owned by IntelliTrade or its licensors.",
+          "We grant you a limited, non-exclusive, revocable license for personal or internal business use. We reserve the right to remove User Content that violates these Terms.",
+        ],
+      },
+      {
+        id: "tos-ai-data",
+        eyebrow: "SECTION 12-13",
+        title: "AI & Privacy",
+        body: [
+          "AI features may generate incorrect or incomplete outputs. You must maintain human oversight for any automated actions.",
+          "Your data is handled according to our Privacy and Cookie Policies. Transactional emails are sent as part of the Service.",
+        ],
+      },
+      {
+        id: "tos-liability",
+        eyebrow: "SECTION 14-16",
+        title: "Liability & Indemnity",
+        body: [
+          "The Service is provided 'AS IS'. To the maximum extent permitted by law, IntelliTrade disclaims all warranties and shall not be liable for indirect or consequential damages.",
+          "Our aggregate liability is limited to the amount paid by you for the Service during the previous 12 months.",
+        ],
+      },
+      {
+        id: "tos-legal-venue",
+        eyebrow: "SECTION 20-21",
+        title: "Governing Law",
+        body: [
+          "These Terms are governed by the laws of the Netherlands. The courts of Amsterdam have exclusive jurisdiction.",
+          "EU Consumers: You may access the Online Dispute Resolution platform at https://ec.europa.eu/odr.",
+        ],
+      },
+      {
+        id: "tos-provisions",
+        eyebrow: "SECTION 22-27",
+        title: "Final Provisions",
+        bullets: [
+          { title: "Force Majeure", desc: "We are not liable for failures beyond our reasonable control (natural disasters, outages)." },
+          { title: "Changes", desc: "Material changes to Terms will be notified 14 days in advance." },
+          { title: "Severability", desc: "If any provision is held invalid, the remainder remains in full effect." },
+        ],
+      },
+      {
+        id: "tos-summary",
+        eyebrow: "SUMMARY",
+        title: "Key Disclaimers",
+        bullets: [
+          { title: "No Fiduciary Duty", desc: "We do not act as your financial advisor." },
+          { title: "Data Accuracy", desc: "Market data may be delayed or incorrect." },
+          { title: "Risk of Loss", desc: "You assume all risks associated with trading decisions." },
+        ],
+      },
+    ],
+    []
+  );
+
+  const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
+  const activeId = useActiveSection(sectionIds);
+  const progress = useScrollProgress();
+
+  const handleNavClick = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <div className="relative min-h-screen bg-black text-slate-100">
+      <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
+        <div
+          className="h-full bg-gradient-to-r from-[#1FE4FF] via-[#7F5CFF] to-[#1FE4FF]"
+          style={{ width: `${progress * 100}%`, transition: "width 120ms linear" }}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto flex max-w-6xl gap-8 px-4 pb-32 pt-8 lg:px-8 lg:pt-16">
+        {/* Navigation Sidebar */}
+        <aside className="hidden w-64 shrink-0 lg:block">
+          <div className="sticky top-24 space-y-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">AGREEMENT</p>
+              <h1 className="mt-2 text-sm font-medium text-slate-100">Terms</h1>
+            </div>
+            <div className="h-px bg-white/10" />
+            <nav className="space-y-2 text-sm">
+              {sections.map((s) => {
+                const isActive = s.id === activeId;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => handleNavClick(s.id)}
+                    className={[
+                      "group flex w-full flex-col items-start rounded-xl px-3 py-2 text-left transition",
+                      isActive ? "bg-white/10" : "hover:bg-white/5",
+                    ].join(" ")}
+                  >
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-teal-300/80">{s.eyebrow}</span>
+                    <span className="mt-1 text-[13px] font-medium text-slate-100 group-hover:text-white">{s.title}</span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </aside>
+
+        {/* Content Area */}
+        <main className="flex-1 space-y-16">
+          {sections.map((s, index) => (
+            <section key={s.id} id={s.id} className="scroll-mt-28 relative">
+              <motion.div
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
+                transition={{ duration: 0.6, delay: index * 0.04 }}
+                className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:p-10"
+              >
+                <div className="radial-backdrop" />
+
+                <div className="relative z-10">
+                  <div className="inline-flex items-center rounded-full border border-teal-400/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-teal-200/90">
+                    {s.eyebrow}
+                  </div>
+
+                  <h3 className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
+                    {s.title}
+                  </h3>
+
+                  {s.subtitle && <p className="mt-2 text-sm font-medium text-slate-400">{s.subtitle}</p>}
+
+                  <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90">
+                    {s.body?.map((p, idx) => (
+                      <p key={idx}>{p}</p>
+                    ))}
+                  </div>
+
+                  {s.bullets && (
+                    <div className="mt-8 grid gap-4 md:grid-cols-2">
+                      {s.bullets.map((b, idx) => (
+                        <div key={idx} className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-teal-200/90">{b.title}</p>
+                          <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">{b.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </section>
+          ))}
+          
+          {/* Footer Contact */}
+          <div className="px-6 py-12 text-center">
+             <p className="text-sm text-slate-400">Questions? Contact us at <a href="mailto:info@intellitrade.tech" className="text-teal-300">info@intellitrade.tech</a></p>
+             <p className="mt-2 text-xs text-slate-500">Parnassusweg 298, 1076 AV Amsterdam, Netherlands</p>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 }
