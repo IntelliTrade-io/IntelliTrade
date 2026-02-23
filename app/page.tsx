@@ -3,6 +3,7 @@ import Main from "@/app/blog/Main";
 import { type SanityDocument } from "next-sanity";
 
 export default async function BlogPage() {
+  // 1. Added "mainImage" to the query
   const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
     | order(coalesce(publishedAt, "1970-01-01") desc)[0...12]{
       _id,
@@ -10,7 +11,8 @@ export default async function BlogPage() {
       slug,
       publishedAt,
       summary,
-      tags
+      tags,
+      image // <--- Fetch the image object from Sanity
   }`;
 
   let posts: {
@@ -19,7 +21,11 @@ export default async function BlogPage() {
     title: string;
     summary: string;
     tags: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    image?: any; // 2. Added image to the type definition
   }[] = [];
+
+  
 
   try {
     const rawPosts: SanityDocument[] = await client.fetch(
@@ -28,13 +34,15 @@ export default async function BlogPage() {
       { next: { revalidate: 30 } }
     );
 
-    posts = rawPosts.map((post) => ({
+  posts = rawPosts.map((post) => ({
       slug: post.slug?.current || "",
       date: post.publishedAt || new Date().toISOString(),
       title: post.title || "",
       summary: post.summary || "",
       tags: post.tags || [],
+      image: post.image || null, // <--- Map the image field
     }));
+    
   } catch (err) {
     console.error("Error fetching posts from Sanity:", err);
   }

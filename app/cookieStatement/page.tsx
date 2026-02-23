@@ -177,7 +177,7 @@ export default function CookieStatementPage() {
                       isActive ? "bg-white/10" : "hover:bg-white/5",
                     ].join(" ")}
                   >
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-teal-300/80">{s.eyebrow}</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-brandLight/80">{s.eyebrow}</span>
                     <span className="mt-1 text-[13px] font-medium text-slate-100 group-hover:text-white">{s.title}</span>
                   </button>
                 );
@@ -201,7 +201,7 @@ export default function CookieStatementPage() {
                 <div className="radial-backdrop" />
 
                 <div className="relative z-10">
-                  <div className="inline-flex items-center rounded-full border border-teal-400/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-teal-200/90">
+                  <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90">
                     {s.eyebrow}
                   </div>
 
@@ -221,7 +221,7 @@ export default function CookieStatementPage() {
                     <div className="mt-8 grid gap-4 md:grid-cols-2">
                       {s.bullets.map((b, idx) => (
                         <div key={idx} className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-teal-200/90">{b.title}</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand/90">{b.title}</p>
                           <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">{b.desc}</p>
                         </div>
                       ))}
