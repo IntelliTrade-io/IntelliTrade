@@ -275,7 +275,7 @@ const sections = useMemo<Section[]>(
                       isActive ? "bg-white/10" : "hover:bg-white/5",
                     ].join(" ")}
                   >
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-teal-300/80">
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-brand/80">
                       {s.eyebrow}
                     </span>
                     <span className="mt-1 text-[13px] font-medium text-slate-100 group-hover:text-white">
@@ -314,7 +314,7 @@ const sections = useMemo<Section[]>(
 
                   {/* 2. Wrap content in relative z-10 to sit above backdrop */}
                   <div className="relative z-10">
-                    <div className="inline-flex items-center rounded-full border border-teal-400/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-teal-200/90">
+                    <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90">
                       {s.eyebrow}
                     </div>
 
@@ -352,7 +352,7 @@ const sections = useMemo<Section[]>(
                               <button
                                 type="submit"
                                 disabled={ctaStatus === "sending"}
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-[linear-gradient(90deg,#1FE4FF,#7F5CFF,#1FE4FF)] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95 disabled:opacity-60"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-[linear-gradient(90deg,rgb(124,58,237),#1FE4FF,rgb(124,58,237))] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95 disabled:opacity-60"
                               >
                                 {ctaStatus === "sending"
                                   ? "Unlocking..."
@@ -361,7 +361,7 @@ const sections = useMemo<Section[]>(
                             </div>
                           </div>
                           {ctaStatus === "success" && (
-                            <p className="text-[13px] text-teal-200/90">
+                            <p className="text-[13px] text-brand/90">
                               Success. Check your inbox shortly.
                             </p>
                           )}
@@ -402,7 +402,7 @@ const sections = useMemo<Section[]>(
                                 key={idx}
                                 className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl"
                               >
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-teal-200/90">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand/90">
                                   {b.title}
                                 </p>
                                 <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">
@@ -417,12 +417,12 @@ const sections = useMemo<Section[]>(
                           <div className="mt-8 flex flex-wrap gap-3">
                             <Link
                               href="/lotsizecalculator"
-                              className="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(90deg,#1FE4FF,rgba(31,228,255,0.15))] px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95"
+                              className="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(90deg,rgb(124,58,237),rgba(99,102,241,0.15))] px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95"
                             >
                               Try the calculator
                             </Link>
                             <Link
-                              href="/blog"
+                              href="/blog/all"
                               className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-100 transition hover:bg-white/10"
                             >
                               Read the blog

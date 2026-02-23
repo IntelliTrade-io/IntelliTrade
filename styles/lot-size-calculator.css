@@ -1,3 +1,13 @@
+:root {
+  /* Electric Indigo - A sharp, professional trading violet */
+  /* --brand-primary: 99 102 241;  */
+  
+  /* Alternative: Deep Purple (more "Mastery" feel) */
+  --brand-primary: 124 58 237;
+  --brand-primary-light: 187 68 240;
+}
+
+
 html {
   --font-family-standard: system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif,
@@ -54,11 +64,6 @@ body {
   border: none;
 }
 
-.footer-div {
-  position: relative;
-  margin-bottom: 0px;
-  padding: 3vh 0px;
-}
 
 .navigation-div::before {
   content: "";
@@ -78,6 +83,13 @@ body {
   z-index: -1;
   background-color: rgba(36, 40, 50, 0.8);
   background-blend-mode: multiply;
+}
+
+
+.footer-div {
+  position: relative;
+  margin-bottom: 0px;
+  padding: 3vh 0px;
 }
 
 .footer-div::before {
@@ -1332,3 +1344,6 @@ html {
 }
 
 
+.purple-text {
+  color: #281d46;
+}

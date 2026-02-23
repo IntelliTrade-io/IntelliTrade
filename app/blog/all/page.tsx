@@ -1,25 +1,20 @@
 import { client } from "@/sanity/client";
-import Main from "@/app/blog/Main";
 import { type SanityDocument } from "next-sanity";
+import BlogClientPage from "./BlogClientPage";
 
 export default async function AllBlogsPage() {
-  const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
-    | order(coalesce(publishedAt, "1970-01-01") desc){
-      _id,
-      title,
-      slug,
-      publishedAt,
-      summary,
-      tags
+  // 1. Updated query to use "image" and "publishedAt"
+  const POSTS_QUERY = `*[_type == "post"] | order(publishedAt desc) {
+    title,
+    summary,
+    "date": publishedAt,
+    "slug": slug.current,
+    tags,
+    image // <--- Updated to match your Sanity field name
   }`;
 
-  let posts: {
-    slug: string;
-    date: string;
-    title: string;
-    summary: string;
-    tags: string[];
-  }[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let posts: any[] = [];
 
   try {
     const rawPosts: SanityDocument[] = await client.fetch(
@@ -29,28 +24,19 @@ export default async function AllBlogsPage() {
     );
 
     posts = rawPosts.map((post) => ({
-      slug: post.slug?.current || "",
-      date: post.publishedAt || new Date().toISOString(),
+      slug: post.slug || "",
+      // Fallback to today if date is missing
+      date: post.date || new Date().toISOString(),
       title: post.title || "",
       summary: post.summary || "",
       tags: post.tags || [],
+      // 2. THIS IS THE KEY: Pass the image object to the map
+      image: post.image || null, 
     }));
   } catch (err) {
     console.error("Error fetching posts from Sanity:", err);
   }
 
-  return (
-    <div className="flex-1 w-full flex flex-col items-center mt-8 px-4 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-8 text-white text-center pt-5">
-        All Blog Posts
-      </h1>
-      {posts.length > 0 ? (
-        <Main posts={posts} showAll={true} />
-      ) : (
-        <p className="text-center mt-20">
-          No posts found. Check your Sanity content or make sure posts have slugs.
-        </p>
-      )}
-    </div>
-  );
+  // Pass the data to the Client Component
+  return <BlogClientPage initialPosts={posts} />;
 }
