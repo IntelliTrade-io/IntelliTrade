@@ -11,7 +11,7 @@ export function EnvVarWarning() {
         <Button size="sm" variant={"outline"} disabled>
           Sign in
         </Button>
-        <Button size="sm" variant={"default"} disabled>
+        <Button size="sm" variant={"outline"} disabled>
           Sign up
         </Button>
       </div>
