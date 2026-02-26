@@ -147,7 +147,7 @@ export default function CookieStatementPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-slate-100">
+    <div className="relative min-h-screen text-slate-100">
       {/* Top progress bar */}
       <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
         <div
@@ -177,7 +177,7 @@ export default function CookieStatementPage() {
                       isActive ? "bg-white/10" : "hover:bg-white/5",
                     ].join(" ")}
                   >
-                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-brandLight/80">{s.eyebrow}</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.26em] text-brand/80">{s.eyebrow}</span>
                     <span className="mt-1 text-[13px] font-medium text-slate-100 group-hover:text-white">{s.title}</span>
                   </button>
                 );
@@ -195,7 +195,7 @@ export default function CookieStatementPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
                 transition={{ duration: 0.6, delay: index * 0.04 }}
-                className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:p-10"
+                className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
               >
                 {/* BACKDROP APPLIED TO EVERY SECTION */}
                 <div className="radial-backdrop" />
