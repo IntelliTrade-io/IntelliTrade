@@ -238,7 +238,7 @@ const sections = useMemo<Section[]>(
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-black via-black to-black text-slate-100">
+    <div className="relative min-h-screen bg-gradient-to-b text-slate-100">
       {/* Top progress bar */}
       <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
         <div
@@ -306,7 +306,7 @@ const sections = useMemo<Section[]>(
                   viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
                   transition={{ duration: 0.6, delay: index * 0.04 }}
                   // Added relative and overflow-hidden here so the absolute backdrop stays contained
-                  className="relative overflow-hidden rounded-3xl border border-white/20  bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] backdrop-blur-2xl md:p-10"
+                  className="relative overflow-hidden rounded-3xl border border-white/20  bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
                 >
                   {/* 1. THE BACKDROP IS PLACED HERE */}
                   {/* Because it is inside the motion.div, it animates with opacity */}
