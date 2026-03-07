@@ -6,7 +6,7 @@ import NewsletterForm from '../NewsletterForm'
 
 export default function Footer() {
   return (
-    <footer className='z-10 flex items-center justify-around relative text-white mt-[2vh] mb-[2vh] footer-div'>
+<footer className="z-10 flex flex-col md:flex-row items-center justify-around relative text-white mt-[2vh] mb-[2vh] footer-div">
       {siteMetadata.newsletter?.provider && (
         <div className="flex items-center justify-center">
           {/* <NewsletterForm />
