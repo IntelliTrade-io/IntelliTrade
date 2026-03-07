@@ -20,18 +20,25 @@ export default function Page() {
   const [events, setEvents] = useState<EconEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  
+
   // Toggle states for each impact level
   const [showHigh, setShowHigh] = useState(true);
   const [showMedium, setShowMedium] = useState(true);
   const [showLow, setShowLow] = useState(true);
-  
+
   // Currency filter state
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+
   // Track which items are animating out
   const [hiddenItems, setHiddenItems] = useState<Set<string>>(new Set());
+
+  // Live countdown ticker
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -57,6 +64,22 @@ export default function Page() {
   const timeInZone = (iso: string, tz?: string) =>
     new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", timeZone: tz || "UTC" })
       .format(new Date(iso));
+
+  const dateInZone = (iso: string, tz?: string) =>
+    new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", timeZone: tz || "UTC" })
+      .format(new Date(iso));
+
+  const formatCountdown = (iso: string) => {
+    const diff = new Date(iso).getTime() - now;
+    if (diff <= 0) return "now";
+    const totalSeconds = Math.floor(diff / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${seconds}s`;
+    return `${seconds}s`;
+  };
 
   // Get unique currencies from events
   const availableCurrencies = Array.from(
@@ -107,12 +130,12 @@ export default function Page() {
     if (e.impact === "High" && !showHigh) return false;
     if (e.impact === "Medium" && !showMedium) return false;
     if (e.impact === "Low" && !showLow) return false;
-    
+
     // Check currency filter (if any currencies are selected)
     if (selectedCurrencies.length > 0 && e.country && !selectedCurrencies.includes(e.country)) {
       return false;
     }
-    
+
     return true;
   };
 
@@ -136,7 +159,7 @@ export default function Page() {
 
   return (
     <div className="flex-1 w-full flex justify-center items-center">
-      <div className="!w-[80vw] lg:!w-[25vw] mt-8 mb-8 lot-size-container backdrop-blur-[1px] ml-5">
+      <div className="!w-[80vw] lg:!w-[25vw] mt-8 mb-8 lot-size-container backdrop-blur-[1px] border border-white/20 ml-5">
         <div className="button-backdrop"></div>
         <div className="top-light"></div>
         <div className="body">
@@ -145,8 +168,8 @@ export default function Page() {
             <div className="toggle-div">
               <div className="checkbox-wrapper-59">
                 <label className="switch">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={showHigh}
                     onChange={(e) => setShowHigh(e.target.checked)}
                   />
@@ -159,7 +182,7 @@ export default function Page() {
             <div className="toggle-div">
               <div className="checkbox-wrapper-59">
                 <label className="switch">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={showMedium}
                     onChange={(e) => setShowMedium(e.target.checked)}
@@ -173,7 +196,7 @@ export default function Page() {
             <div className="toggle-div">
               <div className="checkbox-wrapper-59">
                 <label className="switch">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={showLow}
                     onChange={(e) => setShowLow(e.target.checked)}
@@ -190,51 +213,37 @@ export default function Page() {
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full px-3 py-2 rounded text-sm text-left flex justify-between items-center"
-                style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: 'rgb(191, 191, 191)',
-                }}
+                className="w-full px-3 py-2 rounded-xl text-sm text-left flex justify-between items-center bg-white/5 border border-white/20 text-slate-300 hover:bg-white/10 transition"
               >
                 <span>
-                  {selectedCurrencies.length === 0 
-                    ? 'Select currencies...' 
+                  {selectedCurrencies.length === 0
+                    ? 'Select currencies...'
                     : `${selectedCurrencies.length} selected`}
                 </span>
-                <span>{isDropdownOpen ? '▲' : '▼'}</span>
+                <span className="text-xs opacity-60">{isDropdownOpen ? '▲' : '▼'}</span>
               </button>
-              
+
               {isDropdownOpen && (
-                <div 
-                  className="absolute w-full mt-1 rounded overflow-hidden z-10"
-                  style={{
-                    backgroundColor: 'rgba(30, 30, 30, 0.95)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                  }}
-                >
+                <div className="absolute w-full mt-1 rounded-xl overflow-hidden z-10 bg-slate-900/95 border border-white/20 max-h-48 overflow-y-auto">
                   {availableCurrencies.map((currency) => (
                     <label
                       key={currency}
-                      className="flex items-center px-3 py-2 cursor-pointer hover:bg-white/10 transition-colors"
-                      style={{ color: 'rgb(191, 191, 191)' }}
+                      className="flex items-center px-3 py-2 cursor-pointer hover:bg-white/10 transition-colors text-slate-300"
                     >
                       <input
                         type="checkbox"
                         checked={selectedCurrencies.includes(currency)}
                         onChange={() => {
-                          setSelectedCurrencies(prev => 
-                            prev.includes(currency) 
+                          setSelectedCurrencies(prev =>
+                            prev.includes(currency)
                               ? prev.filter(c => c !== currency)
                               : [...prev, currency]
                           );
                         }}
                         className="mr-3"
-                        style={{ accentColor: 'rgba(255, 255, 255, 0.8)' }}
+                        style={{ accentColor: 'rgb(124,58,237)' }}
                       />
-                      <span className="text-sm">
+                      <span className="text-xs">
                         {currency} - {currencyNames[currency] || 'Unknown'}
                       </span>
                     </label>
@@ -244,63 +253,62 @@ export default function Page() {
             </div>
             {selectedCurrencies.length > 0 && (
               <div className="filtering-div">
-                <div className="text-xs" style={{ color: 'rgb(191, 191, 191)', opacity: 0.7 }}>
-                  <span>Filtering: {selectedCurrencies.join(", ")}</span>
-                </div>
-                <button 
+                <span className="text-xs text-slate-500">Filtering: {selectedCurrencies.join(", ")}</span>
+                <button
                   onClick={() => setSelectedCurrencies([])}
-                  className="text-xs underline hover:opacity-80"
-                  style={{ color: 'rgb(191, 191, 191)', opacity: 0.7 }}
+                  className="text-xs text-brand/70 hover:text-brand underline"
                 >
                   Clear all
                 </button>
               </div>
             )}
           </div>
-          
-          <div className="body-content overflow-y-auto">
-          {loading && <div className="economic-div">Loading…</div>}
-          {err && <div className="economic-div text-red-500">Error: {err}</div>}
 
-          {!loading && !err && events.map((e) => {
-            const flag = (e.country || "EU").toLowerCase();
-            const localTime = e.extras?.release_time_local || timeInZone(e.date_time_utc, e.event_local_tz);
-            const color = e.impact === "High" ? "red" : e.impact === "Medium" ? "yellow" : "grey";
-            const visible = isVisible(e);
-            const isHidden = hiddenItems.has(e.id);
-            
-            if (isHidden) return null;
-            if (e.title == "View current release") return null;
-            
-            return (
-              <div 
-                key={e.id} 
-                data-impact={e.impact} 
-                className="economic-div flex justify-center items-center w-[100%]"
-                style={{
-                  opacity: visible ? 1 : 0,
-                  transition: 'opacity 0.3s ease',
-                }}
-              >
-                <div className="left-economic-div">
-                  <div className="flag-div"><span className={`fi fi-${flag} fis`}></span></div>
-                </div>
-                <div className="middle-economic-div">
-                  <span className="middle-economic-currency">{e.country === "AU" ? "AUD" : (e.country || "")}</span>
-                  <span className="middle-economic-info">{e.title}</span>
-                </div>
-                <div className="right-economic-div">
-                  <div className="right-economic-div-top"><span>{localTime}</span></div>
-                  <div className="right-economic-div-bottom"><div className={`sphere ${color}`}></div></div>
-                </div>
+          <div className="overflow-y-auto max-h-[55vh] px-3 pb-3">
+            {loading && <p className="text-xs text-slate-400 text-center py-4">Loading…</p>}
+            {err && <p className="text-xs text-red-400 text-center py-4">Error: {err}</p>}
+
+            {!loading && !err && (
+              <div className="space-y-2">
+                {[...events]
+                  .sort((a, b) => new Date(a.date_time_utc).getTime() - new Date(b.date_time_utc).getTime())
+                  .map((e) => {
+                    const flag = (e.country || "EU").toLowerCase();
+                    const localTime = e.extras?.release_time_local || timeInZone(e.date_time_utc, e.event_local_tz);
+                    const color = e.impact === "High" ? "red" : e.impact === "Medium" ? "yellow" : "grey";
+                    const visible = isVisible(e);
+                    const isHidden = hiddenItems.has(e.id);
+
+                    if (isHidden) return null;
+                    if (e.title === "View current release") return null;
+
+                    return (
+                      <div
+                        key={e.id}
+                        className="rounded-2xl border border-white/15 bg-white/5 flex items-center gap-3 px-3 py-2"
+                        style={{ opacity: visible ? 1 : 0, transition: "opacity 0.3s ease" }}
+                      >
+                        <div className="flag-div shrink-0"><span className={`fi fi-${flag} fis`}></span></div>
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-xs font-semibold text-brand-300/90">{e.country === "AU" ? "AUD" : (e.country || "")}</span>
+                          <span className="block text-xs text-slate-300">{e.title}</span>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="block text-[10px] text-slate-300">{dateInZone(e.date_time_utc, e.event_local_tz)}</span>
+                          <span className="block text-xs text-slate-200">{localTime}</span>
+                          <span className="block text-[10px] text-slate-300">{formatCountdown(e.date_time_utc)}</span>
+                          <div className={`sphere ${color} mt-1 ml-auto`}></div>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="!w-[80vw] lg:!w-[50vw] mt-4 mb-8 px-4 lot-size-container backdrop-blur-[1px] ml-5 mr-5">
+      <div className="!w-[80vw] lg:!w-[50vw] mt-4 mb-8 px-4 lot-size-container backdrop-blur-[1px] border border-white/20 ml-5 mr-5">
         <div className="button-backdrop"></div>
         <div className="body">
           <TradingViewWidget />

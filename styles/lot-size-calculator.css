@@ -853,10 +853,10 @@ html {
 }
 
 .right-economic-div-bottom {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 2vw;
+  justify-content: space-between;
+    align-items: center;
+    width: 3vw;
+    display: flex;
 }
 
 

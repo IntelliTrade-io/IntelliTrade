@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import { motion } from "framer-motion";
 import "@/styles/lot-size-calculator.css";
+import NewsletterForm from "@/components/NewsletterForm";
 
 
 type SectionBullet = {
@@ -213,28 +214,9 @@ const sections = useMemo<Section[]>(
   const activeId = useActiveSection(sectionIds);
   const progress = useScrollProgress();
 
-  const [email, setEmail] = useState("");
-  const [ctaStatus, setCtaStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
-
   const handleNavClick = (id: string) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email?.includes("@")) return;
-
-    try {
-      setCtaStatus("sending");
-      await new Promise((r) => setTimeout(r, 600)); // placeholder
-      setCtaStatus("success");
-      setEmail("");
-    } catch {
-      setCtaStatus("error");
-    }
   };
 
   return (
@@ -242,7 +224,7 @@ const sections = useMemo<Section[]>(
       {/* Top progress bar */}
       <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
         <div
-          className="h-full bg-gradient-to-r from-[#1FE4FF] via-[#7F5CFF] to-[#1FE4FF]"
+          className="h-full bg-gradient-to-r from-brandLight via-brand to-brandLight"
           style={{
             width: `${progress * 100}%`,
             transition: "width 120ms linear",
@@ -300,139 +282,87 @@ const sections = useMemo<Section[]>(
                 id={s.id}
                 className="scroll-mt-28 relative overflow-visible"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 32 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
-                  transition={{ duration: 0.6, delay: index * 0.04 }}
-                  // Added relative and overflow-hidden here so the absolute backdrop stays contained
-                  className="relative overflow-hidden rounded-3xl border border-white/20  bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
-                >
-                  {/* 1. THE BACKDROP IS PLACED HERE */}
-                  {/* Because it is inside the motion.div, it animates with opacity */}
-                  <div className="radial-backdrop" />
+                {isCTA ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
+                    transition={{ duration: 0.6, delay: index * 0.04 }}
+                  >
+                    <NewsletterForm />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
+                    transition={{ duration: 0.6, delay: index * 0.04 }}
+                    className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
+                  >
+                    <div className="radial-backdrop" />
 
-                  {/* 2. Wrap content in relative z-10 to sit above backdrop */}
-                  <div className="relative z-10">
-                    <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90">
-                      {s.eyebrow}
-                    </div>
-
-                    {isCTA ? (
-                      // CTA Specific Layout
-                      <div className="mt-4 grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-center">
-                        <div>
-                          <h3 className="text-2xl font-semibold tracking-tight text-slate-50 md:text-[28px]">
-                            {s.title}
-                          </h3>
-                          <p className="mt-2 text-[15px] leading-relaxed text-slate-200/90">
-                            {s.subtitle}
-                          </p>
-                          <p className="mt-3 text-[13px] text-slate-400">
-                            No spam. Just frameworks, macro context, and
-                            high-quality tool updates.
-                          </p>
-                        </div>
-                        <form onSubmit={onSubmit} className="space-y-3">
-                          <div className="rounded-2xl border border-white/15 bg-white/5 p-3 backdrop-blur-xl">
-                            <label className="sr-only" htmlFor="email">
-                              Email
-                            </label>
-                            <input
-                              id="email"
-                              type="email"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              placeholder="EMAIL"
-                              className="w-full rounded-xl bg-black/40 px-4 py-3 text-sm text-slate-100 outline-none ring-0 placeholder:text-slate-400 focus:bg-black/50 focus:outline-none"
-                              autoComplete="off"
-                              required
-                            />
-                            <div className="mt-3 flex items-center justify-between gap-3">
-                              <button
-                                type="submit"
-                                disabled={ctaStatus === "sending"}
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-[linear-gradient(90deg,rgb(124,58,237),#1FE4FF,rgb(124,58,237))] px-5 py-3 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95 disabled:opacity-60"
-                              >
-                                {ctaStatus === "sending"
-                                  ? "Unlocking..."
-                                  : "Unlock the e-book"}
-                              </button>
-                            </div>
-                          </div>
-                          {ctaStatus === "success" && (
-                            <p className="text-[13px] text-brand/90">
-                              Success. Check your inbox shortly.
-                            </p>
-                          )}
-                          {ctaStatus === "error" && (
-                            <p className="text-[13px] text-rose-200/90">
-                              Something went wrong. Try again.
-                            </p>
-                          )}
-                        </form>
+                    <div className="relative z-10">
+                      <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand-200/90">
+                        {s.eyebrow}
                       </div>
-                    ) : (
-                      // Standard Layout (Hero & others)
-                      <>
-                        <h3
-                          className={`mt-4 text-2xl font-semibold tracking-tight text-slate-50 ${
-                            isHero ? "md:text-3xl" : "md:text-[26px]"
-                          }`}
-                        >
-                          {s.title}
-                        </h3>
 
-                        {!!s.subtitle && (
-                          <p className="mt-2 text-sm font-medium text-slate-300">
-                            {s.subtitle}
-                          </p>
-                        )}
+                      <h3
+                        className={`mt-4 text-2xl font-semibold tracking-tight text-slate-50 ${
+                          isHero ? "md:text-3xl" : "md:text-[26px]"
+                        }`}
+                      >
+                        {s.title}
+                      </h3>
 
-                        <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-                          {s.body?.map((p, idx) => (
-                            <p key={idx}>{p}</p>
+                      {!!s.subtitle && (
+                        <p className="mt-2 text-sm font-medium text-slate-300">
+                          {s.subtitle}
+                        </p>
+                      )}
+
+                      <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90">
+                        {s.body?.map((p, idx) => (
+                          <p key={idx}>{p}</p>
+                        ))}
+                      </div>
+
+                      {!!s.bullets?.length && (
+                        <div className="mt-8 grid gap-4 md:grid-cols-2">
+                          {s.bullets.map((b, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl"
+                            >
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">
+                                {b.title}
+                              </p>
+                              <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">
+                                {b.desc}
+                              </p>
+                            </div>
                           ))}
                         </div>
+                      )}
 
-                        {!!s.bullets?.length && (
-                          <div className="mt-8 grid gap-4 md:grid-cols-2">
-                            {s.bullets.map((b, idx) => (
-                              <div
-                                key={idx}
-                                className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl"
-                              >
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand/90">
-                                  {b.title}
-                                </p>
-                                <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">
-                                  {b.desc}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {isHero && (
-                          <div className="mt-8 flex flex-wrap gap-3">
-                            <Link
-                              href="/lotsizecalculator"
-                              className="inline-flex items-center justify-center rounded-xl bg-[linear-gradient(90deg,rgb(124,58,237),rgba(99,102,241,0.15))] px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-900 transition hover:opacity-95"
-                            >
-                              Try the calculator
-                            </Link>
-                            <Link
-                              href="/blog/all"
-                              className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-100 transition hover:bg-white/10"
-                            >
-                              Read the blog
-                            </Link>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </motion.div>
+                      {isHero && (
+                        <div className="mt-8 flex flex-wrap gap-3">
+                          <Link
+                            href="/lotsizecalculator"
+                            className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-brand to-brand/20 px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-white transition hover:opacity-95"
+                          >
+                            Try the calculator
+                          </Link>
+                          <Link
+                            href="/blog/all"
+                            className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-2 text-[12px] font-semibold uppercase tracking-[0.22em] text-slate-100 transition hover:bg-white/10"
+                          >
+                            Read the blog
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </section>
             );
           })}

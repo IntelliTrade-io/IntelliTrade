@@ -1,8 +1,7 @@
-// TradingViewWidget.jsx
 import React, { useEffect, useRef, memo } from 'react';
 
 function TradingViewWidget() {
-  const container = useRef<HTMLDivElement>(null);
+const container = useRef<HTMLDivElement>(null);
 
   useEffect(
     () => {
@@ -15,7 +14,7 @@ function TradingViewWidget() {
           "allow_symbol_change": true,
           "calendar": false,
           "details": false,
-          "hide_side_toolbar": true,
+          "hide_side_toolbar": false,
           "hide_top_toolbar": false,
           "hide_legend": false,
           "hide_volume": false,
@@ -30,7 +29,7 @@ function TradingViewWidget() {
           "backgroundColor": "#0F0F0F",
           "gridColor": "rgba(242, 242, 242, 0.06)",
           "watchlist": [],
-          "withdateranges": false,
+          "withdateranges": true,
           "compareSymbols": [],
           "studies": [],
           "autosize": true

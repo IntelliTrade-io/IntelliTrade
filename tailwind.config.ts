@@ -12,8 +12,26 @@ export default {
   theme: {
     extend: {
       colors: {
-       brand: 'rgb(var(--brand-primary) / <alpha-value>)',
-       brandLight: 'rgb(var(--brand-primary-light) / <alpha-value>)',
+        brand: {
+          50:  'rgb(245 243 255 / <alpha-value>)',
+          100: 'rgb(237 233 254 / <alpha-value>)',
+          200: 'rgb(221 214 254 / <alpha-value>)',
+          300: 'rgb(196 181 253 / <alpha-value>)',
+          400: 'rgb(167 139 250 / <alpha-value>)',
+          500: 'rgb(139 92 246 / <alpha-value>)',
+          DEFAULT: 'rgb(var(--brand-primary) / <alpha-value>)',
+          600: 'rgb(var(--brand-primary) / <alpha-value>)',
+          700: 'rgb(109 40 217 / <alpha-value>)',
+          800: 'rgb(91 33 182 / <alpha-value>)',
+          900: 'rgb(76 29 149 / <alpha-value>)',
+        },
+        brandLight: {
+          300: 'rgb(240 171 252 / <alpha-value>)',
+          400: 'rgb(232 121 249 / <alpha-value>)',
+          DEFAULT: 'rgb(var(--brand-primary-light) / <alpha-value>)',
+          500: 'rgb(var(--brand-primary-light) / <alpha-value>)',
+          600: 'rgb(192 38 211 / <alpha-value>)',
+        },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

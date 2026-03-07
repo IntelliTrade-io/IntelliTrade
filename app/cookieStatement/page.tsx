@@ -151,7 +151,7 @@ export default function CookieStatementPage() {
       {/* Top progress bar */}
       <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
         <div
-          className="h-full bg-gradient-to-r from-[#1FE4FF] via-[#7F5CFF] to-[#1FE4FF]"
+          className="h-full bg-gradient-to-r from-brandLight via-brand to-brandLight"
           style={{ width: `${progress * 100}%`, transition: "width 120ms linear" }}
         />
       </div>
@@ -201,7 +201,7 @@ export default function CookieStatementPage() {
                 <div className="radial-backdrop" />
 
                 <div className="relative z-10">
-                  <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90">
+                  <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand-200/90">
                     {s.eyebrow}
                   </div>
 
@@ -221,7 +221,7 @@ export default function CookieStatementPage() {
                     <div className="mt-8 grid gap-4 md:grid-cols-2">
                       {s.bullets.map((b, idx) => (
                         <div key={idx} className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand/90">{b.title}</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">{b.title}</p>
                           <p className="mt-2 text-[14px] leading-relaxed text-slate-200/90">{b.desc}</p>
                         </div>
                       ))}
