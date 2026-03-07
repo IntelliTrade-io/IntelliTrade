@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
+import Image from "next/image";
+import MacroDecoderImage from "@/assets/images/macro-decoder-cover.png";
 
 
 export default function NewsletterForm() {
@@ -41,116 +42,90 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 
   return (
-    <div className="w-full max-w-[540px] mx-auto text-center overflow-hidden">
-      <div className="border border-[#C0CCD9] rounded-[10px] p-8 bg-transparent">
-        {/* Error Message */}
-        {status === "error" && (
-          <div className="mb-6 p-4 bg-[#ffeded] border border-[#ff4949] rounded-[3px] text-[#661d1d] text-left">
-            <div className="flex items-center gap-3">
-              <svg viewBox="0 0 512 512" className="w-6 h-6 flex-shrink-0" fill="currentColor">
-                <path d="M256 40c118.621 0 216 96.075 216 216 0 119.291-96.61 216-216 216-119.244 0-216-96.562-216-216 0-119.203 96.602-216 216-216m0-32C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm-11.49 120h22.979c6.823 0 12.274 5.682 11.99 12.5l-7 168c-.268 6.428-5.556 11.5-11.99 11.5h-8.979c-6.433 0-11.722-5.073-11.99-11.5l-7-168c-.283-6.818 5.167-12.5 11.99-12.5zM256 340c-15.464 0-28 12.536-28 28s12.536 28 28 28 28-12.536 28-28-12.536-28-28-28z" />
-              </svg>
-              <span>Your subscription could not be saved. Please try again.</span>
-            </div>
-          </div>
-        )}
-
-        {/* Success Message */}
-        {status === "success" && (
-          <div className="mb-6 p-4 bg-[#e7faf0] border border-[#13ce66] rounded-[3px] text-[#085229] text-left">
-            <div className="flex items-center gap-3">
-              <svg viewBox="0 0 512 512" className="w-6 h-6 flex-shrink-0" fill="currentColor">
-                <path d="M256 8C119.033 8 8 119.033 8 256s111.033 248 248 248 248-111.033 248-248S392.967 8 256 8zm0 464c-118.664 0-216-96.055-216-216 0-118.663 96.055-216 216-216 118.664 0 216 96.055 216 216 0 118.663-96.055 216-216 216zm141.63-274.961L217.15 376.071c-4.705 4.667-12.303 4.637-16.97-.068l-85.878-86.572c-4.667-4.705-4.637-12.303.068-16.97l8.52-8.451c4.705-4.667 12.303-4.637 16.97.068l68.976 69.533 163.441-162.13c4.705-4.667 12.303-4.637 16.97.068l8.451 8.52c4.668 4.705 4.637 12.303-.068 16.97z" />
-              </svg>
-              <span>Your subscription has been successful. Happy Trading!</span>
-            </div>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="flex">
-            <div className="flex flex-col">
-              {/* Title */}
-              <div className="py-2 w-4/5 mx-auto">
-                <span className="text-[1.5rem] font-bold font-sans text-[#fafafa] text-center">
-                  Decode macro like a pro
-                </span>
-              </div>
-
-              {/* Description */}
-              <div className="py-2">
-                <p className="text-[1rem] text-base font-sans text-[#f6f7f9] text-center">
-                  Join IntelliTrade and get the Macro Decoder e-book free.
-                </p>
-                
-              </div>
-            </div>
-
-            {/* Email Input */}
-            <div className="flex justify-center flex-col">
-
-              <div className="py-2">
-              <input
-                type="email"
-                id="EMAIL"
-                name="EMAIL"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="EMAIL"
-                autoComplete="off"
-                required
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-black"
-              />
-              <p className="text-xs text-[#f9f9fa] text-center mt-2">
-                No spam. Just the framework and the best updates.
+    <section className="w-full rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/70 px-2 py-6 md:px-8 md:py-8 relative overflow-hidden">
+          {/* Ambient glows */}
+          <div className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.18),transparent_55%),radial-gradient(circle_at_bottom,_rgba(187,68,240,0.18),transparent_55%)]" />
+    
+          <div className="relative flex flex-col md:flex-row items-center gap-10">
+            {/* Left: Copy + form */}
+            <div className="flex-1 max-w-xl">
+              <p className="text-xs font-semibold tracking-[0.2em] text-brand-300/80 uppercase mb-2">
+                Free E-Book
               </p>
-              </div>
-
-<div className="py-2 flex justify-center">
-              <button
-                type="submit"
-                className="subscribe-button"
-                disabled={isSubmitting}
+              <h2 className="text-md md:text-2xl font-semibold text-slate-50 mb-3">
+                Decode macro like a pro.
+              </h2>
+              <p className="text-base md:text-sm text-slate-200/90 mb-6">
+                Join Intellitrade and get the <span className="font-semibold">Macro Decoder</span> e-book free.
+              </p>
+    
+              <form
+                className="space-y-4 md:space-y-0 md:flex md:items-center md:gap-3"
+                onSubmit={handleSubmit}
               >
-                {isSubmitting && (
-                  <svg
-                    className="animate-spin h-5 w-5"
-                    viewBox="0 0 512 512"
-                    fill="currentColor"
-                  >
-                    <path d="M460.116 373.846l-20.823-12.022c-5.541-3.199-7.54-10.159-4.663-15.874 30.137-59.886 28.343-131.652-5.386-189.946-33.641-58.394-94.896-95.833-161.827-99.676C261.028 55.961 256 50.751 256 44.352V20.309c0-6.904 5.808-12.337 12.703-11.982 83.556 4.306 160.163 50.864 202.11 123.677 42.063 72.696 44.079 162.316 6.031 236.832-3.14 6.148-10.75 8.461-16.728 5.01z" />
-                  </svg>
-                )}
-                {isSubmitting ? "SUBSCRIBING..." : "Unlock the e-book"}
-                <svg
-    xmlns="http://www.w3.org/2000/svg"
-    className="h-6 w-6"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth="4"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M14 5l7 7m0 0l-7 7m7-7H3"
-    ></path>
-  </svg>
-              </button>
+                <label className="sr-only" htmlFor="macro-decoder-email">
+                  Email address
+                </label>
+                <div className="flex-1">
+                  <input
+                    id="macro-decoder-email"
+                    type="email"
+                    required
+                    placeholder="you@domain.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isSubmitting}
+                    className="w-full rounded-2xl border border-slate-700/80 bg-slate-900/70 px-4 py-3 text-base text-slate-50 placeholder:text-slate-400 shadow-[0_0_0_1px_rgba(15,23,42,0.6)] focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition disabled:opacity-50"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="mt-1 md:mt-0 whitespace-nowrap inline-flex items-center justify-center rounded-2xl px-5 py-3 text-sm md:text-base font-semibold shadow-lg shadow-brand/35 bg-gradient-to-r from-brand to-brandLight hover:from-brand-500 hover:to-brandLight-400 text-white transition-transform active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Sending…" : "Unlock the e-book"}
+                  {!isSubmitting && <span className="ml-2 text-xl leading-none">→</span>}
+                </button>
+              </form>
+
+              {status === "success" && (
+                <p className="mt-3 text-sm text-brand-200/90 font-medium">
+                  Check your inbox — your e-book is on its way!
+                </p>
+              )}
+              {status === "error" && (
+                <p className="mt-3 text-sm text-red-400 font-medium">
+                  Something went wrong. Please try again.
+                </p>
+              )}
+    
+              <p className="mt-4 text-sm text-slate-400 max-w-xl">
+                We&apos;ll email you the e-book + occasional platform updates and new tools.
+                Unsubscribe anytime.
+              </p>
+    
+            </div>
+    
+            {/* Right: e-book cover */}
+            <div className="md:w-xs lg:w-xs flex-shrink-0">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-brand/20 blur-2xl rounded-[2rem]" />
+                <div className="relative rounded-[1.8rem] bg-slate-900/80 border border-slate-700/80 shadow-2xl overflow-hidden">
+                  <div className="absolute right-3 top-3 rounded-full bg-brand px-3 py-1 text-xs font-semibold text-white shadow-md">
+                    Unlock the e-book
+                  </div>
+                  <Image
+                    src={MacroDecoderImage}
+                    alt="Macro Decoder e-book cover"
+                    className="w-full h-full object-cover"
+                    width="100"
+                    height="100"
+                  />
+                </div>
               </div>
             </div>
-
-
-
           </div>
-
-          {/* Hidden honeypot field */}
-          <input type="text" name="email_address_check" defaultValue="" className="hidden" tabIndex={-1} autoComplete="off" />
-
-          
-        </form>
-      </div>
-    </div>
+        </section>
   );
 }

@@ -290,7 +290,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
 
 
   return (
-    <div className={`w-[80vw] lg:w-[60vw] mt-8 mb-8 px-4 lot-size-container backdrop-blur-[1px] ${className || ""}`}>
+    <div className={`w-[80vw] lg:w-[60vw] mt-8 mb-8 px-4 lot-size-container backdrop-blur-[1px] border border-white/20 ${className || ""}`}>
       <div className="top-light"></div>
 
       <div className="body">
@@ -300,37 +300,47 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
         <div className="body-row">
           <div className="body-row-1">Account currency</div>
           <div className="body-row-2">
-            <select
-              className="currency-input backdrop-blur-sm"
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-            >
-              {accountCurrencyOptions.map((ccy) => (
-                <option key={ccy} value={ccy}>
-                  {ccy}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-32">
+              <select
+                className="w-full appearance-none backdrop-blur-sm bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 pr-8 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 cursor-pointer"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+              >
+                {accountCurrencyOptions.map((ccy) => (
+                  <option key={ccy} value={ccy} className="bg-slate-900">
+                    {ccy}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="body-row">
           <div className="body-row-1">Currency pair</div>
           <div className="body-row-2">
-            <select
-              className="currency-pair-input backdrop-blur-sm"
-              value={pair}
-              onChange={(e) => setPair(e.target.value)}
-              disabled={loadingPairs || !pairs.length}
-            >
-              {loadingPairs && <option>Loading pairs…</option>}
-              {!loadingPairs &&
-                pairs.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-            </select>
+            <div className="relative w-32">
+              <select
+                className="w-full appearance-none backdrop-blur-sm bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 pr-8 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 cursor-pointer disabled:opacity-50"
+                value={pair}
+                onChange={(e) => setPair(e.target.value)}
+                disabled={loadingPairs || !pairs.length}
+              >
+                {loadingPairs && <option className="bg-slate-900">Loading pairs…</option>}
+                {!loadingPairs &&
+                  pairs.map((p) => (
+                    <option key={p} value={p} className="bg-slate-900">
+                      {p}
+                    </option>
+                  ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </div>
             {pairsError && (
               <div className="mt-1 text-xs opacity-70">{pairsError}</div>
             )}
@@ -342,7 +352,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
           <div className="body-row-2">
             <input
               type="number"
-              className="number-input backdrop-blur-sm"
+              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
               value={balance}
               onChange={(e) => setBalance(e.target.value)}
             />
@@ -354,7 +364,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
           <div className="body-row-2">
             <input
               type="number"
-              className="number-input backdrop-blur-sm"
+              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
               value={riskPercent}
               onChange={(e) => setRiskPercent(e.target.value)}
             />
@@ -366,7 +376,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
           <div className="body-row-2">
             <input
               type="number"
-              className="number-input backdrop-blur-sm"
+              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
               value={stopLoss}
               onChange={(e) => setStopLoss(e.target.value)}
             />
@@ -388,17 +398,19 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
         </div>
 
         <div className="body-header"><span>Trade details</span></div>
-        <div className="body-row">
-          <div className="body-row-1">Position size</div>
-          <div className="body-row-2"><span>{positionSize}</span></div>
-        </div>
-        <div className="body-row">
-          <div className="body-row-1">Risk amount</div>
-          <div className="body-row-2"><span>{riskAmount}</span></div>
-        </div>
-        <div className="body-row">
-          <div className="body-row-1">Pip value</div>
-          <div className="body-row-2"><span>{pipValue}</span></div>
+        <div className="rounded-2xl border border-white/15 bg-white/5 divide-y divide-white/10 mx-3 mb-3">
+          <div className="flex items-center justify-between px-4 py-3 text-sm">
+            <span className="text-slate-400">Position size</span>
+            <span className="font-medium text-slate-100">{positionSize || "—"}</span>
+          </div>
+          <div className="flex items-center justify-between px-4 py-3 text-sm">
+            <span className="text-slate-400">Risk amount</span>
+            <span className="font-medium text-slate-100">{riskAmount || "—"}</span>
+          </div>
+          <div className="flex items-center justify-between px-4 py-3 text-sm">
+            <span className="text-slate-400">Pip value</span>
+            <span className="font-medium text-slate-100">{pipValue || "—"}</span>
+          </div>
         </div>
       </div>
     </div>

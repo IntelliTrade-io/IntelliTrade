@@ -48,7 +48,7 @@ export default function Main({ posts, showAll = false }: HomeProps) {
           {posts.length > MAX_DISPLAY && (
             <Link
               href="/blog/all"
-              className="group flex items-center gap-2 text-sm font-medium text-brand/80 hover:text-white transition-colors"
+              className="group flex items-center gap-2 text-sm font-medium text-brand-300/80 hover:text-white transition-colors"
             >
               All Posts
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -99,7 +99,7 @@ export default function Main({ posts, showAll = false }: HomeProps) {
                         </div>
                       </div>
 
-                      <h3 className="text-xl md:text-2xl font-bold leading-tight text-white group-hover:text-brandLight/90 transition-colors">
+                      <h3 className="text-xl md:text-2xl font-bold leading-tight text-white group-hover:text-brand-300/90 transition-colors">
                         {title}
                       </h3>
 
