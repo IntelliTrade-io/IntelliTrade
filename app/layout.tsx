@@ -86,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       alt="IntelliTrade"
                     />
                   </Link>
+                  
                 </div>
                 <div className="hidden md:block">
                   {!hasEnvVars ? <div>EnvVars missing</div> : <AuthButton />}
