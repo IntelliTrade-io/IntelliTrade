@@ -1,0 +1,124 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "sample-ukr-001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [30.5234, 50.4501]
+      },
+      "properties": {
+        "dataKind": "hotspot",
+        "title": "Hotspot: Kyiv",
+        "date": "2026-03-13T10:45:00Z",
+        "country": "Ukraine",
+        "locationName": "Kyiv",
+        "gdeltTone": -4.6,
+        "hotspotCount": 84,
+        "topArticles": [
+          {
+            "title": "Missile alert and air defense activity reported near Kyiv",
+            "url": "https://example.com/sample/kyiv-alert"
+          },
+          {
+            "title": "Overnight strikes push Kyiv air defenses back into action",
+            "url": "https://example.com/sample/kyiv-defense"
+          }
+        ],
+        "locationPrecision": "exact",
+        "severityScore": 86,
+        "severityLabel": "High",
+        "tags": ["Airstrikes", "Drones/Missiles"],
+        "themes": ["Airstrikes", "Drones/Missiles"]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sample-syr-002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [36.2913, 33.5138]
+      },
+      "properties": {
+        "dataKind": "hotspot",
+        "title": "Hotspot: Damascus",
+        "date": "2026-03-13T09:20:00Z",
+        "country": "Syria",
+        "locationName": "Damascus",
+        "gdeltTone": -2.8,
+        "hotspotCount": 31,
+        "topArticles": [
+          {
+            "title": "Explosion reported on the outskirts of Damascus",
+            "url": "https://example.com/sample/damascus-blast"
+          },
+          {
+            "title": "Witnesses describe blast activity west of Damascus",
+            "url": "https://example.com/sample/damascus-witness"
+          }
+        ],
+        "locationPrecision": "exact",
+        "severityScore": 70,
+        "severityLabel": "High",
+        "tags": ["Explosions"],
+        "themes": ["Explosions"]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sample-sdn-003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [32.5599, 15.5007]
+      },
+      "properties": {
+        "dataKind": "hotspot",
+        "title": "Hotspot: Khartoum",
+        "date": "2026-03-13T08:10:00Z",
+        "country": "Sudan",
+        "locationName": "Khartoum",
+        "gdeltTone": -1.9,
+        "hotspotCount": 18,
+        "topArticles": [
+          {
+            "title": "Ground clashes continue outside Khartoum",
+            "url": "https://example.com/sample/khartoum-clashes"
+          }
+        ],
+        "locationPrecision": "exact",
+        "severityScore": 60,
+        "severityLabel": "Medium",
+        "tags": ["Ground clashes"],
+        "themes": ["Ground clashes"]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "sample-lbn-004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [35.5018, 33.8938]
+      },
+      "properties": {
+        "dataKind": "article",
+        "title": "Ceasefire talks resume after overnight strike exchange",
+        "date": "2026-03-13T06:30:00Z",
+        "country": "Lebanon",
+        "locationName": "Lebanon",
+        "sourceUrl": "https://example.com/sample/beirut-talks",
+        "topArticles": [
+          {
+            "title": "Ceasefire talks resume after overnight strike exchange",
+            "url": "https://example.com/sample/beirut-talks"
+          }
+        ],
+        "locationPrecision": "country",
+        "severityScore": 28,
+        "severityLabel": "Low",
+        "tags": ["Diplomacy", "Drones/Missiles"],
+        "themes": ["Diplomacy", "Drones/Missiles"]
+      }
+    }
+  ]
+}

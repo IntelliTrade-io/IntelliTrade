@@ -8,6 +8,7 @@ const navSections = [
     title: "PLATFORM",
     links: [
       { label: "Dashboard", href: "/dashboard" },
+      { label: "Dashboard V2", href: "/dashboardv2" },
       { label: "Lot Size Calculator", href: "/lotsizecalculator" },
     ],
   },
