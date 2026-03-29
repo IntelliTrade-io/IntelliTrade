@@ -288,128 +288,135 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     []
   );
 
-
   return (
-    <div className={`w-[80vw] lg:w-[60vw] mt-8 mb-8 px-4 lot-size-container backdrop-blur-[1px] border border-white/20 ${className || ""}`}>
-      <div className="top-light"></div>
-
-      <div className="body">
-        {/* Trade parameters */}
-        <div className="body-header"><span>Trade parameters</span></div>
-
-        <div className="body-row">
-          <div className="body-row-1">Account currency</div>
-          <div className="body-row-2">
-            <div className="relative w-32">
-              <select
-                className="w-full appearance-none backdrop-blur-sm bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 pr-8 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 cursor-pointer"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-              >
-                {accountCurrencyOptions.map((ccy) => (
-                  <option key={ccy} value={ccy} className="bg-slate-900">
-                    {ccy}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
+    <div className={`w-full text-white ${className || ""}`}>
+      <div className="grid gap-4 lg:grid-cols-[1fr_0.92fr]">
+        {/* Inputs */}
+        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.82),rgba(10,10,14,0.86))] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] backdrop-blur-xl">
+          <div className="mb-5 flex flex-col gap-1 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/35">Position inputs</div>
+              <div className="mt-1 text-sm text-white/48">Account, pair, stop, and risk settings</div>
             </div>
           </div>
-        </div>
 
-        <div className="body-row">
-          <div className="body-row-1">Currency pair</div>
-          <div className="body-row-2">
-            <div className="relative w-32">
-              <select
-                className="w-full appearance-none backdrop-blur-sm bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 pr-8 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 cursor-pointer disabled:opacity-50"
-                value={pair}
-                onChange={(e) => setPair(e.target.value)}
-                disabled={loadingPairs || !pairs.length}
-              >
-                {loadingPairs && <option className="bg-slate-900">Loading pairs…</option>}
-                {!loadingPairs &&
-                  pairs.map((p) => (
-                    <option key={p} value={p} className="bg-slate-900">
-                      {p}
-                    </option>
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Account currency */}
+            <div className="flex flex-col gap-2">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Account currency</div>
+              <div className="relative">
+                <select
+                  className="h-11 w-full appearance-none rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-10 text-sm text-white outline-none transition-all focus:border-violet-400/22 focus:bg-white/[0.05] cursor-pointer"
+                  style={{ backgroundColor: "rgba(255,255,255,0.035)" }}
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                >
+                  {accountCurrencyOptions.map((ccy) => (
+                    <option key={ccy} value={ccy} style={{ background: "#0a0a0e" }}>{ccy}</option>
                   ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                  <svg className="h-4 w-4 text-white/38" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
               </div>
             </div>
-            {pairsError && (
-              <div className="mt-1 text-xs opacity-70">{pairsError}</div>
-            )}
-          </div>
-        </div>
 
-        <div className="body-row">
-          <div className="body-row-1">Account balance</div>
-          <div className="body-row-2">
-            <input
-              type="number"
-              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
-              value={balance}
-              onChange={(e) => setBalance(e.target.value)}
-            />
-          </div>
-        </div>
+            {/* Currency pair */}
+            <div className="flex flex-col gap-2">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Currency pair</div>
+              <div className="relative">
+                <select
+                  className="h-11 w-full appearance-none rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-10 text-sm text-white outline-none transition-all focus:border-violet-400/22 focus:bg-white/[0.05] cursor-pointer disabled:opacity-50"
+                  style={{ backgroundColor: "rgba(255,255,255,0.035)" }}
+                  value={pair}
+                  onChange={(e) => setPair(e.target.value)}
+                  disabled={loadingPairs || !pairs.length}
+                >
+                  {loadingPairs && <option style={{ background: "#0a0a0e" }}>Loading pairs…</option>}
+                  {!loadingPairs && pairs.map((p) => (
+                    <option key={p} value={p} style={{ background: "#0a0a0e" }}>{p}</option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                  <svg className="h-4 w-4 text-white/38" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+              {pairsError && <div className="text-xs text-white/46">{pairsError}</div>}
+            </div>
 
-        <div className="body-row">
-          <div className="body-row-1">Risk percentage</div>
-          <div className="body-row-2">
-            <input
-              type="number"
-              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
-              value={riskPercent}
-              onChange={(e) => setRiskPercent(e.target.value)}
-            />
-          </div>
-        </div>
+            {/* Account balance */}
+            <div className="flex flex-col gap-2">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Account balance</div>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={balance}
+                  onChange={(e) => setBalance(e.target.value)}
+                  placeholder="e.g. 5000"
+                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                />
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">{currency}</div>
+              </div>
+            </div>
 
-        <div className="body-row-5">
-          <div className="body-row-1">Stop loss (pips)</div>
-          <div className="body-row-2">
-            <input
-              type="number"
-              className="backdrop-blur-sm bg-white/5 border border-white/20 rounded-xl px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand/50 w-32"
-              value={stopLoss}
-              onChange={(e) => setStopLoss(e.target.value)}
-            />
-          </div>
-        </div>
+            {/* Risk % */}
+            <div className="flex flex-col gap-2">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Risk per trade</div>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={riskPercent}
+                  onChange={(e) => setRiskPercent(e.target.value)}
+                  placeholder="e.g. 1"
+                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-10 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                />
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">%</div>
+              </div>
+            </div>
 
-        <div className="body-row-5 justify-center">
-          <button onClick={handleCalculate} className="real-button"></button>
-          <div className="button-backdrop"></div>
-          <div className="button-container">
-            <div className="spin spin-blur"></div>
-            <div className="spin spin-intense"></div>
-            <div className="button-backdrop"></div>
-            <div className="button-border">
-              <div className="spin spin-inside"></div>
-              <div className="button">Calculate</div>
+            {/* Stop loss */}
+            <div className="flex flex-col gap-2 md:col-span-2">
+              <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Stop loss distance</div>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={stopLoss}
+                  onChange={(e) => setStopLoss(e.target.value)}
+                  placeholder="e.g. 30"
+                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                />
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">pips</div>
+              </div>
             </div>
           </div>
+
+          <button
+            onClick={handleCalculate}
+            className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full border border-violet-400/18 bg-violet-500/[0.10] text-sm font-medium text-white transition-all hover:border-violet-300/26 hover:bg-violet-500/[0.16]"
+          >
+            Calculate
+          </button>
         </div>
 
-        <div className="body-header"><span>Trade details</span></div>
-        <div className="rounded-2xl border border-white/15 bg-white/5 divide-y divide-white/10 mx-3 mb-3">
-          <div className="flex items-center justify-between px-4 py-3 text-sm">
-            <span className="text-slate-400">Position size</span>
-            <span className="font-medium text-slate-100">{positionSize || "—"}</span>
+        {/* Results */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-[24px] border border-violet-400/16 bg-violet-500/[0.06] p-6 text-center shadow-[inset_0_0_0_1px_rgba(167,139,250,0.06)]">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-white/35">Position size</div>
+            <div className="mt-3 text-4xl font-semibold tracking-tight text-white">
+              {positionSize ? positionSize.replace(" lots", "") : "—"}
+            </div>
+            <div className="mt-1 text-sm text-white/38">lots</div>
           </div>
-          <div className="flex items-center justify-between px-4 py-3 text-sm">
-            <span className="text-slate-400">Risk amount</span>
-            <span className="font-medium text-slate-100">{riskAmount || "—"}</span>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 text-sm">
-            <span className="text-slate-400">Pip value</span>
-            <span className="font-medium text-slate-100">{pipValue || "—"}</span>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-center">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">Risk amount</div>
+              <div className="mt-2 text-lg font-semibold text-white">{riskAmount || "—"}</div>
+            </div>
+            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-center">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">Pip value / lot</div>
+              <div className="mt-2 text-lg font-semibold text-white">{pipValue || "—"}</div>
+            </div>
           </div>
         </div>
       </div>
