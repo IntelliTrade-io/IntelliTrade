@@ -114,6 +114,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
   const [positionSize, setPositionSize] = useState("");
   const [riskAmount, setRiskAmount] = useState("");
   const [pipValue, setPipValue] = useState("");
+  const [calcContext, setCalcContext] = useState("");
 
   // dynamic pairs state
   const [pairs, setPairs] = useState<string[]>([]);
@@ -276,6 +277,10 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
       setRiskAmount(`${riskAmt.toFixed(2)} ${currency}`);
       setPipValue(`${pipValuePerLot.toFixed(2)} ${currency}`);
       setPositionSize(`${lots.toFixed(2)} lots`);
+      const conversionNote = currency !== quote ? " · live conversion applied" : "";
+      setCalcContext(
+        `${Number(balance).toLocaleString()} ${currency} balance · ${riskPercent}% risk · ${stopLoss} pip stop · ${normalizePair(pair)}${conversionNote}`
+      );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       console.error(e);
@@ -406,6 +411,9 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
               {positionSize ? positionSize.replace(" lots", "") : "—"}
             </div>
             <div className="mt-1 text-sm text-white/38">lots</div>
+            {calcContext && (
+              <div className="mt-3 text-[11px] leading-relaxed text-white/30">{calcContext}</div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
