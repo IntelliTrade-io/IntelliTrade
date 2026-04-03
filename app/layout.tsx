@@ -13,6 +13,7 @@ import Link from "next/link";
 import Image from "next/image";
 import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth-button";
+import NavLinks from "@/components/nav-links";
 import MobileNav from "@/components/MobileNav";
 import { hasEnvVars } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react';
@@ -88,8 +89,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   </Link>
                   
                 </div>
-                <div className="hidden md:block">
-                  {!hasEnvVars ? <div>EnvVars missing</div> : <AuthButton />}
+                <div className="hidden md:flex items-center gap-3">
+                  <NavLinks />
+                  {!hasEnvVars ? null : <AuthButton />}
                 </div>
                 <MobileNav />
               </div>

@@ -502,7 +502,7 @@ export default function GoldPriceTodayPage() {
 
   return (
     <div className="min-h-screen bg-[#020203] text-slate-100">
-      <PricePageBrandStyles />
+      <PricePageBrandStyles theme="gold" />
 
      
 
@@ -599,7 +599,7 @@ export default function GoldPriceTodayPage() {
                     key={tab.value}
                     type="button"
                     onClick={() => setSelectedRange(tab.value)}
-                    className={getChartTabClassName(tab.value === selectedRange)}
+                    className={getChartTabClassName(tab.value === selectedRange, "gold")}
                   >
                     {tab.label}
                   </button>

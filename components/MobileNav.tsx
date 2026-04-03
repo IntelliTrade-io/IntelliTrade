@@ -10,7 +10,15 @@ const navSections = [
       { label: "Dashboard", href: "/dashboard" },
       { label: "Dashboard V2", href: "/dashboardv2" },
       { label: "Lot Size Calculator", href: "/lotsizecalculator" },
-      { label: "Gold Price Today", href: "/gold-price-today" },
+    ],
+  },
+  {
+    title: "PRICES",
+    links: [
+      { label: "Gold", href: "/gold-price-today" },
+      { label: "Silver", href: "/silver-price-today" },
+      { label: "Oil", href: "/oil-price-today" },
+      { label: "Bitcoin", href: "/bitcoin-price-today" },
     ],
   },
   {

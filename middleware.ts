@@ -7,6 +7,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|ads.txt|app-ads.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|lotsizecalculator|api|blog|privacyStatement|cookieStatement|dashboard|termsOfService|about|gold-price-today).*)",
+    "/((?!_next/static|_next/image|favicon.ico|ads.txt|app-ads.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|lotsizecalculator|api|blog|privacyStatement|cookieStatement|dashboard|termsOfService|about|gold-price-today|silver-price-today|oil-price-today|bitcoin-price-today).*)",
   ],
 };
