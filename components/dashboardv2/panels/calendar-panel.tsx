@@ -83,6 +83,7 @@ function toCalendarEvent(e: ApiEvent): CalendarEvent {
 
   return {
     id: Number(e.id),
+    isoDateTime: e.date_time_utc,
     currency,
     region,
     flagCode,
@@ -275,7 +276,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             {!loading && !error && (
               <div className="grid gap-3">
                 {visibleEvents.map((event) => {
-                  const isPast = new Date(event.date_time_utc) < new Date();
+                  const isPast = new Date(event.isoDateTime) < new Date();
                   return (
                     <div key={event.id} className={isPast ? "opacity-35" : undefined}>
                       <CalendarRow event={event} onOpen={setActiveEvent} />
