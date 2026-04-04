@@ -6,21 +6,44 @@ import {
   PricePageBrandStyles,
   RadialBackdrop,
   getChartTabClassName,
-  getMarketMoveClassName,
-  getQuoteChangeClassName,
 } from "../gold-price-today/lib/pricePageBrand";
 import "@/styles/lot-size-calculator.css";
+import { client } from "@/sanity/client";
+
+// ─── Market context from Sanity ───────────────────────────────────────────────
+
+type MarketContextData = {
+  heading: string;
+  paragraphs: Array<{ text: string }>;
+} | null;
+
+function useMarketContext(asset: string): MarketContextData {
+  const [data, setData] = useState<MarketContextData>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .fetch<MarketContextData>(
+        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
+          heading,
+          paragraphs
+        }`,
+        { asset }
+      )
+      .then((result) => { if (!cancelled) setData(result ?? null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [asset]);
+
+  return data;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const BITCOIN_SYMBOL = "COINBASE:BTCUSD";
 const TV_MINI_CHART_SCRIPT_SRC = "https://widgets.tradingview-widget.com/w/en/tv-mini-chart.js";
-const QUOTE_REFRESH_MS = 12000;
+const QUOTE_REFRESH_MS = 30_000;
 const LARGE_CHART_TIMEOUT_MS = 6000;
-
-const BASE_BITCOIN_QUOTE = Object.freeze({
-  anchor: 67350.42,
-  open: 66840.11,
-  prevClose: 66692.85,
-});
 
 const LARGE_CHART_TABS = [
   { label: "1D", value: "1D", timeFrame: null },
@@ -31,6 +54,8 @@ const LARGE_CHART_TABS = [
   { label: "1Y", value: "1Y", timeFrame: "12M" },
   { label: "All", value: "ALL", timeFrame: "ALL" },
 ] as const;
+
+// ─── Formatters ───────────────────────────────────────────────────────────────
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -50,39 +75,137 @@ function formatCurrency(v: number) { return currencyFormatter.format(v); }
 function formatSigned(v: number) { return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}`; }
 function formatSignedPct(v: number) { return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}%`; }
 
-function getBitcoinQuote(now = Date.now()) {
-  const updatedAt = now - (now % QUOTE_REFRESH_MS);
-  const seconds = Math.floor(updatedAt / 1000);
-  const price = roundToTwo(BASE_BITCOIN_QUOTE.anchor + Math.sin(seconds / 23) * 4.2 + Math.cos(seconds / 61) * 1.6);
-  const open = roundToTwo(BASE_BITCOIN_QUOTE.open + Math.cos(seconds / 91) * 1.35);
-  const prevClose = BASE_BITCOIN_QUOTE.prevClose;
-  const absoluteChange = roundToTwo(price - prevClose);
-  const percentageChange = roundToTwo((absoluteChange / prevClose) * 100);
-  const high = roundToTwo(Math.max(price, open, prevClose) + 0.85 + Math.abs(Math.sin(seconds / 37)) * 2.8);
-  const low = roundToTwo(Math.min(price, open, prevClose) - 0.95 - Math.abs(Math.cos(seconds / 41)) * 3.4);
-  return {
-    updatedAt, price, absoluteChange, percentageChange, high, low, open, prevClose,
-    formatted: {
-      price: formatCurrency(price),
-      percentageChange: formatSignedPct(percentageChange),
-      absoluteChange: `(${formatSigned(absoluteChange)})`,
-      sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
-      high: formatCurrency(high),
-      low: formatCurrency(low),
-      open: formatCurrency(open),
-      prevClose: formatCurrency(prevClose),
-    },
+// ─── Quote logic ──────────────────────────────────────────────────────────────
+
+type BitcoinQuote = {
+  updatedAt: number;
+  price: number;
+  absoluteChange: number;
+  percentageChange: number;
+  high: number;
+  low: number;
+  open: number;
+  formatted: {
+    price: string;
+    percentageChange: string;
+    absoluteChange: string;
+    sessionTime: string;
+    high: string;
+    low: string;
+    open: string;
   };
+};
+
+function useBitcoinPrice(): BitcoinQuote | null {
+  const [quote, setQuote] = useState<BitcoinQuote | null>(null);
+  const openRef = useRef<number | null>(null);
+  const highRef = useRef<number>(-Infinity);
+  const lowRef = useRef<number>(Infinity);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchPrice = async () => {
+      const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
+      if (!apiKey) return;
+      try {
+        const res = await fetch(
+          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=BTC`,
+          { cache: "no-store" }
+        );
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const btcPerUsd = parseFloat(data.rates?.BTC);
+        if (!isFinite(btcPerUsd) || btcPerUsd <= 0 || cancelled) return;
+
+        const price = roundToTwo(1 / btcPerUsd);
+        if (openRef.current === null) openRef.current = price;
+        if (price > highRef.current) highRef.current = price;
+        if (price < lowRef.current) lowRef.current = price;
+
+        const open = openRef.current;
+        const high = highRef.current;
+        const low = lowRef.current;
+        const absoluteChange = roundToTwo(price - open);
+        const percentageChange = roundToTwo((absoluteChange / open) * 100);
+        const updatedAt = Date.now();
+
+        setQuote({
+          updatedAt, price, absoluteChange, percentageChange, high, low, open,
+          formatted: {
+            price: formatCurrency(price),
+            percentageChange: formatSignedPct(percentageChange),
+            absoluteChange: `(${formatSigned(absoluteChange)})`,
+            sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
+            high: formatCurrency(high),
+            low: formatCurrency(low),
+            open: formatCurrency(open),
+          },
+        });
+      } catch {
+        // keep showing last known price on failure
+      }
+    };
+
+    fetchPrice();
+    const id = window.setInterval(fetchPrice, QUOTE_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, []);
+
+  return quote;
 }
 
-function useBitcoinQuote() {
-  const [now, setNow] = useState(() => Date.now());
+// ─── DXY ─────────────────────────────────────────────────────────────────────
+
+function useDxy(): string | null {
+  const [value, setValue] = useState<string | null>(null);
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/dxy");
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (json.dxy == null || cancelled) return;
+        setValue((json.dxy as number).toFixed(2));
+      } catch {}
+    };
+    load();
+    const id = window.setInterval(load, 300_000);
+    return () => { cancelled = true; window.clearInterval(id); };
   }, []);
-  return getBitcoinQuote(now);
+  return value;
 }
+
+// ─── Market data (10Y yield) ──────────────────────────────────────────────────
+
+function useTenYearYield(): string | null {
+  const [value, setValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetch_ = async () => {
+      try {
+        const res = await fetch("/api/fred-yield");
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (json.yield == null || cancelled) return;
+        setValue(`${(json.yield as number).toFixed(2)}%`);
+      } catch {
+        // keep showing last known value
+      }
+    };
+    fetch_();
+    return () => { cancelled = true; };
+  }, []);
+
+  return value;
+}
+
+// ─── TradingView loader ───────────────────────────────────────────────────────
 
 let tvMiniChartModulePromise: Promise<void> | null = null;
 
@@ -111,6 +234,8 @@ function ensureTvMiniChartModule(): Promise<void> {
   }
   return tvMiniChartModulePromise;
 }
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ChartStatusOverlay({ message }: { message: string }) {
   return (
@@ -208,18 +333,17 @@ function TradingViewMiniChart({ timeFrame }: { timeFrame: string | null }) {
   );
 }
 
-function DriverCard({ title, value, move, subtle }: { title: string; value: string; move: string; subtle: string }) {
+function DriverCard({ title, value, subtle }: { title: string; value: string; subtle: string }) {
   return (
     <div className="price-surface-card rounded-2xl p-5">
       <RadialBackdrop />
-      <div className="price-surface-content flex items-start justify-between gap-4">
+      <div className="price-surface-content flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-100">{title}</p>
           <p className="mt-1 text-[12px] text-slate-400">{subtle}</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold tracking-tight text-slate-50">{value}</p>
-          <p className={`mt-1 text-sm font-medium ${getMarketMoveClassName(move)}`}>{move}</p>
         </div>
       </div>
     </div>
@@ -245,8 +369,7 @@ function FaqAccordionItem({ item, isOpen, onToggle }: { item: { question: string
   );
 }
 
-function MiniPriceWidget({ quote }: { quote: ReturnType<typeof getBitcoinQuote> }) {
-  const isNegative = quote.absoluteChange < 0;
+function MiniPriceWidget({ quote }: { quote: BitcoinQuote | null }) {
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.01 }}
@@ -258,27 +381,21 @@ function MiniPriceWidget({ quote }: { quote: ReturnType<typeof getBitcoinQuote> 
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Bitcoin Price</p>
-            <p className="price-value-brand mt-4 text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01]">{quote.formatted.price}</p>
-            <p className={["mt-2 text-xl font-medium transition-colors duration-300", getQuoteChangeClassName(isNegative)].join(" ")}>
-              {quote.formatted.percentageChange} {quote.formatted.absoluteChange}
+            <p className="price-value-brand mt-4 text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01]">
+              {quote?.formatted.price ?? "—"}
             </p>
           </div>
-          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-slate-100 transition duration-300">1D</button>
+          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-orange-400 transition duration-300">1D</button>
         </div>
-        <div className="price-chart-shell price-chart-shell-hover mt-5 rounded-2xl p-3"><MiniPriceWidgetChart /></div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400 transition-colors duration-300 group-hover:text-slate-300">
-          <span>{quote.formatted.sessionTime}</span>
-        </div>
-        <div className="price-divider-top mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-5 text-sm transition-colors duration-300">
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">24H High</span><span className="font-medium text-slate-100">{quote.formatted.high}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">Open</span><span className="font-medium text-slate-100">{quote.formatted.open}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">24H Low</span><span className="font-medium text-slate-100">{quote.formatted.low}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">Prev. Close</span><span className="font-medium text-slate-100">{quote.formatted.prevClose}</span></div>
+        <div className="price-chart-shell price-chart-shell-hover mt-5 rounded-2xl p-3">
+          <MiniPriceWidgetChart />
         </div>
       </div>
     </motion.div>
   );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 const FAQ_ITEMS = [
   {
@@ -296,7 +413,10 @@ const FAQ_ITEMS = [
 ];
 
 export default function BitcoinPriceTodayPage() {
-  const bitcoinQuote = useBitcoinQuote();
+  const bitcoinQuote = useBitcoinPrice();
+  const tenYearYield = useTenYearYield();
+  const dxy = useDxy();
+  const marketContext = useMarketContext("bitcoin");
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
   const activeLargeChartTab = LARGE_CHART_TABS.find((t) => t.value === selectedRange) ?? LARGE_CHART_TABS[0];
@@ -338,10 +458,18 @@ export default function BitcoinPriceTodayPage() {
           <RadialBackdrop />
           <div className="price-surface-content">
             <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Market Context</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">What&apos;s moving bitcoin today</h2>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">
+              {marketContext?.heading ?? "What\u2019s moving bitcoin today"}
+            </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              <p>Bitcoin is being driven by risk sentiment, liquidity conditions, and positioning shifts across global macro and crypto markets. Traders are mainly watching the dollar, yields, and equities tone.</p>
-              <p>If liquidity conditions improve while risk appetite holds, bitcoin can remain supported. A stronger dollar, however, can pressure momentum and cap short-term gains.</p>
+              {marketContext ? (
+                marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
+              ) : (
+                <>
+                  <p>Bitcoin is being driven by risk sentiment, liquidity conditions, and positioning shifts across global macro and crypto markets. Traders are mainly watching the dollar, yields, and equities tone.</p>
+                  <p>If liquidity conditions improve while risk appetite holds, bitcoin can remain supported. A stronger dollar, however, can pressure momentum and cap short-term gains.</p>
+                </>
+              )}
             </div>
           </div>
         </motion.section>
@@ -359,23 +487,20 @@ export default function BitcoinPriceTodayPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Price Chart</p>
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">Live chart view</h2>
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-50">Live chart view</h2>
+                <div className="flex flex-wrap gap-2">
+                  {LARGE_CHART_TABS.map((tab) => (
+                    <button key={tab.value} type="button" onClick={() => setSelectedRange(tab.value)} className={getChartTabClassName(tab.value === selectedRange, "bitcoin")}>{tab.label}</button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {LARGE_CHART_TABS.map((tab) => (
-                  <button key={tab.value} type="button" onClick={() => setSelectedRange(tab.value)} className={getChartTabClassName(tab.value === selectedRange, "bitcoin")}>{tab.label}</button>
-                ))}
+              <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
+                <p className="text-4xl font-semibold tracking-tight text-slate-100 price-value-brand">
+                  {bitcoinQuote?.formatted.price ?? "—"}
+                </p>
               </div>
             </div>
             <div className="price-chart-shell mt-6 rounded-2xl p-4"><TradingViewMiniChart timeFrame={activeLargeChartTab.timeFrame} /></div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-sm">
-              <div className="flex flex-wrap gap-6 text-slate-400">
-                <span>{bitcoinQuote.formatted.low}</span>
-                <span>{bitcoinQuote.formatted.open}</span>
-                <span>{bitcoinQuote.formatted.high}</span>
-              </div>
-              <p className="text-4xl font-semibold tracking-tight text-slate-100">{bitcoinQuote.formatted.price}</p>
-            </div>
           </div>
         </motion.section>
 
@@ -392,10 +517,10 @@ export default function BitcoinPriceTodayPage() {
             <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">What Moves Bitcoin</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">Market relationships</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <DriverCard title="US Dollar Index (DXY)" value="105.52" move="-0.10% (-0.11)" subtle="Dollar direction can influence global crypto demand." />
-              <DriverCard title="US 10Y Yield" value="4.61%" move="-0.05%" subtle="Rate expectations can shift crypto risk appetite." />
-              <DriverCard title="Risk sentiment (Equities / Nasdaq)" value="" move="" subtle="Broader risk tone often spills into bitcoin." />
-              <DriverCard title="Liquidity / Macro headlines" value="" move="" subtle="Liquidity signals can amplify short-term moves." />
+              <DriverCard title="US Dollar Index (DXY)" value={dxy ?? "—"} subtle="Dollar direction can influence global crypto demand." />
+              <DriverCard title="US 10Y Yield" value={tenYearYield ?? "—"} subtle="Rate expectations can shift crypto risk appetite." />
+              <DriverCard title="Risk sentiment (Equities / Nasdaq)" value="—" subtle="Broader risk tone often spills into bitcoin." />
+              <DriverCard title="Liquidity / Macro headlines" value="—" subtle="Liquidity signals can amplify short-term moves." />
             </div>
           </div>
         </motion.section>
@@ -432,6 +557,19 @@ export default function BitcoinPriceTodayPage() {
             </div>
           </div>
         </motion.section>
+
+        {/* Data credits */}
+        <p className="mt-10 text-center text-[11px] text-slate-600">
+          Bitcoin price data provided by{" "}
+          <a href="https://currencyfreaks.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-400 transition-colors">
+            CurrencyFreaks
+          </a>
+          . 10-year yield data provided by the{" "}
+          <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-400 transition-colors">
+            Federal Reserve Bank of St. Louis (FRED)
+          </a>
+          .
+        </p>
 
       </div>
     </div>
