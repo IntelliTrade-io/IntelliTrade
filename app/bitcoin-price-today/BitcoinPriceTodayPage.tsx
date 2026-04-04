@@ -519,8 +519,8 @@ export default function BitcoinPriceTodayPage() {
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <DriverCard title="US Dollar Index (DXY)" value={dxy ?? "—"} subtle="Dollar direction can influence global crypto demand." />
               <DriverCard title="US 10Y Yield" value={tenYearYield ?? "—"} subtle="Rate expectations can shift crypto risk appetite." />
-              <DriverCard title="Risk sentiment (Equities / Nasdaq)" value="—" subtle="Broader risk tone often spills into bitcoin." />
-              <DriverCard title="Liquidity / Macro headlines" value="—" subtle="Liquidity signals can amplify short-term moves." />
+              <DriverCard title="Risk sentiment (Equities / Nasdaq)" value="" subtle="Broader risk tone often spills into bitcoin." />
+              <DriverCard title="Liquidity / Macro headlines" value="" subtle="Liquidity signals can amplify short-term moves." />
             </div>
           </div>
         </motion.section>

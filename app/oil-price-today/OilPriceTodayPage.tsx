@@ -380,9 +380,9 @@ export default function OilPriceTodayPage() {
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">Market relationships</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <DriverCard title="US Dollar Index (DXY)" value={dxy ?? "—"} subtle="A softer dollar can support Brent prices." />
-              <DriverCard title="OPEC+ / Supply expectations" value="—" subtle="Policy and output guidance can reprice supply risk." />
-              <DriverCard title="Inventories" value="—" subtle="Stockpile trends influence near-term balance." />
-              <DriverCard title="Risk / Geopolitics" value="—" subtle="Geopolitical events can add risk premium quickly." />
+              <DriverCard title="OPEC+ / Supply expectations" value="" subtle="Policy and output guidance can reprice supply risk." />
+              <DriverCard title="Inventories" value="" subtle="Stockpile trends influence near-term balance." />
+              <DriverCard title="Risk / Geopolitics" value="" subtle="Geopolitical events can add risk premium quickly." />
             </div>
           </div>
         </motion.section>
