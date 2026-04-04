@@ -28,9 +28,9 @@ export async function GET() {
       );
     }
     
-    // Transform data to match your EconEvent type
+    // Transform data to match CalendarEvent shape
     const events = data.map((event) => ({
-      id: event.id,
+      id: event.scraperID ?? String(event.id),
       source: event.source,
       agency: event.agency,
       country: event.country,

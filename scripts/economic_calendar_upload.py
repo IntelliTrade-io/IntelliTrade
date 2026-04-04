@@ -45,11 +45,14 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
         logger.info("No events to upload.")
         return 0
 
-    # Prepare rows — map scraper output to table columns
+    # Prepare rows — map scraper output to actual table column names
     rows = []
     for ev in events:
+        extras = ev.get("extras") or {}
+        # Extract announcement_time_local from extras if present
+        announcement_time = extras.get("announcement_time_local") or extras.get("release_time_local")
         row = {
-            "id": ev["id"],
+            "scraperID": ev["id"],
             "source": ev.get("source", ""),
             "agency": ev.get("agency", ""),
             "country": ev.get("country", ""),
@@ -58,7 +61,8 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
             "event_local_tz": ev.get("event_local_tz", "UTC"),
             "impact": ev.get("impact", "Low"),
             "url": ev.get("url", ""),
-            "extras": ev.get("extras") or {},
+            "announcement_time_local": announcement_time,
+            "extras": extras,
         }
         rows.append(row)
 
@@ -69,7 +73,7 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
         batch = rows[i : i + batch_size]
         result = (
             client.table("economic_events")
-            .upsert(batch, on_conflict="id")
+            .upsert(batch, on_conflict="scraperID")
             .execute()
         )
         total_upserted += len(batch)
