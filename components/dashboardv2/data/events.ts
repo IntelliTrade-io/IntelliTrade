@@ -3,6 +3,7 @@ import type { CalendarEvent } from "../types";
 export const EVENTS: CalendarEvent[] = [
   {
     id: 1,
+    isoDateTime: "2026-03-11T17:30:00Z",
     dateLabel: "Mar 11",
     timeLabel: "12:30 PM",
     currency: "USD",
@@ -28,6 +29,7 @@ export const EVENTS: CalendarEvent[] = [
   },
   {
     id: 2,
+    isoDateTime: "2026-03-12T11:00:00Z",
     dateLabel: "Mar 12",
     timeLabel: "11:00 AM",
     currency: "EUR",
@@ -53,6 +55,7 @@ export const EVENTS: CalendarEvent[] = [
   },
   {
     id: 3,
+    isoDateTime: "2026-03-13T07:00:00Z",
     dateLabel: "Mar 13",
     timeLabel: "07:00 AM",
     currency: "GBP",
@@ -78,6 +81,7 @@ export const EVENTS: CalendarEvent[] = [
   },
   {
     id: 4,
+    isoDateTime: "2026-03-13T17:30:00Z",
     dateLabel: "Mar 13",
     timeLabel: "12:30 PM",
     currency: "CAD",

@@ -49,6 +49,7 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
     rows = []
     for ev in events:
         extras = ev.get("extras") or {}
+        # Extract announcement_time_local from extras if present
         announcement_time = extras.get("announcement_time_local") or extras.get("release_time_local")
         row = {
             "scraperID": ev["id"],

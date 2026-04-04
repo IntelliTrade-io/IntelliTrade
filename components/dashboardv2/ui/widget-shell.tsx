@@ -66,7 +66,7 @@ export function SoftLines() {
 
 interface WidgetShellProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   tone?: "neutral" | "brand";
   headerRight?: React.ReactNode;
   children: React.ReactNode;
@@ -101,9 +101,9 @@ export function WidgetShell({
             <h2 className="text-2xl font-semibold tracking-tight text-white">
               {title}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/46">
-              {subtitle}
-            </p>
+            {subtitle ? (
+              <p className="mt-1 text-sm text-white/40">{subtitle}</p>
+            ) : null}
           </div>
           {headerRight ? (
             <div className="flex shrink-0 flex-wrap items-center gap-2">

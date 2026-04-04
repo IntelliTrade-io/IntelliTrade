@@ -25,6 +25,7 @@ export interface EventExtras {
 
 export interface CalendarEvent {
   id: number;
+  isoDateTime: string;
   dateLabel: string;
   timeLabel: string;
   currency: string;
