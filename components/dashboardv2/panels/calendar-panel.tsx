@@ -274,9 +274,14 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             )}
             {!loading && !error && (
               <div className="grid gap-3">
-                {visibleEvents.map((event) => (
-                  <CalendarRow key={event.id} event={event} onOpen={setActiveEvent} />
-                ))}
+                {visibleEvents.map((event) => {
+                  const isPast = new Date(event.date_time_utc) < new Date();
+                  return (
+                    <div key={event.id} className={isPast ? "opacity-35" : undefined}>
+                      <CalendarRow event={event} onOpen={setActiveEvent} />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
