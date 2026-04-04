@@ -6,21 +6,65 @@ import {
   PricePageBrandStyles,
   RadialBackdrop,
   getChartTabClassName,
-  getMarketMoveClassName,
-  getQuoteChangeClassName,
 } from "../gold-price-today/lib/pricePageBrand";
 import "@/styles/lot-size-calculator.css";
+import { client } from "@/sanity/client";
 
-const OIL_SYMBOL = "ICEEUR:BRN1!";
+// ─── Market context from Sanity ───────────────────────────────────────────────
+
+type MarketContextData = {
+  heading: string;
+  paragraphs: Array<{ text: string }>;
+} | null;
+
+function useMarketContext(asset: string): MarketContextData {
+  const [data, setData] = useState<MarketContextData>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    client
+      .fetch<MarketContextData>(
+        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
+          heading,
+          paragraphs
+        }`,
+        { asset }
+      )
+      .then((result) => { if (!cancelled) setData(result ?? null); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [asset]);
+
+  return data;
+}
+
+// ─── DXY ─────────────────────────────────────────────────────────────────────
+
+function useDxy(): string | null {
+  const [value, setValue] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/dxy");
+        if (!res.ok || cancelled) return;
+        const json = await res.json();
+        if (json.dxy == null || cancelled) return;
+        setValue((json.dxy as number).toFixed(2));
+      } catch {}
+    };
+    load();
+    const id = window.setInterval(load, 300_000);
+    return () => { cancelled = true; window.clearInterval(id); };
+  }, []);
+  return value;
+}
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const OIL_SYMBOL = "BLACKBULL:BRENT";
 const TV_MINI_CHART_SCRIPT_SRC = "https://widgets.tradingview-widget.com/w/en/tv-mini-chart.js";
-const QUOTE_REFRESH_MS = 12000;
 const LARGE_CHART_TIMEOUT_MS = 6000;
-
-const BASE_OIL_QUOTE = Object.freeze({
-  anchor: 82.46,
-  open: 81.92,
-  prevClose: 81.77,
-});
 
 const LARGE_CHART_TABS = [
   { label: "1D", value: "1D", timeFrame: null },
@@ -32,57 +76,7 @@ const LARGE_CHART_TABS = [
   { label: "All", value: "ALL", timeFrame: "ALL" },
 ] as const;
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const easternTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "America/New_York",
-});
-
-function roundToTwo(v: number) { return Math.round(v * 100) / 100; }
-function formatCurrency(v: number) { return currencyFormatter.format(v); }
-function formatSigned(v: number) { return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}`; }
-function formatSignedPct(v: number) { return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}%`; }
-
-function getOilQuote(now = Date.now()) {
-  const updatedAt = now - (now % QUOTE_REFRESH_MS);
-  const seconds = Math.floor(updatedAt / 1000);
-  const price = roundToTwo(BASE_OIL_QUOTE.anchor + Math.sin(seconds / 23) * 4.2 + Math.cos(seconds / 61) * 1.6);
-  const open = roundToTwo(BASE_OIL_QUOTE.open + Math.cos(seconds / 91) * 1.35);
-  const prevClose = BASE_OIL_QUOTE.prevClose;
-  const absoluteChange = roundToTwo(price - prevClose);
-  const percentageChange = roundToTwo((absoluteChange / prevClose) * 100);
-  const high = roundToTwo(Math.max(price, open, prevClose) + 0.85 + Math.abs(Math.sin(seconds / 37)) * 2.8);
-  const low = roundToTwo(Math.min(price, open, prevClose) - 0.95 - Math.abs(Math.cos(seconds / 41)) * 3.4);
-  return {
-    updatedAt, price, absoluteChange, percentageChange, high, low, open, prevClose,
-    formatted: {
-      price: formatCurrency(price),
-      percentageChange: formatSignedPct(percentageChange),
-      absoluteChange: `(${formatSigned(absoluteChange)})`,
-      sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
-      high: formatCurrency(high),
-      low: formatCurrency(low),
-      open: formatCurrency(open),
-      prevClose: formatCurrency(prevClose),
-    },
-  };
-}
-
-function useOilQuote() {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
-  return getOilQuote(now);
-}
+// ─── TradingView loader ───────────────────────────────────────────────────────
 
 let tvMiniChartModulePromise: Promise<void> | null = null;
 
@@ -111,6 +105,8 @@ function ensureTvMiniChartModule(): Promise<void> {
   }
   return tvMiniChartModulePromise;
 }
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
 function ChartStatusOverlay({ message }: { message: string }) {
   return (
@@ -208,18 +204,17 @@ function TradingViewMiniChart({ timeFrame }: { timeFrame: string | null }) {
   );
 }
 
-function DriverCard({ title, value, move, subtle }: { title: string; value: string; move: string; subtle: string }) {
+function DriverCard({ title, value, subtle }: { title: string; value: string; subtle: string }) {
   return (
     <div className="price-surface-card rounded-2xl p-5">
       <RadialBackdrop />
-      <div className="price-surface-content flex items-start justify-between gap-4">
+      <div className="price-surface-content flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-slate-100">{title}</p>
           <p className="mt-1 text-[12px] text-slate-400">{subtle}</p>
         </div>
         <div className="text-right">
           <p className="text-2xl font-semibold tracking-tight text-slate-50">{value}</p>
-          <p className={`mt-1 text-sm font-medium ${getMarketMoveClassName(move)}`}>{move}</p>
         </div>
       </div>
     </div>
@@ -245,8 +240,7 @@ function FaqAccordionItem({ item, isOpen, onToggle }: { item: { question: string
   );
 }
 
-function MiniPriceWidget({ quote }: { quote: ReturnType<typeof getOilQuote> }) {
-  const isNegative = quote.absoluteChange < 0;
+function MiniPriceWidget() {
   return (
     <motion.div
       whileHover={{ y: -6, scale: 1.01 }}
@@ -258,27 +252,19 @@ function MiniPriceWidget({ quote }: { quote: ReturnType<typeof getOilQuote> }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Brent Oil Price</p>
-            <p className="price-value-brand mt-4 text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01]">{quote.formatted.price}</p>
-            <p className={["mt-2 text-xl font-medium transition-colors duration-300", getQuoteChangeClassName(isNegative)].join(" ")}>
-              {quote.formatted.percentageChange} {quote.formatted.absoluteChange}
-            </p>
+          
           </div>
-          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-slate-100 transition duration-300">1D</button>
+          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-violet-400 transition duration-300">1D</button>
         </div>
-        <div className="price-chart-shell price-chart-shell-hover mt-5 rounded-2xl p-3"><MiniPriceWidgetChart /></div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400 transition-colors duration-300 group-hover:text-slate-300">
-          <span>{quote.formatted.sessionTime}</span>
-        </div>
-        <div className="price-divider-top mt-5 grid grid-cols-2 gap-x-6 gap-y-3 border-t pt-5 text-sm transition-colors duration-300">
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">24H High</span><span className="font-medium text-slate-100">{quote.formatted.high}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">Open</span><span className="font-medium text-slate-100">{quote.formatted.open}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">24H Low</span><span className="font-medium text-slate-100">{quote.formatted.low}</span></div>
-          <div className="flex items-center justify-between gap-3"><span className="text-slate-400">Prev. Close</span><span className="font-medium text-slate-100">{quote.formatted.prevClose}</span></div>
+        <div className="price-chart-shell price-chart-shell-hover mt-5 rounded-2xl p-3">
+          <MiniPriceWidgetChart />
         </div>
       </div>
     </motion.div>
   );
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 const FAQ_ITEMS = [
   {
@@ -296,7 +282,8 @@ const FAQ_ITEMS = [
 ];
 
 export default function OilPriceTodayPage() {
-  const oilQuote = useOilQuote();
+  const marketContext = useMarketContext("oil");
+  const dxy = useDxy();
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
   const activeLargeChartTab = LARGE_CHART_TABS.find((t) => t.value === selectedRange) ?? LARGE_CHART_TABS[0];
@@ -320,10 +307,10 @@ export default function OilPriceTodayPage() {
               <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-50 md:text-6xl">Oil Price Today</h1>
               <p className="mt-4 text-xl text-slate-300">Live Brent crude price with market insights</p>
               <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90 md:max-w-xl">
-                <p>Stay informed with the latest Brent crude price in USD. Below is the live Brent oil price, updated in real time, along with a chart, market analysis, and the main forces influencing oil today.</p>
+                <p>Stay informed with the latest Brent crude price. Below is the live Brent oil chart, along with market analysis and the main forces influencing oil today.</p>
               </div>
             </div>
-            <div><MiniPriceWidget quote={oilQuote} /></div>
+            <div><MiniPriceWidget /></div>
           </div>
         </motion.section>
 
@@ -338,10 +325,18 @@ export default function OilPriceTodayPage() {
           <RadialBackdrop />
           <div className="price-surface-content">
             <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Market Context</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">What&apos;s moving oil today</h2>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">
+              {marketContext?.heading ?? "What\u2019s moving oil today"}
+            </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              <p>Oil is being shaped by supply expectations, global demand outlook, and evolving geopolitical risk across energy markets. Traders are mainly watching OPEC+ signals, inventories, and shipping headlines.</p>
-              <p>If supply risks remain elevated while demand holds steady, oil can stay supported. A stronger dollar, however, can pressure momentum and cap short-term gains.</p>
+              {marketContext ? (
+                marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
+              ) : (
+                <>
+                  <p>Oil is being shaped by supply expectations, global demand outlook, and evolving geopolitical risk across energy markets. Traders are mainly watching OPEC+ signals, inventories, and shipping headlines.</p>
+                  <p>If supply risks remain elevated while demand holds steady, oil can stay supported. A stronger dollar, however, can pressure momentum and cap short-term gains.</p>
+                </>
+              )}
             </div>
           </div>
         </motion.section>
@@ -359,23 +354,15 @@ export default function OilPriceTodayPage() {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Price Chart</p>
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">Live chart view</h2>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {LARGE_CHART_TABS.map((tab) => (
-                  <button key={tab.value} type="button" onClick={() => setSelectedRange(tab.value)} className={getChartTabClassName(tab.value === selectedRange, "oil")}>{tab.label}</button>
-                ))}
+                <h2 className="text-3xl font-semibold tracking-tight text-slate-50">Live chart view</h2>
+                <div className="flex flex-wrap gap-2">
+                  {LARGE_CHART_TABS.map((tab) => (
+                    <button key={tab.value} type="button" onClick={() => setSelectedRange(tab.value)} className={getChartTabClassName(tab.value === selectedRange, "oil")}>{tab.label}</button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="price-chart-shell mt-6 rounded-2xl p-4"><TradingViewMiniChart timeFrame={activeLargeChartTab.timeFrame} /></div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-4 text-sm">
-              <div className="flex flex-wrap gap-6 text-slate-400">
-                <span>{oilQuote.formatted.low}</span>
-                <span>{oilQuote.formatted.open}</span>
-                <span>{oilQuote.formatted.high}</span>
-              </div>
-              <p className="text-4xl font-semibold tracking-tight text-slate-100">{oilQuote.formatted.price}</p>
-            </div>
           </div>
         </motion.section>
 
@@ -392,10 +379,10 @@ export default function OilPriceTodayPage() {
             <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">What Moves Oil</p>
             <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">Market relationships</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <DriverCard title="US Dollar Index (DXY)" value="105.52" move="-0.10% (-0.11)" subtle="A softer dollar can support Brent prices." />
-              <DriverCard title="OPEC+ / Supply expectations" value="" move="" subtle="Policy and output guidance can reprice supply risk." />
-              <DriverCard title="Inventories" value="" move="" subtle="Stockpile trends influence near-term balance." />
-              <DriverCard title="Risk / Geopolitics" value="" move="" subtle="Geopolitical events can add risk premium quickly." />
+              <DriverCard title="US Dollar Index (DXY)" value={dxy ?? "—"} subtle="A softer dollar can support Brent prices." />
+              <DriverCard title="OPEC+ / Supply expectations" value="—" subtle="Policy and output guidance can reprice supply risk." />
+              <DriverCard title="Inventories" value="—" subtle="Stockpile trends influence near-term balance." />
+              <DriverCard title="Risk / Geopolitics" value="—" subtle="Geopolitical events can add risk premium quickly." />
             </div>
           </div>
         </motion.section>
@@ -426,7 +413,7 @@ export default function OilPriceTodayPage() {
               <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Methodology</p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">How oil prices are calculated</h2>
               <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-                <p>The Brent price on this page is displayed as a live Brent crude market reference, typically quoted in US dollars per barrel. Price, chart, and daily change are derived from the same underlying pricing stream and updated regularly during active market hours.</p>
+                <p>The Brent crude chart on this page is sourced from TradingView and reflects the front-month Brent futures contract. A live numeric price feed for oil is not currently available on this page — use the chart above for current price tracking.</p>
                 <p>Since Brent can be represented via different instruments (spot references, futures, or broker quotes) and contract timing, small differences versus other platforms can occur due to spreads, refresh rates, and contract selection. This page is designed for market tracking, not as an exact tradable quote.</p>
               </div>
             </div>
