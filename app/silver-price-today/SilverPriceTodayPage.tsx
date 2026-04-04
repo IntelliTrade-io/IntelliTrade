@@ -559,7 +559,7 @@ export default function SilverPriceTodayPage() {
               <DriverCard title="US Dollar Index (DXY)" value={dxy ?? "—"} subtle="A softer dollar can support silver prices." />
               <DriverCard title="US 10Y Yield" value={marketData.tenYearYield ?? "—"} subtle="Lower yields can improve silver demand." />
               <DriverCard title="Gold Price (XAU/USD)" value={marketData.goldPrice ?? "—"} subtle="Precious metals often share directional flows." />
-              <DriverCard title="Industrial demand / Growth sentiment" value="—" subtle="Growth expectations can shape silver demand." />
+              <DriverCard title="Industrial demand / Growth sentiment" value="" subtle="Growth expectations can shape silver demand." />
             </div>
           </div>
         </motion.section>
