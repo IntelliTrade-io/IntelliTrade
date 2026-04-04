@@ -1,0 +1,48 @@
+name: Currency Strength — Intraday Scanner
+
+on:
+  schedule:
+    # Runs every hour at :30, Monday–Friday during forex market hours (07:30–21:30 UTC)
+    - cron: "30 7-21 * * 1-5"
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests numpy pandas supabase
+
+      - name: Run intraday scanner
+        env:
+          OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
+        run: |
+          python scripts/currency_strength_scanner_intraday.py \
+            --use-adx  --adx-hi-min 18 --adx-lo-min 16 \
+            --use-chop --chop-hi-max 58 --chop-lo-max 60 \
+            --use-avwap-accept --accept-hi-bars 1 --accept-lo-bars 3 --accept-atr-band 0.20 \
+            --use-triangle-consistency --triangle-penalty 0.50 \
+            --emit-confidence --soft-gating --weighted-aggregation \
+            --out-json out/intraday_pairs_trusted.json \
+            --out-currencies-json out/intraday_currencies_trusted.json
+
+      - name: Upload to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python scripts/currency_strength_upload.py \
+            --type intraday \
+            --pairs-json out/intraday_pairs_trusted.json \
+            --currencies-json out/intraday_currencies_trusted.json

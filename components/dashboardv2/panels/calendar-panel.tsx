@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CalendarDays, ChevronDown, CircleDot, Search, Waves, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CURRENCIES } from "../constants";
-import { EVENTS } from "../data/events";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill, SmallAction } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
 import { CalendarRow } from "../ui/calendar-row";
 import { DetailDrawer } from "../ui/detail-drawer";
-import type { CalendarEvent, Panel } from "../types";
+import type { CalendarEvent, ImpactLevel, Panel } from "../types";
 
 interface CalendarPanelProps {
   panel: Panel;
@@ -18,18 +16,150 @@ interface CalendarPanelProps {
   onRemove: () => void;
 }
 
+// Maps 2-letter country code → currency ticker
+const COUNTRY_TO_CURRENCY: Record<string, string> = {
+  US: "USD", EU: "EUR", GB: "GBP", JP: "JPY", AU: "AUD",
+  CA: "CAD", CH: "CHF", NZ: "NZD", CN: "CNY", IN: "INR",
+  KR: "KRW", MX: "MXN", BR: "BRL", ZA: "ZAR", RU: "RUB",
+  TR: "TRY", SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN",
+  SG: "SGD", HK: "HKD", TH: "THB", ID: "IDR", MY: "MYR",
+  PH: "PHP", IL: "ILS", CZ: "CZK", HU: "HUF", RO: "RON",
+};
+
+// Maps 2-letter country code → display region name
+const COUNTRY_TO_REGION: Record<string, string> = {
+  US: "United States", EU: "Euro Area", GB: "United Kingdom",
+  JP: "Japan", AU: "Australia", CA: "Canada", CH: "Switzerland",
+  NZ: "New Zealand", CN: "China", IN: "India", KR: "South Korea",
+  MX: "Mexico", BR: "Brazil", ZA: "South Africa", RU: "Russia",
+  TR: "Turkey", SE: "Sweden", NO: "Norway", DK: "Denmark",
+  PL: "Poland", SG: "Singapore", HK: "Hong Kong", TH: "Thailand",
+  ID: "Indonesia", MY: "Malaysia", PH: "Philippines", IL: "Israel",
+  CZ: "Czech Republic", HU: "Hungary", RO: "Romania",
+};
+
+function formatDateLabel(iso: string, tz?: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short", day: "numeric", timeZone: tz || "UTC",
+  }).format(new Date(iso));
+}
+
+function formatTimeLabel(iso: string, localTime?: string, tz?: string): string {
+  if (localTime) return localTime;
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit", minute: "2-digit", timeZone: tz || "UTC",
+  }).format(new Date(iso));
+}
+
+// Normalise API impact string ("High" / "Medium" / "Low") to ImpactLevel
+function toImpactLevel(raw: string): ImpactLevel {
+  const map: Record<string, ImpactLevel> = {
+    High: "high", Medium: "medium", Low: "low",
+    high: "high", medium: "medium", low: "low",
+  };
+  return map[raw] ?? "low";
+}
+
+// Shape returned by /api/economic-events
+interface ApiEvent {
+  id: string | number;
+  source?: string;
+  agency?: string;
+  country?: string;
+  title: string;
+  date_time_utc: string;
+  event_local_tz?: string;
+  impact: string;
+  url?: string;
+  extras?: Record<string, unknown>;
+}
+
+function toCalendarEvent(e: ApiEvent): CalendarEvent {
+  const country = e.country ?? "EU";
+  const flagCode = country.toLowerCase();
+  const currency = COUNTRY_TO_CURRENCY[country] ?? country;
+  const region = COUNTRY_TO_REGION[country] ?? country;
+  const extras = (e.extras ?? {}) as Record<string, unknown>;
+
+  return {
+    id: Number(e.id),
+    currency,
+    region,
+    flagCode,
+    title: e.title,
+    impact: toImpactLevel(e.impact),
+    agency: (e.agency as string) ?? "",
+    source: (e.source as string) ?? "",
+    rawUrl: (e.url as string) ?? "",
+    dateLabel: formatDateLabel(e.date_time_utc, e.event_local_tz),
+    timeLabel: formatTimeLabel(
+      e.date_time_utc,
+      (extras.release_time_local as string) ?? undefined,
+      e.event_local_tz,
+    ),
+    extras: {
+      release_time_local: (extras.release_time_local as string) ?? "",
+      event_local_tz: e.event_local_tz ?? "UTC",
+      time_confidence: (extras.time_confidence as string) ?? "",
+      category: (extras.category as string) ?? "",
+      source_url_standardized: (extras.source_url_standardized as string) ?? (e.url as string) ?? "",
+      event_description: (extras.event_description as string) ?? "",
+      pair_relevance: (extras.pair_relevance as { primary_fx_pairs: string[]; related_assets: string[] }) ?? {
+        primary_fx_pairs: [],
+        related_assets: [],
+      },
+    },
+  };
+}
+
+function useEconomicEvents() {
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/economic-events", { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data: ApiEvent[] = await res.json();
+        const arr = Array.isArray(data) ? data : [data];
+        const sorted = arr
+          .sort((a, b) => new Date(a.date_time_utc).getTime() - new Date(b.date_time_utc).getTime())
+          .filter((e) => e.title !== "View current release")
+          .map(toCalendarEvent);
+        setEvents(sorted);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  return { events, loading, error };
+}
+
 export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelProps) {
+  const { events, loading, error } = useEconomicEvents();
+
   const [query, setQuery] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("All");
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
   const [filters, setFilters] = useState({ high: true, medium: true, low: false });
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
 
+  // Derive currency list from live data
+  const availableCurrencies = useMemo(() => {
+    const seen = new Set<string>();
+    events.forEach((e) => seen.add(e.currency));
+    return ["All", ...Array.from(seen).sort()];
+  }, [events]);
+
   const visibleEvents = useMemo(
     () =>
-      EVENTS.filter((event) => {
-        const matchesCurrency =
-          selectedCurrency === "All" || event.currency === selectedCurrency;
+      events.filter((event) => {
+        const matchesCurrency = selectedCurrency === "All" || event.currency === selectedCurrency;
         const matchesImpact = filters[event.impact];
         const matchesQuery =
           !query ||
@@ -38,7 +168,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             .includes(query.toLowerCase());
         return matchesCurrency && matchesImpact && matchesQuery;
       }),
-    [query, selectedCurrency, filters],
+    [events, query, selectedCurrency, filters],
   );
 
   const toggleImpact = (impact: keyof typeof filters) =>
@@ -107,7 +237,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
 
               {showCurrencyMenu ? (
                 <div className="absolute right-0 z-20 mt-2 w-full overflow-hidden rounded-[20px] border border-white/10 bg-[#0d0d13]/95 p-2 shadow-2xl backdrop-blur-2xl">
-                  {CURRENCIES.map((item) => (
+                  {availableCurrencies.map((item) => (
                     <button
                       key={item}
                       onClick={() => {
@@ -133,11 +263,22 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-            <div className="grid gap-3">
-              {visibleEvents.map((event) => (
-                <CalendarRow key={event.id} event={event} onOpen={setActiveEvent} />
-              ))}
-            </div>
+            {loading && (
+              <p className="py-8 text-center text-sm text-white/40">Loading events…</p>
+            )}
+            {error && (
+              <p className="py-8 text-center text-sm text-red-400/80">Error: {error}</p>
+            )}
+            {!loading && !error && visibleEvents.length === 0 && (
+              <p className="py-8 text-center text-sm text-white/40">No events match your filters.</p>
+            )}
+            {!loading && !error && (
+              <div className="grid gap-3">
+                {visibleEvents.map((event) => (
+                  <CalendarRow key={event.id} event={event} onOpen={setActiveEvent} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </WidgetShell>
