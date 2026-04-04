@@ -10,14 +10,14 @@ export async function GET() {
     
     // Fetch all events from the economic_events table
     // Ordered by date_time_utc ascending (upcoming events first)
-    // Only return events within a 14-day rolling window (yesterday → +13 days)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
+    // Only return events from start of today onwards (drop previous days)
+    const startOfToday = new Date();
+    startOfToday.setUTCHours(0, 0, 0, 0);
 
     const { data, error } = await supabase
       .from('economic_events')
       .select('*')
-      .gte('date_time_utc', yesterday.toISOString())
+      .gte('date_time_utc', startOfToday.toISOString())
       .order('date_time_utc', { ascending: true });
     
     if (error) {
