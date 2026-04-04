@@ -1,0 +1,55 @@
+name: Currency Strength — Daily Scanner
+
+on:
+  schedule:
+    # Runs at 22:15 UTC Monday–Friday (after daily candle closes at 22:00 UTC)
+    - cron: "15 22 * * 1-5"
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests numpy pandas supabase
+
+      - name: Run daily scanner
+        env:
+          OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
+          OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
+        run: |
+          python scripts/currency_strength_scanner_daily.py \
+            --preset v43 \
+            --trend-mode bos_only \
+            --bos-excess-d1-atr 0.04 --bos-excess-d1-pips 0.5 \
+            --d1-depth 3,1 \
+            --use-adx  --adx-d1-min 20 --adx-h4-min 18 \
+            --use-chop --chop-d1-max 55 --chop-h4-max 58 \
+            --use-avwap-accept --accept-d1-bars 1 --accept-h4-bars 3 --accept-atr-band 0.20 \
+            --use-triangle-consistency --triangle-penalty 0.50 \
+            --emit-confidence --soft-gating \
+            --penalty-adx 0.6 --penalty-chop 0.7 --penalty-avwap 0.6 --penalty-triangle 0.8 \
+            --weighted-aggregation \
+            --max-retries 4 --retry-wait 0.30 \
+            --out-json out/heatmap_pairs_v152.json \
+            --out-currencies-json out/heatmap_currencies_v152.json
+
+      - name: Upload to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python scripts/currency_strength_upload.py \
+            --type daily \
+            --pairs-json out/heatmap_pairs_v152.json \
+            --currencies-json out/heatmap_currencies_v152.json

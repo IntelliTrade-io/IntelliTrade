@@ -1,0 +1,44 @@
+name: Economic Calendar — Scrape & Upload
+
+on:
+  schedule:
+    # Runs at 06:00 UTC daily (before London/NY opens, catches overnight releases)
+    - cron: "0 6 * * *"
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  scrape-and-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install \
+            requests \
+            beautifulsoup4 \
+            lxml \
+            feedparser \
+            python-dateutil \
+            soupsieve \
+            jsonschema \
+            supabase
+
+      - name: Run scraper and upload to Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python scripts/economic_calendar_upload.py \
+            --since -1 \
+            --until 14 \
+            --central-banks \
+            --global
