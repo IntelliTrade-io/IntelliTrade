@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 7 10 18;
+  --panel: 12 17 30;
+  --border: 255 255 255;
+  --text: 236 239 248;
+  --muted: 150 159 183;
+  --accent: 140 103 255;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(132, 96, 255, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 85% 12%,
+      rgba(63, 209, 255, 0.08),
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at bottom center,
+      rgba(20, 28, 52, 0.75),
+      transparent 40%
+    ),
+    rgb(var(--bg));
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+  opacity: 0.18;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 180px rgba(0, 0, 0, 0.75);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), sans-serif;
+}
+
+::selection {
+  background: rgba(140, 103, 255, 0.28);
+}
+
+.glass-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.04)
+    ),
+    rgba(var(--panel), 0.72);
+  border: 1px solid rgba(var(--border), 0.1);
+  box-shadow:
+    0 18px 42px rgba(3, 7, 20, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 42px rgba(var(--accent), 0.12);
+  backdrop-filter: blur(24px);
+}
+
+.focus-ring {
+  @apply outline-none ring-0 transition-[box-shadow,border-color,background-color,transform] duration-200;
+}
+
+.focus-ring:focus-visible {
+  box-shadow:
+    0 0 0 1px rgba(var(--accent), 0.6),
+    0 0 0 4px rgba(var(--accent), 0.18);
+}
+
+.vector-map-label {
+  font-family: var(--font-heading), sans-serif;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: rgba(6, 9, 16, 0.42);
+  stroke-width: 4px;
+}
+
+.map-point--exact {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.map-point--country {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.map-point-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: map-point-pulse 2.8s ease-out infinite;
+}
+
+@keyframes map-point-pulse {
+  0% {
+    opacity: 0.16;
+    transform: scale(0.92);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
