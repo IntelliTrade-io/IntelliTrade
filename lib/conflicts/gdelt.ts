@@ -87,7 +87,7 @@ export async function fetchGdeltConflicts(
   const fetchImpl = options.fetchImpl ?? fetch;
   const generatedAt = (options.now ?? new Date()).toISOString();
   const query = buildConflictQuery(options.query);
-  const strategy = getWindowStrategy(options.window);
+  const strategy = getWindowStrategy();
 
   try {
     const collection =
@@ -117,7 +117,7 @@ export function buildConflictQuery(query?: string) {
   return base;
 }
 
-export function getWindowStrategy(_window: ConflictWindow): GdeltWindowStrategy {
+export function getWindowStrategy(): GdeltWindowStrategy {
   // GEO2 endpoint (api.gdeltproject.org/api/v2/geo/geo) returns 404 — use DOC for all windows
   return "doc";
 }
