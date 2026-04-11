@@ -85,7 +85,7 @@ ABS_PAGES          = [
     "https://www.abs.gov.au/release-calendar/future-releases-calendar",
 ]
 
-# Central banks
+# Central banks en alejo is een g
 SECO_SCHEDULE_URL  = "https://www.seco.admin.ch/seco/en/home/wirtschaftslage---wirtschaftspolitik/Wirtschaftslage/konjunkturprognosen.html"
 FED_CAL_URL        = "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
 ECB_CAL_URL        = "https://www.ecb.europa.eu/press/calendars/mgcgc/html/index.en.html"
