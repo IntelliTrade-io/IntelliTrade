@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { geoGraticule10, geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature as topoFeature } from "topojson-client";
 import { RotateCw, Search } from "lucide-react";
+import { CATEGORY_DEFINITIONS } from "@/lib/conflicts/scoring";
 
 const VIEWBOX_WIDTH = 1440;
 const VIEWBOX_HEIGHT = 900;
@@ -22,13 +23,6 @@ const SEVERITY_OPTIONS = [
   { label: "High", value: "high" },
   { label: "Medium", value: "medium" },
   { label: "Low", value: "low" },
-];
-const CATEGORY_DEFINITIONS = [
-  { id: "airstrikes", label: "Airstrikes", keywords: ["airstrike", "air strike", "artillery", "shelling", "bombardment", "bombing"] },
-  { id: "ground-clashes", label: "Ground clashes", keywords: ["clash", "clashes", "battlefield", "incursion", "insurgent", "militia", "troops"] },
-  { id: "explosions", label: "Explosions", keywords: ["explosion", "blast", "attack", "suicide bombing"] },
-  { id: "drones-missiles", label: "Drones/Missiles", keywords: ["drone", "missile", "rocket", "strike"] },
-  { id: "diplomacy", label: "Diplomacy", keywords: ["ceasefire", "talks", "negotiation", "negotiations", "truce"] },
 ];
 const severityMeta = {
   high: {
@@ -293,91 +287,90 @@ function ConflictStatPill({ label, value }) {
   );
 }
 
-function useConflictAssets(refreshToken) {
+function useConflictAssets(windowValue, refreshToken) {
   const [worldTopo, setWorldTopo] = useState(null);
   const [collection, setCollection] = useState(null);
   const [generatedAt, setGeneratedAt] = useState(null);
+  const [isSample, setIsSample] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
+    setLoading(true);
+    setError("");
 
     async function loadData() {
-      setLoading(true);
-      setError("");
-
       try {
-        const [topologyResponse, sampleResponse] = await Promise.all([
-          fetch("/conflict-map/world.topo.json", { cache: "no-store" }),
-          fetch("/conflict-map/conflicts.sample.geojson", { cache: "no-store" }),
+        const [topologyResponse, conflictsResponse] = await Promise.all([
+          fetch("/conflict-map/world.topo.json"),
+          fetch(`/api/conflicts?window=${encodeURIComponent(windowValue)}`),
         ]);
 
-        if (!topologyResponse.ok || !sampleResponse.ok) {
-          throw new Error("Unable to load conflict map assets.");
-        }
+        if (!topologyResponse.ok) throw new Error("Unable to load basemap.");
+        if (!conflictsResponse.ok) throw new Error("Unable to load conflict data.");
 
-        const [topologyPayload, samplePayload] = await Promise.all([topologyResponse.json(), sampleResponse.json()]);
+        const [topologyPayload, conflictsPayload] = await Promise.all([
+          topologyResponse.json(),
+          conflictsResponse.json(),
+        ]);
 
-        if (!alive) {
-          return;
-        }
-
-        const featureDates = (samplePayload.features || [])
-          .map((item) => item.properties?.date)
-          .filter(Boolean)
-          .map((value) => Date.parse(value))
-          .filter((value) => Number.isFinite(value));
+        if (!alive) return;
 
         setWorldTopo(topologyPayload);
-        setCollection(samplePayload);
-        setGeneratedAt(featureDates.length ? new Date(Math.max(...featureDates)).toISOString() : new Date().toISOString());
+        setCollection(conflictsPayload.geojson ?? { type: "FeatureCollection", features: [] });
+        setGeneratedAt(conflictsPayload.meta?.generatedAt ?? new Date().toISOString());
+        setIsSample(conflictsPayload.meta?.source === "sample");
       } catch (loadError) {
         if (alive) {
           setError(loadError instanceof Error ? loadError.message : "Unable to load conflict map.");
         }
       } finally {
-        if (alive) {
-          setLoading(false);
-        }
+        if (alive) setLoading(false);
       }
     }
 
     loadData();
+    return () => { alive = false; };
+  }, [windowValue, refreshToken]);
 
-    return () => {
-      alive = false;
-    };
-  }, [refreshToken]);
-
-  return { worldTopo, collection, generatedAt, error, loading };
+  return { worldTopo, collection, generatedAt, isSample, error, loading };
 }
 
 export function ConflictMapSurface({ compact = false }) {
   const [windowValue, setWindowValue] = useState("24h");
-  const [severity, setSeverity] = useState("all");
+  const [activeSeverities, setActiveSeverities] = useState(new Set());
   const [query, setQuery] = useState("");
   const [activeCategories, setActiveCategories] = useState([]);
   const [densityEnabled, setDensityEnabled] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [refreshToken, setRefreshToken] = useState(0);
   const [copied, setCopied] = useState(false);
-  const { worldTopo, collection, generatedAt, error, loading } = useConflictAssets(refreshToken);
+  const { worldTopo, collection, generatedAt, isSample, error, loading } = useConflictAssets(windowValue, refreshToken);
 
   const allFeatures = collection?.features ?? [];
-  const referenceTimestamp = getReferenceTimestamp(allFeatures);
+
+  function toggleSeverity(value) {
+    if (value === "all") {
+      setActiveSeverities(new Set());
+      return;
+    }
+    setActiveSeverities((current) => {
+      const next = new Set(current);
+      if (next.has(value)) {
+        next.delete(value);
+      } else {
+        next.add(value);
+      }
+      return next;
+    });
+  }
 
   const visibleFeatures = useMemo(() => {
-    const start = referenceTimestamp - WINDOW_MS[windowValue];
     return allFeatures.filter((feature) => {
       const severityKey = getSeverityKey(feature);
-      const featureTime = Date.parse(feature.properties?.date ?? "");
 
-      if (severity !== "all" && severityKey !== severity) {
-        return false;
-      }
-
-      if (Number.isFinite(featureTime) && featureTime < start) {
+      if (activeSeverities.size > 0 && !activeSeverities.has(severityKey)) {
         return false;
       }
 
@@ -387,7 +380,7 @@ export function ConflictMapSurface({ compact = false }) {
 
       return matchesSearch(feature, query);
     });
-  }, [activeCategories, allFeatures, query, referenceTimestamp, severity, windowValue]);
+  }, [activeCategories, allFeatures, query, activeSeverities]);
 
   useEffect(() => {
     if (!visibleFeatures.length) {
@@ -452,54 +445,76 @@ export function ConflictMapSurface({ compact = false }) {
 
         <div className="flex flex-wrap gap-2">
           {SEVERITY_OPTIONS.map((option) => (
-            <ConflictChip key={option.value} active={severity === option.value} onClick={() => setSeverity(option.value)}>
+            <ConflictChip
+              key={option.value}
+              active={option.value === "all" ? activeSeverities.size === 0 : activeSeverities.has(option.value)}
+              onClick={() => toggleSeverity(option.value)}
+            >
               {option.label}
             </ConflictChip>
           ))}
         </div>
 
-        <div className="min-h-0 overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,9,16,0.98),rgba(5,7,13,0.96))]">
-          {mapPayload ? (
-            <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} className="h-full w-full">
-              <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="rgba(7,10,18,0.98)" />
-              <path d={mapPayload.graticulePath} fill="none" stroke="rgba(180,190,214,0.08)" strokeWidth="0.7" strokeDasharray="2 10" />
-              <path d={mapPayload.landPath} fill="rgba(14,18,31,0.96)" />
-              {mapPayload.countryPaths.map((item) => (
-                <path
-                  key={item.id}
-                  d={item.path}
-                  fill={item.tone === 0 ? "rgba(19,25,39,0.98)" : item.tone === 2 ? "rgba(16,21,34,0.98)" : "rgba(14,18,31,0.96)"}
-                  stroke="rgba(205,214,233,0.12)"
-                  strokeWidth="0.5"
-                />
-              ))}
-              {densityEnabled
-                ? mapPayload.markers.map((marker) => (
-                    <circle key={`density-${marker.id}`} cx={marker.x} cy={marker.y} r={marker.densityRadius} fill={marker.color} opacity={marker.densityOpacity} />
-                  ))
-                : null}
-              {mapPayload.markers.map((marker) => (
-                <g key={marker.id} onClick={() => setSelectedId(marker.id)} className="cursor-pointer">
-                  <circle cx={marker.x} cy={marker.y} r={marker.haloRadius} fill={marker.color} opacity={marker.haloOpacity} />
-                  <circle cx={marker.x} cy={marker.y} r={marker.radius} fill={marker.color} opacity={marker.precisionVariant === "country" ? 0.54 : 0.94} />
-                  {marker.isSelected ? <circle cx={marker.x} cy={marker.y} r={marker.ringRadius} fill="none" stroke="rgba(247,248,253,0.95)" strokeWidth="1.2" opacity="0.92" /> : null}
-                </g>
-              ))}
-            </svg>
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/46">{loading ? "Loading conflict-map module..." : error}</div>
-          )}
-        </div>
-
-        {selectedFeature ? (
-          <div className="rounded-[24px] border border-white/10 bg-white/[0.03] px-4 py-4 text-sm text-white/68">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="text-sm font-medium text-white">{selectedFeature.properties.locationName || selectedFeature.properties.title}</div>
-              <ConflictBadge tone={getSeverityKey(selectedFeature)}>{selectedFeature.properties.severityLabel}</ConflictBadge>
-            </div>
-            <div className="mt-2 text-white/44">{selectedFeature.properties.country} / {formatTimestamp(selectedFeature.properties.date)}</div>
+        <div className="flex-1 min-h-0 relative">
+          <div className="absolute inset-0 overflow-hidden rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,9,16,0.98),rgba(5,7,13,0.96))]">
+            {mapPayload ? (
+              <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`} className="h-full w-full">
+                <rect width={VIEWBOX_WIDTH} height={VIEWBOX_HEIGHT} fill="rgba(7,10,18,0.98)" />
+                <path d={mapPayload.graticulePath} fill="none" stroke="rgba(180,190,214,0.08)" strokeWidth="0.7" strokeDasharray="2 10" />
+                <path d={mapPayload.landPath} fill="rgba(14,18,31,0.96)" />
+                {mapPayload.countryPaths.map((item) => (
+                  <path
+                    key={item.id}
+                    d={item.path}
+                    fill={item.tone === 0 ? "rgba(19,25,39,0.98)" : item.tone === 2 ? "rgba(16,21,34,0.98)" : "rgba(14,18,31,0.96)"}
+                    stroke="rgba(205,214,233,0.12)"
+                    strokeWidth="0.5"
+                  />
+                ))}
+                {densityEnabled
+                  ? mapPayload.markers.map((marker) => (
+                      <circle key={`density-${marker.id}`} cx={marker.x} cy={marker.y} r={marker.densityRadius} fill={marker.color} opacity={marker.densityOpacity} pointerEvents="none" />
+                    ))
+                  : null}
+                {mapPayload.markers.map((marker) => (
+                  <g key={marker.id} onClick={() => setSelectedId(marker.id)} className="cursor-pointer">
+                    <circle cx={marker.x} cy={marker.y} r={Math.max(marker.haloRadius, 30)} fill="transparent" />
+                    <circle cx={marker.x} cy={marker.y} r={marker.haloRadius} fill={marker.color} opacity={marker.haloOpacity} />
+                    <circle cx={marker.x} cy={marker.y} r={marker.radius} fill={marker.color} opacity={marker.precisionVariant === "country" ? 0.54 : 0.94} />
+                    {marker.isSelected ? <circle cx={marker.x} cy={marker.y} r={marker.ringRadius} fill="none" stroke="rgba(247,248,253,0.95)" strokeWidth="1.2" opacity="0.92" /> : null}
+                  </g>
+                ))}
+              </svg>
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-white/46">{loading ? "Loading conflict-map module..." : error}</div>
+            )}
           </div>
-        ) : null}
+
+          {selectedFeature ? (
+            <div className="absolute inset-x-3 bottom-3 z-10 rounded-[20px] border border-white/12 bg-[rgba(8,12,22,0.90)] p-4 shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-[20px]">
+              <div className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-white">{selectedFeature.properties.locationName || selectedFeature.properties.title}</span>
+                    <ConflictBadge tone={getSeverityKey(selectedFeature)}>{selectedFeature.properties.severityLabel}</ConflictBadge>
+                  </div>
+                  <div className="mt-1 text-xs text-white/44">{selectedFeature.properties.country} · {formatTimestamp(selectedFeature.properties.date)}</div>
+                  {selectedFeature.properties.topArticles?.length > 0 ? (
+                    <div className="mt-3 space-y-1.5">
+                      {selectedFeature.properties.topArticles.slice(0, 2).map((article) => (
+                        <a key={article.url} href={article.url} target="_blank" rel="noreferrer" className="flex items-start gap-1.5 text-xs text-violet-300/80 transition-colors hover:text-violet-200">
+                          <span className="mt-0.5 shrink-0 text-violet-400/60">↗</span>
+                          <span className="line-clamp-1">{article.title}</span>
+                        </a>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                <button type="button" onClick={() => setSelectedId(null)} className="shrink-0 text-xl leading-none text-white/30 transition-colors hover:text-white" aria-label="Close">×</button>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     );
   }
@@ -569,7 +584,11 @@ export function ConflictMapSurface({ compact = false }) {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/48">Severity</p>
             <div className="flex flex-wrap gap-2">
               {SEVERITY_OPTIONS.map((option) => (
-                <ConflictChip key={option.value} active={severity === option.value} onClick={() => setSeverity(option.value)}>
+                <ConflictChip
+                  key={option.value}
+                  active={option.value === "all" ? activeSeverities.size === 0 : activeSeverities.has(option.value)}
+                  onClick={() => toggleSeverity(option.value)}
+                >
                   {option.label}
                 </ConflictChip>
               ))}
@@ -640,14 +659,14 @@ export function ConflictMapSurface({ compact = false }) {
 
       <div className="pointer-events-auto absolute right-4 top-24 z-20 flex max-w-[calc(100vw-2rem)] items-start gap-3">
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04)),rgba(12,17,30,0.72)] px-3 py-3 shadow-[0_18px_42px_rgba(3,7,20,0.58),inset_0_1px_0_rgba(255,255,255,0.06),0_0_42px_rgba(125,84,255,0.12)] backdrop-blur-[24px]">
-          <ConflictButton variant="secondary" onClick={() => setRefreshToken((current) => current + 1)} title="Refreshes the local sample dataset.">
+          <ConflictButton variant="secondary" onClick={() => setRefreshToken((current) => current + 1)} title="Fetch latest data from GDELT.">
             <RotateCw className="mr-2 h-4 w-4" />
             Refresh
           </ConflictButton>
           <ConflictButton variant={densityEnabled ? "primary" : "secondary"} onClick={() => setDensityEnabled((current) => !current)}>
             Density
           </ConflictButton>
-          <ConflictBadge tone="sample">Sample data mode</ConflictBadge>
+          {isSample ? <ConflictBadge tone="sample">Sample data</ConflictBadge> : null}
           {error ? <ConflictBadge tone="medium">{error}</ConflictBadge> : null}
           <div className="min-w-[9rem] text-right">
             <p className="text-[11px] uppercase tracking-[0.18em] text-white/48">Last updated</p>
@@ -758,7 +777,7 @@ export function ConflictMapSurface({ compact = false }) {
 
       <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex max-w-[min(28rem,calc(100vw-2rem))] flex-wrap items-center gap-3">
         <div className="rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04)),rgba(12,17,30,0.72)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-white/50 shadow-[0_18px_42px_rgba(3,7,20,0.58),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[24px]">
-          Data: GDELT sample
+          {isSample ? "Data: GDELT sample fallback" : "Data: GDELT live feed"}
         </div>
         <div className="rounded-full border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04)),rgba(12,17,30,0.72)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-white/50 shadow-[0_18px_42px_rgba(3,7,20,0.58),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-[24px]">
           Bundled basemap: Natural Earth
