@@ -40,7 +40,7 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
             </p>
           </div>
 
-          <div className="grid min-w-[220px] flex-1 gap-2 sm:grid-cols-3">
+          <div className="grid flex-1 gap-2 @sm:grid-cols-3">
             {COURSE_STATS.map((stat) => (
               <div key={stat.label} className="rounded-2xl border border-white/14 bg-black/20 px-3 py-3 text-left">
                 <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/38">{stat.label}</div>
@@ -51,7 +51,7 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
         </div>
       </section>
 
-      <section className={compact ? "grid gap-3" : "grid gap-4 md:grid-cols-2"}>
+      <section className="grid gap-3 @md:gap-4 @md:grid-cols-2">
         {COURSE_TRACKS.map((track) => (
           <article
             key={track.label}
@@ -73,7 +73,7 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
         ))}
       </section>
 
-      <section className="grid gap-3 lg:grid-cols-[1fr_auto]">
+      <section className="grid gap-3 @lg:grid-cols-[1fr_auto]">
         <div className="rounded-[26px] border border-white/18 bg-black/24 px-4 py-4 backdrop-blur-xl">
           <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-violet-300/86">
             <Sparkles className="h-3.5 w-3.5" />
@@ -84,7 +84,7 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
           </p>
         </div>
 
-        <div className="flex items-center justify-between rounded-[26px] border border-white/18 bg-white/[0.04] px-4 py-4 text-sm text-slate-200 lg:min-w-[220px]">
+        <div className="flex items-center justify-between rounded-[26px] border border-white/18 bg-white/[0.04] px-4 py-4 text-sm text-slate-200 @lg:min-w-[220px]">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/36">Launch module</div>
             <div className="mt-2 font-medium text-white">Standalone reader</div>

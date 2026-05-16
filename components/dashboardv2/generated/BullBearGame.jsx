@@ -170,10 +170,18 @@ function useDPR(canvasRef) {
     const onResize = () => {
       const parent = canvas.parentElement;
       if (!parent) return;
-      const cssW = parent.clientWidth;
-      const cssH = Math.floor((cssW * WORLD_H) / WORLD_W);
+      const parentW = parent.clientWidth;
+      const parentH = parent.clientHeight;
+      const aspect = WORLD_W / WORLD_H;
+      let cssW, cssH;
+      if (parentH > 0 && parentW / parentH > aspect) {
+        cssH = parentH;
+        cssW = Math.floor(cssH * aspect);
+      } else {
+        cssW = parentW;
+        cssH = Math.floor(cssW / aspect);
+      }
       const dpr = window.devicePixelRatio || 1;
-
       canvas.style.width = `${cssW}px`;
       canvas.style.height = `${cssH}px`;
       canvas.width = Math.floor(cssW * dpr);
@@ -181,8 +189,9 @@ function useDPR(canvasRef) {
     };
 
     onResize();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const obs = new ResizeObserver(onResize);
+    obs.observe(canvas.parentElement);
+    return () => obs.disconnect();
   }, [canvasRef]);
 }
 
@@ -697,10 +706,11 @@ export default function BullBearGame() {
     <div
       onPointerDown={onPointerDown}
       style={{
-        width: "100%",
-        maxWidth: 960,
-        margin: "0 auto",
-        padding: "12px 0",
+        flex: "1",
+        minHeight: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         background: BG,
         userSelect: "none",
         touchAction: "none",
@@ -709,8 +719,6 @@ export default function BullBearGame() {
       <canvas
         ref={canvasRef}
         style={{
-          width: "100%",
-          height: "auto",
           display: "block",
           outline: "none",
           imageRendering: "pixelated",

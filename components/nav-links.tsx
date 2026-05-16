@@ -39,7 +39,7 @@ export default function NavLinks() {
           aria-expanded={open}
           aria-haspopup="true"
         >
-          Prices
+          Prices today
           <svg
             className={`h-3 w-3 text-white/40 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
             fill="none"

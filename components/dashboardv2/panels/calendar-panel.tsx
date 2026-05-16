@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, ChevronDown, CircleDot, Search, Waves, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetShell } from "../ui/widget-shell";
@@ -141,8 +142,19 @@ function useEconomicEvents() {
   return { events, loading, error };
 }
 
+function useLiveClock() {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+}
+
 export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelProps) {
   const { events, loading, error } = useEconomicEvents();
+  const now = useLiveClock();
 
   const [query, setQuery] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("All");
@@ -178,7 +190,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
   return (
     <>
       <WidgetShell
-        title="Macro calendar"
+        title="Economic calendar"
         subtitle="Impact filters and source-linked event detail."
         className="h-full"
         contentClassName="min-h-0"
@@ -275,14 +287,20 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             )}
             {!loading && !error && (
               <div className="grid gap-3">
-                {visibleEvents.map((event) => {
-                  const isPast = new Date(event.isoDateTime) < new Date();
-                  return (
-                    <div key={event.id} className={isPast ? "opacity-35" : undefined}>
-                      <CalendarRow event={event} onOpen={setActiveEvent} />
-                    </div>
-                  );
-                })}
+                <AnimatePresence initial={false}>
+                  {visibleEvents
+                    .filter((event) => now === null || now - new Date(event.isoDateTime).getTime() < 4000)
+                    .map((event) => (
+                      <motion.div
+                        key={event.id}
+                        layout
+                        exit={{ opacity: 0, x: -20, scale: 0.96 }}
+                        transition={{ duration: 0.45, ease: "easeOut" }}
+                      >
+                        <CalendarRow event={event} onOpen={setActiveEvent} now={now ?? undefined} />
+                      </motion.div>
+                    ))}
+                </AnimatePresence>
               </div>
             )}
           </div>
