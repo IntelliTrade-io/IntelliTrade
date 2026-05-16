@@ -80,7 +80,7 @@ export default async function UpgradePage({
               Everything included
             </p>
             <ul className="grid gap-3">
-              {FEATURES.map(({ icon: Icon, label }) => (
+              {FEATURES.map(({ label }) => (
                 <li key={label} className="flex items-center gap-3 text-sm text-white/80">
                   <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400" />
                   {label}
