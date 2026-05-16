@@ -42,6 +42,7 @@
     "react-grid-layout": "^2.2.3",
     "react-tsparticles": "^2.12.2",
     "remark-github-blockquote-alert": "^2.0.0",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.3.0",
     "topojson-client": "^3.1.0",
     "tsparticles": "^3.8.1",

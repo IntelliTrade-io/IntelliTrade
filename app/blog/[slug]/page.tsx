@@ -86,15 +86,28 @@ export default async function PostPage({ params }: { params: { slug: string } })
         )}
 
         {/* Article Body */}
-        <article className="prose prose-invert prose-brand max-w-none 
+        <article className="prose prose-invert prose-brand max-w-none
           prose-headings:font-semibold prose-headings:tracking-tight
           prose-p:text-slate-300 prose-p:leading-relaxed prose-p:text-[17px]
           prose-strong:text-white prose-blockquote:border-brand
           prose-code:text-brandLight/80 prose-code:bg-brand/10 prose-code:px-1 prose-code:rounded
           prose-img:rounded-2xl prose-img:border prose-img:border-white/10 text-sm">
-          
+
           {Array.isArray(post.body) && (
-             <PortableText value={post.body} />
+            <PortableText
+              value={post.body}
+              components={{
+                block: {
+                  normal: ({ value, children }) => {
+                    const isEmpty = value.children?.every(
+                      (child) => !(child as { text?: string }).text?.trim()
+                    );
+                    if (isEmpty) return <br />;
+                    return <p>{children}</p>;
+                  },
+                },
+              }}
+            />
           )}
         </article>
 
