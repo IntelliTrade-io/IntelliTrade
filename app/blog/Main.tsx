@@ -1,5 +1,4 @@
 import Link from '@/components/blog/Link'
-import Tag from '@/components/blog/Tag'
 import siteMetadata from '@/data/blog/siteMetadata'
 import { formatDate } from '@/node_modules/pliny/utils/formatDate'
 import { ArrowRight } from 'lucide-react'
@@ -94,7 +93,12 @@ export default function Main({ posts, showAll = false }: HomeProps) {
                         </time>
                         <div className="flex flex-wrap gap-2">
                           {tags.slice(0, 1).map((tag) => (
-                            <Tag key={tag} text={tag} />
+                            <span
+                              key={tag}
+                              className="text-primary-500 mr-3 text-sm font-medium uppercase"
+                            >
+                              {tag.split(' ').join('-')}
+                            </span>
                           ))}
                         </div>
                       </div>

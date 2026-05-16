@@ -3,7 +3,8 @@ import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
-import Image from 'next/image'
+import Image from "next/image";
+import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 
 
 export default function ProtectedLayout({
@@ -18,12 +19,7 @@ export default function ProtectedLayout({
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}><Image
-      src="@/assets/images/intelliTrade.png"
-      width={500}
-      height={500}
-      alt="Picture of the author"
-    /></Link>
+              <Link href="/"><Image src={IntelliTradeLogo} width={500} height={500} alt="IntelliTrade" /></Link>
               <div className="flex items-center gap-2">
               </div>
             </div>

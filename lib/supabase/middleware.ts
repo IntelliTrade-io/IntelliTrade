@@ -57,6 +57,22 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Subscription gate: /dashboardv2 requires an active Stripe subscription
+  if (user && request.nextUrl.pathname.startsWith("/dashboardv2")) {
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", user.id)
+      .single();
+
+    const isActive = sub && ["active", "trialing"].includes(sub.status as string);
+    if (!isActive) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/upgrade";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
   // If you're creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
