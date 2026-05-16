@@ -100,7 +100,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
                 block: {
                   normal: ({ value, children }) => {
                     const isEmpty = value.children?.every(
-                      (child: { text?: string }) => !child.text?.trim()
+                      (child) => !(child as { text?: string }).text?.trim()
                     );
                     if (isEmpty) return <br />;
                     return <p>{children}</p>;
