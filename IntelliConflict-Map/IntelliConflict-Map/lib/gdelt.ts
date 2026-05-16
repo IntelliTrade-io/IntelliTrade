@@ -21,13 +21,21 @@ import {
   scoreSeverity
 } from "@/lib/scoring";
 
+// Default query: strict conflict focus, excluding obvious noise
 export const DEFAULT_CONFLICT_QUERY =
-  "war OR conflict OR clashes OR artillery OR drone strike OR missile OR bombing OR airstrike OR shelling OR incursion OR insurgent OR militia OR battlefield OR ceasefire OR uprising OR explosion OR attack";
+  "(war OR conflict OR clashes OR artillery OR \"drone strike\" OR missile OR bombing OR airstrike OR shelling OR incursion OR insurgent OR militia OR battlefield OR ceasefire OR uprising OR explosion OR attack OR offensive OR ambush OR casualties OR bombardment) -football -soccer -sports -sport -league -fifa -uefa -transfer -tournament -basketball -baseball -tennis -cricket";
 
 const GEO2_ENDPOINT = "https://api.gdeltproject.org/api/v2/geo/geo";
 const DOC_ENDPOINT = "https://api.gdeltproject.org/api/v2/doc/doc";
 const DEFAULT_TIMEOUT_MS = Number(process.env.GDELT_REQUEST_TIMEOUT_MS ?? 9000);
 const DEFAULT_GEORES = 2;
+
+// Sports and entertainment noise patterns — post-filter layer
+const SPORTS_NOISE_TERMS =
+  /\b(football|soccer|fifa|uefa|premier league|la liga|bundesliga|serie a|nba|nfl|nhl|mlb|cricket|tennis|formula 1|formula one|f1|grand prix|wimbledon|olympic|olympics|paralympic|world cup goals?|league table|transfer window|hat trick|penalty shootout|goalkeeper|midfielder|striker|offside|referee decision|sports minister|sport budget)\b/i;
+
+const ENTERTAINMENT_NOISE_TERMS =
+  /\b(box office|grammy|oscar|emmy|bafta|celebrity divorce|pop star|k-pop|kardashian|reality tv|soap opera|telenovela|talent show)\b/i;
 
 type FetchConflictsOptions = {
   fetchImpl?: typeof fetch;
@@ -93,6 +101,33 @@ const COUNTRY_MATCHERS: CountryMatcher[] = countries
       }));
   })
   .sort((left, right) => right.alias.length - left.alias.length);
+
+/**
+ * Returns true if the content strongly matches sports or entertainment noise
+ * that should never appear in a conflict monitor.
+ */
+export function isIrrelevantConflictNoise(feature: {
+  title?: string;
+  tags?: string[];
+  themes?: string[];
+  topArticles?: { title: string }[];
+}): boolean {
+  const titleToCheck = feature.title ?? "";
+
+  if (SPORTS_NOISE_TERMS.test(titleToCheck)) return true;
+  if (ENTERTAINMENT_NOISE_TERMS.test(titleToCheck)) return true;
+
+  // Also inspect representative article headlines
+  if (feature.topArticles) {
+    const allHeadlines = feature.topArticles.map((a) => a.title).join(" ");
+    const sportsRatio =
+      (allHeadlines.match(SPORTS_NOISE_TERMS) ?? []).length /
+      Math.max(1, feature.topArticles.length);
+    if (sportsRatio >= 0.6) return true;
+  }
+
+  return false;
+}
 
 export async function fetchGdeltConflicts(
   options: FetchConflictsOptions
@@ -190,8 +225,13 @@ export function normalizeDocArticles(
       continue;
     }
 
+    // Post-filter: drop obvious sports/noise content
+    if (isIrrelevantConflictNoise({ title: article.title })) {
+      continue;
+    }
+
     const tags = deriveTags(article.title);
-    const { severityLabel, severityScore } = scoreSeverity({
+    const { severityLabel, severityScore, severityReasons } = scoreSeverity({
       title: article.title,
       dateIso,
       now: options?.now
@@ -216,7 +256,8 @@ export function normalizeDocArticles(
       topArticles,
       title: article.title,
       severityLabel,
-      severityScore
+      severityScore,
+      severityReasons
     });
 
     features.push(feature);
@@ -276,6 +317,11 @@ export async function fetchGdeltGeo2GeoJson(input: {
     const hotspotCount = pickHotspotCount(properties);
     const gdeltTone = pickGdeltTone(properties);
 
+    // Post-filter: drop obvious noise hotspots
+    if (isIrrelevantConflictNoise({ title: locationName, topArticles })) {
+      return [];
+    }
+
     return [
       {
         coordinates: feature.geometry.coordinates,
@@ -298,7 +344,12 @@ export async function fetchGdeltGeo2GeoJson(input: {
   );
 
   const features = hotspots.map((hotspot) => {
-    const { severityLabel, severityScore } = scoreHotspotSeverity({
+    // Build a combined headline string for keyword boost
+    const headlineText = hotspot.topArticles
+      .map((a) => a.title)
+      .join(" ");
+
+    const { severityLabel, severityScore, severityReasons } = scoreHotspotSeverity({
       hotspotCount: hotspot.hotspotCount,
       gdeltTone: hotspot.gdeltTone,
       maxHotspotCount,
@@ -306,7 +357,8 @@ export async function fetchGdeltGeo2GeoJson(input: {
         dateIso: hotspot.dateIso,
         maxBoost: 10,
         now: input.now
-      })
+      }),
+      headlineText: headlineText || undefined
     });
 
     return createConflictFeature({
@@ -324,7 +376,8 @@ export async function fetchGdeltGeo2GeoJson(input: {
       topArticles: hotspot.topArticles,
       title: `Hotspot: ${hotspot.locationName}`,
       severityLabel,
-      severityScore
+      severityScore,
+      severityReasons
     });
   });
 
@@ -582,6 +635,7 @@ function createConflictFeature(input: {
   title: string;
   severityLabel: "Low" | "Medium" | "High";
   severityScore: number;
+  severityReasons?: string[];
 }): ConflictFeature {
   const topArticles = buildTopArticles(input.topArticles ?? []);
   const sourceUrl = input.sourceUrl ?? topArticles[0]?.url;
@@ -618,6 +672,7 @@ function createConflictFeature(input: {
       locationPrecision: input.locationPrecision,
       severityScore: input.severityScore,
       severityLabel: input.severityLabel,
+      severityReasons: input.severityReasons,
       tags: uniqueStrings(input.tags),
       themes: uniqueStrings(input.themes)
     }
@@ -657,6 +712,15 @@ async function loadSamplePayload(input: {
   samplePath?: string;
   window: ConflictWindow;
 }): Promise<NormalizedConflictPayload> {
+  // In production, do not serve synthetic sample data as real live events
+  if (process.env.NODE_ENV === "production") {
+    return {
+      generatedAt: input.generatedAt,
+      geojson: emptyCollection(),
+      upstreamSource: "gdelt"
+    };
+  }
+
   const samplePath =
     input.samplePath ??
     path.join(process.cwd(), "public", "sample", "conflicts.sample.geojson");

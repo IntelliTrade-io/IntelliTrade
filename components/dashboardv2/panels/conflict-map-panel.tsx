@@ -1,8 +1,7 @@
 "use client";
 
 import { Globe2 } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ConflictMapSurface } = require("../modules/ConflictMapModule.jsx");
+import { ConflictMapSurface } from "../modules/ConflictMapModule.jsx";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
@@ -31,7 +30,7 @@ export function ConflictMapPanel({ panel, onToggleLock, onRemove }: ConflictMapP
         </>
       }
     >
-      <ConflictMapSurface compact />
+      <ConflictMapSurface />
     </WidgetShell>
   );
 }

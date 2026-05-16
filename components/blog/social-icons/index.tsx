@@ -44,16 +44,23 @@ const SocialIcon = ({ kind, href, size = 8, className }: SocialIconProps) => {
 
   const SocialSvg = components[kind]
 
+  const isEmail = kind === 'mail'
+
   return (
-    <button type="button" className={className}>
+    <a
+      href={href}
+      className={className}
+      target={isEmail ? undefined : '_blank'}
+      rel={isEmail ? undefined : 'noopener noreferrer'}
+    >
       <span className="svgContainer">
-      <span className="sr-only">{kind}</span>
-      <SocialSvg
-        className={`fill-current text-white dark:text-gray-200 h-${size} w-${size}`}
-      />
+        <span className="sr-only">{kind}</span>
+        <SocialSvg
+          className={`fill-current text-white dark:text-gray-200 h-${size} w-${size}`}
+        />
       </span>
       <span className="BG" />
-    </button>
+    </a>
   )
 }
 

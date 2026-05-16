@@ -18,7 +18,10 @@ export type ConflictDataKind = z.infer<typeof conflictDataKindSchema>;
 
 export const topArticleSchema = z.object({
   title: z.string(),
-  url: z.string().url()
+  url: z.string().url(),
+  displayTitle: z.string().optional(),
+  wasTranslated: z.boolean().optional(),
+  translatedFrom: z.string().optional()
 });
 export type TopArticle = z.infer<typeof topArticleSchema>;
 
@@ -32,6 +35,9 @@ export const queryParamsSchema = z.object({
 export const conflictFeaturePropertiesSchema = z.object({
   dataKind: conflictDataKindSchema,
   title: z.string(),
+  displayTitle: z.string().optional(),
+  wasTranslated: z.boolean().optional(),
+  translatedFrom: z.string().optional(),
   date: z.string().datetime(),
   country: z.string().optional(),
   locationName: z.string().optional(),
@@ -42,6 +48,7 @@ export const conflictFeaturePropertiesSchema = z.object({
   locationPrecision: locationPrecisionSchema,
   severityScore: z.number().min(0).max(100),
   severityLabel: severityLabelSchema,
+  severityReasons: z.array(z.string()).optional(),
   tags: z.array(z.string()),
   themes: z.array(z.string())
 });
@@ -101,7 +108,7 @@ export const conflictsResponseSchema = z.object({
   meta: z.object({
     window: windowSchema,
     generatedAt: z.string().datetime(),
-    source: z.enum(["gdelt", "supabase_cache", "file_cache", "sample"]),
+    source: z.enum(["gdelt", "supabase_cache", "file_cache", "sample", "stale", "offline"]),
     aggregation: z.enum(["location", "article", "mixed"]).optional(),
     count: z.number().int().nonnegative(),
     cache: z.object({

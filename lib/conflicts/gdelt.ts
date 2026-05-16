@@ -22,7 +22,18 @@ import {
 } from "./scoring";
 
 export const DEFAULT_CONFLICT_QUERY =
-  "(war OR conflict OR clashes OR artillery OR drone OR missile OR bombing OR airstrike OR shelling OR incursion OR insurgent OR militia OR battlefield OR ceasefire OR uprising OR explosion OR attack)";
+  "(war OR conflict OR clashes OR artillery OR drone OR missile OR bombing OR airstrike OR shelling OR incursion OR insurgent OR militia OR battlefield OR ceasefire OR uprising OR explosion OR attack)" +
+  " -football -soccer -FIFA -UEFA -sport -sports -league -championship -tournament -WorldCup";
+
+const SPORTS_NOISE_TERMS =
+  /\b(football|soccer|FIFA|UEFA|NBA|NFL|MLB|NHL|cricket|rugby|tennis|golf|olympics|championship|tournament|world cup|league|playoffs?|fixture|match|scorer|goalscorer|hat-trick|penalty shoot)\b/i;
+
+const ENTERTAINMENT_NOISE_TERMS =
+  /\b(movie|film|concert|album|celebrity|actor|actress|singer|musician|award|grammy|oscar|emmy|box office|premiere|netflix|disney)\b/i;
+
+export function isIrrelevantConflictNoise(title: string): boolean {
+  return SPORTS_NOISE_TERMS.test(title) || ENTERTAINMENT_NOISE_TERMS.test(title);
+}
 
 const GEO2_ENDPOINT = "https://api.gdeltproject.org/api/v2/geo/geo";
 const DOC_ENDPOINT = "https://api.gdeltproject.org/api/v2/doc/doc";
@@ -187,11 +198,13 @@ async function fetchGdeltGeo2GeoJson(input: {
   const maxHotspotCount = Math.max(1, ...hotspots.map((h) => h.hotspotCount));
 
   const features = hotspots.map((hotspot) => {
-    const { severityLabel, severityScore } = scoreHotspotSeverity({
+    const headlineText = hotspot.topArticles.map((a) => a.title).join(" ");
+    const { severityLabel, severityScore, severityReasons } = scoreHotspotSeverity({
       hotspotCount: hotspot.hotspotCount,
       gdeltTone: hotspot.gdeltTone,
       maxHotspotCount,
       recencyBoost: getRecencyBoost({ dateIso: hotspot.dateIso, maxBoost: 10, now: input.now }),
+      headlineText: headlineText || undefined,
     });
     return createConflictFeature({
       dataKind: "hotspot",
@@ -209,6 +222,7 @@ async function fetchGdeltGeo2GeoJson(input: {
       title: `Hotspot: ${hotspot.locationName}`,
       severityLabel,
       severityScore,
+      severityReasons,
     });
   });
 
@@ -222,13 +236,15 @@ export function normalizeDocArticles(
   const features: ConflictFeature[] = [];
 
   for (const article of articles) {
+    if (isIrrelevantConflictNoise(article.title)) continue;
+
     const dateIso = toIsoDate(article.seendate) ?? new Date().toISOString();
     const resolvedLocation = resolveLocation(article.title, article.sourcecountry);
 
     if (!resolvedLocation.coordinates) continue;
 
     const tags = deriveTags(article.title);
-    const { severityLabel, severityScore } = scoreSeverity({ title: article.title, dateIso, now: options?.now });
+    const { severityLabel, severityScore, severityReasons } = scoreSeverity({ title: article.title, dateIso, now: options?.now });
     const topArticles = buildTopArticles([{ title: article.title, url: article.url }]);
 
     features.push(
@@ -246,6 +262,7 @@ export function normalizeDocArticles(
         title: article.title,
         severityLabel,
         severityScore,
+        severityReasons,
       }),
     );
   }
@@ -417,6 +434,7 @@ function createConflictFeature(input: {
   title: string;
   severityLabel: "Low" | "Medium" | "High";
   severityScore: number;
+  severityReasons?: string[];
 }): ConflictFeature {
   const topArticles = buildTopArticles(input.topArticles ?? []);
   const sourceUrl = input.sourceUrl ?? topArticles[0]?.url;
@@ -441,6 +459,7 @@ function createConflictFeature(input: {
       locationPrecision: input.locationPrecision,
       severityScore: input.severityScore,
       severityLabel: input.severityLabel,
+      severityReasons: input.severityReasons?.length ? input.severityReasons : undefined,
       tags: uniqueStrings(input.tags),
       themes: uniqueStrings(input.themes),
     },

@@ -23,6 +23,16 @@ export type ProjectedConflictMarker = {
   y: number;
 };
 
+export type ClusterMarker = {
+  id: string;
+  x: number;
+  y: number;
+  count: number;
+  maxScore: number;
+  color: string;
+  features: ConflictFeature[];
+};
+
 export function projectConflictMarkers(
   features: ConflictFeature[],
   projection: GeoProjection,
@@ -50,17 +60,63 @@ export function projectConflictMarkers(
         }
       ];
     })
+    // Sort: Low → Medium → High → selected (highest severity renders on top)
     .sort((left, right) => {
-      if (left.isSelected && !right.isSelected) {
-        return 1;
-      }
-
-      if (!left.isSelected && right.isSelected) {
-        return -1;
-      }
-
-      return left.radius - right.radius;
+      if (left.isSelected && !right.isSelected) return 1;
+      if (!left.isSelected && right.isSelected) return -1;
+      return left.feature.properties.severityScore - right.feature.properties.severityScore;
     });
+}
+
+/**
+ * Grid-based clustering in projection (SVG) space.
+ * Groups markers within gridSize pixels of each other into cluster markers.
+ * Returns separate soloMarkers and clusters arrays.
+ */
+export function clusterSvgMarkers(
+  markers: ProjectedConflictMarker[],
+  gridSize: number
+): { soloMarkers: ProjectedConflictMarker[]; clusters: ClusterMarker[] } {
+  const cells = new Map<string, ProjectedConflictMarker[]>();
+
+  for (const marker of markers) {
+    const cellX = Math.floor(marker.x / gridSize);
+    const cellY = Math.floor(marker.y / gridSize);
+    const key = `${cellX}_${cellY}`;
+    const existing = cells.get(key);
+    if (existing) {
+      existing.push(marker);
+    } else {
+      cells.set(key, [marker]);
+    }
+  }
+
+  const soloMarkers: ProjectedConflictMarker[] = [];
+  const clusters: ClusterMarker[] = [];
+
+  for (const [, group] of cells) {
+    if (group.length === 1) {
+      soloMarkers.push(group[0]);
+      continue;
+    }
+
+    // Centroid of the group
+    const cx = group.reduce((sum, m) => sum + m.x, 0) / group.length;
+    const cy = group.reduce((sum, m) => sum + m.y, 0) / group.length;
+    const maxScore = Math.max(...group.map((m) => m.feature.properties.severityScore));
+
+    clusters.push({
+      id: `cluster-${Math.round(cx)}-${Math.round(cy)}`,
+      x: cx,
+      y: cy,
+      count: group.length,
+      maxScore,
+      color: severityColor(maxScore),
+      features: group.map((m) => m.feature)
+    });
+  }
+
+  return { soloMarkers, clusters };
 }
 
 export function getMarkerVisual(
@@ -110,7 +166,7 @@ function getHotspotRadius(hotspotCount: number) {
   return 4.8;
 }
 
-function severityColor(severityScore: number) {
+export function severityColor(severityScore: number) {
   if (severityScore >= 67) {
     return "#ff8dac";
   }

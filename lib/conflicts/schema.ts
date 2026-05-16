@@ -18,6 +18,9 @@ export type ConflictDataKind = z.infer<typeof conflictDataKindSchema>;
 export const topArticleSchema = z.object({
   title: z.string(),
   url: z.string().url(),
+  displayTitle: z.string().optional(),
+  wasTranslated: z.boolean().optional(),
+  translatedFrom: z.string().optional(),
 });
 export type TopArticle = z.infer<typeof topArticleSchema>;
 
@@ -31,6 +34,9 @@ export const queryParamsSchema = z.object({
 export const conflictFeaturePropertiesSchema = z.object({
   dataKind: conflictDataKindSchema,
   title: z.string(),
+  displayTitle: z.string().optional(),
+  wasTranslated: z.boolean().optional(),
+  translatedFrom: z.string().optional(),
   date: z.string().datetime(),
   country: z.string().optional(),
   locationName: z.string().optional(),
@@ -41,6 +47,7 @@ export const conflictFeaturePropertiesSchema = z.object({
   locationPrecision: locationPrecisionSchema,
   severityScore: z.number().min(0).max(100),
   severityLabel: severityLabelSchema,
+  severityReasons: z.array(z.string()).optional(),
   tags: z.array(z.string()),
   themes: z.array(z.string()),
 });
@@ -65,6 +72,17 @@ export const conflictFeatureCollectionSchema = z.object({
 });
 
 export type ConflictFeatureCollection = z.infer<typeof conflictFeatureCollectionSchema>;
+
+export const conflictStatsSchema = z.object({
+  topCountries: z.array(z.object({ name: z.string(), count: z.number().int().nonnegative() })),
+  topThemes: z.array(z.object({ name: z.string(), count: z.number().int().nonnegative() })),
+  severityBuckets: z.object({
+    low: z.number().int().nonnegative(),
+    medium: z.number().int().nonnegative(),
+    high: z.number().int().nonnegative(),
+  }),
+});
+export type ConflictStats = z.infer<typeof conflictStatsSchema>;
 
 export const gdeltGeo2PropertiesSchema = z
   .object({
