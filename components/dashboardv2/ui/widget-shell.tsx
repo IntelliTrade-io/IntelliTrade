@@ -89,10 +89,11 @@ export function WidgetShell({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className={cn(
-        "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,12,16,0.96),rgba(7,7,10,0.96))] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_28px_72px_rgba(0,0,0,0.44)] backdrop-blur-2xl",
+        "relative flex h-full min-h-0 flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,12,16,0.58),rgba(7,7,10,0.64))] shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_28px_72px_rgba(0,0,0,0.44)] backdrop-blur-2xl",
         className,
       )}
     >
+      <div className="radial-backdrop" />
       <SoftLines />
       <ShellTexture brand={tone === "brand"} />
       <div className="relative z-10 flex h-full min-h-0 flex-col p-5 sm:p-6">
@@ -111,7 +112,7 @@ export function WidgetShell({
             </div>
           ) : null}
         </div>
-        <div className={cn("mt-4 flex-1 min-h-0", contentClassName)}>
+        <div className={cn("mt-4 flex-1 min-h-0 @container", contentClassName)}>
           {children}
         </div>
       </div>

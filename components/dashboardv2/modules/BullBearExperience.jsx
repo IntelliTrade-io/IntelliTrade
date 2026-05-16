@@ -16,7 +16,7 @@ function SmallNote({ label, value }) {
 
 export function BullBearSurface({ compact = false }) {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
       {!compact ? (
         <div className="grid gap-4 sm:grid-cols-3">
           <SmallNote label="Start" value="Tap, Space, or Up" />
@@ -25,7 +25,7 @@ export function BullBearSurface({ compact = false }) {
         </div>
       ) : null}
 
-      <div className="rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,245,247,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.26)]">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(245,245,247,0.98))] shadow-[0_24px_60px_rgba(0,0,0,0.26)]">
         <BullBearGame />
       </div>
     </div>

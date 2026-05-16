@@ -147,7 +147,7 @@ function GlassPanel({ children, className = "", bodyClassName = "", id, strong =
       <div className={PANEL_BG} />
       <div className={PANEL_GLOW} />
       <div className={PANEL_RADIAL} />
-      <div className={cx("relative z-10 p-6 md:p-7", bodyClassName)}>{children}</div>
+      <div className={cx("relative z-10 p-4 @md:p-6 @lg:p-7", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -207,7 +207,7 @@ function PerformanceSection({ compact = false }) {
   const { equity, stats, trades } = SNAPSHOT;
   if (compact) return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto">
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 @sm:grid-cols-2 @lg:grid-cols-3">
         <MetricCard icon={TrendingUp} label="Net closed" value={formatCurrency(stats.netClosed)} tone={stats.netClosed >= 0 ? "positive" : "negative"} hint="Resolved fixture trades." />
         <MetricCard icon={Target} label="Average R" value={formatR(stats.avgR)} hint={`${stats.closed} closed trades`} />
         <MetricCard icon={NotebookPen} label="Trades" value={stats.total} hint={`${stats.open} open, ${stats.partial} partial`} />

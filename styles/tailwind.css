@@ -116,6 +116,14 @@
       color: var(--color-gray-100);
     }
   }
+
+  .radial-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, #0000 0, #0000 20%, #111111aa 50%);
+    background-size: 3px 3px;
+    pointer-events: none;
+  }
 }
 
 /* ==============================
