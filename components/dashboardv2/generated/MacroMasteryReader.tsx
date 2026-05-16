@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 // ---------- Types ----------
@@ -16,11 +16,6 @@ type Chapter = {
   part: string;
   title: string;
   sections: Section[];
-};
-
-type ThemeStyle = CSSProperties & {
-  "--brand-primary": string;
-  "--brand-primary-light": string;
 };
 
 // ---------- Content ----------
@@ -563,11 +558,6 @@ function useActiveChapter(chapters: Chapter[]) {
 
 // ---------- Page Component ----------
 
-const brandThemeStyle: ThemeStyle = {
-  "--brand-primary": "139 92 246",
-  "--brand-primary-light": "232 121 249",
-};
-
 export default function MacroMasteryReader() {
   const progress = useScrollProgress();
   const activeChapterId = useActiveChapter(chapters);
@@ -580,10 +570,7 @@ export default function MacroMasteryReader() {
   };
 
   return (
-    <div
-      className="relative min-h-screen bg-gradient-to-b from-black via-black to-black text-slate-100"
-      style={brandThemeStyle}
-    >
+    <div className="relative min-h-screen bg-gradient-to-b from-black via-black to-black text-slate-100">
       {/* Top progress bar */}
       <div className="fixed inset-x-0 top-0 z-40 h-1 bg-transparent">
         <div
@@ -648,7 +635,7 @@ export default function MacroMasteryReader() {
       <div className="relative z-10 mx-auto flex max-w-6xl gap-8 px-4 pb-32 pt-8 lg:px-8 lg:pt-16">
         {/* Left: sticky navigation */}
         <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-24 flex max-h-[calc(100vh-7rem)] flex-col gap-4">
+          <div className="sticky top-24 space-y-4">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400">
                 IntelliTrade Macro Mastery
@@ -658,7 +645,7 @@ export default function MacroMasteryReader() {
               </h1>
             </div>
             <div className="h-px bg-white/10" />
-            <nav className="min-h-0 space-y-2 overflow-y-auto pb-2 pr-2 text-sm">
+            <nav className="space-y-2 text-sm">
               {chapters.map((ch) => {
                 const isActive = ch.id === activeChapterId;
                 return (

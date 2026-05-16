@@ -23,14 +23,14 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
     <div className="relative flex h-full min-h-0 flex-col gap-4 overflow-auto">
       <section className="relative overflow-hidden rounded-[30px] border border-white/20 bg-white/5 p-5 shadow-[0_32px_80px_rgba(0,0,0,0.72)] backdrop-blur-2xl">
         <div className="absolute inset-x-0 top-0 h-1 bg-white/0">
-          <div className="h-full w-[46%] rounded-full bg-gradient-to-r from-[#1FE4FF] via-[#7F5CFF] to-[#1FE4FF]" />
+          <div className="h-full w-[46%] rounded-full bg-gradient-to-r from-[#2E1065] via-[#5B21B6] to-[#2E1065]" />
         </div>
         <div className="pointer-events-none absolute -left-10 bottom-[-72px] h-40 w-40 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.32),transparent_72%)] blur-[28px]" />
-        <div className="pointer-events-none absolute right-[-36px] top-[-24px] h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,rgba(31,228,255,0.22),transparent_75%)] blur-[26px]" />
+        <div className="pointer-events-none absolute right-[-36px] top-[-24px] h-32 w-32 rounded-full bg-[radial-gradient(circle_at_center,rgba(91,33,182,0.22),transparent_75%)] blur-[26px]" />
 
         <div className="relative flex flex-wrap items-start justify-between gap-4">
           <div className="max-w-lg">
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-white/5 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-teal-200/90">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-white/5 px-4 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-violet-300/90">
               <GraduationCap className="h-3.5 w-3.5" />
               Macro course
             </div>
@@ -59,12 +59,12 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="inline-flex items-center rounded-full bg-[linear-gradient(90deg,#1FE4FF,rgba(31,228,255,0.16))] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-950">
+                <div className="inline-flex items-center rounded-full bg-[linear-gradient(90deg,#5B21B6,rgba(91,33,182,0.16))] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-100">
                   Chapters {track.chapters}
                 </div>
                 <div className="mt-3 text-base font-medium text-slate-50">{track.label}</div>
               </div>
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-teal-400/30 bg-white/5 text-teal-200/90">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-500/30 bg-white/5 text-violet-300/90">
                 <BookOpen className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -75,7 +75,7 @@ export function MacroMasteryWorkspaceModule({ compact = false }) {
 
       <section className="grid gap-3 lg:grid-cols-[1fr_auto]">
         <div className="rounded-[26px] border border-white/18 bg-black/24 px-4 py-4 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/86">
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-violet-300/86">
             <Sparkles className="h-3.5 w-3.5" />
             Reader surface
           </div>

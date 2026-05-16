@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import "../styles/lot-size-calculator.css";
-
 // ---------- Helpers ----------
 const normalizePair = (pair: string) => pair.replace("/", "").toUpperCase();
 
@@ -405,7 +403,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
 
         {/* Results */}
         <div className="flex flex-col gap-3">
-          <div className="flex flex-1 flex-col items-center justify-center rounded-[24px] border border-violet-400/16 bg-violet-500/[0.06] p-6 text-center shadow-[inset_0_0_0_1px_rgba(167,139,250,0.06)]">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-[24px] border border-violet-400/16 bg-violet-500/[0.06] p-6 text-center shadow-[inset_0_0_0_1px_rgba(167,139,250,0.06)]">
             <div className="text-[10px] uppercase tracking-[0.22em] text-white/35">Position size</div>
             <div className="mt-3 text-4xl font-semibold tracking-tight text-white">
               {positionSize ? positionSize.replace(" lots", "") : "—"}
