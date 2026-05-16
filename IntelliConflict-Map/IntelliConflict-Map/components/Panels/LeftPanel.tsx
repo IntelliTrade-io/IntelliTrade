@@ -15,6 +15,7 @@ import { Segmented } from "@/components/ui/Segmented";
 type LeftPanelProps = {
   activeCategories: CategoryId[];
   categoryOptions: { id: CategoryId; label: string }[];
+  lastUpdated?: string;
   loading: boolean;
   onCategoryToggle: (categoryId: CategoryId) => void;
   onSearchChange: (value: string) => void;
@@ -30,6 +31,7 @@ type LeftPanelProps = {
 export function LeftPanel({
   activeCategories,
   categoryOptions,
+  lastUpdated,
   loading,
   onCategoryToggle,
   onSearchChange,
@@ -59,6 +61,7 @@ export function LeftPanel({
 
   return (
     <aside className="pointer-events-auto absolute left-4 top-4 z-20 flex max-h-[calc(100vh-2rem)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] glass-panel">
+      {/* Header */}
       <div className="border-b border-white/8 px-5 py-5">
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-accent/85">
           IntelliTrade Signal Deck
@@ -69,6 +72,32 @@ export function LeftPanel({
         <p className="mt-2 max-w-sm text-sm leading-6 text-muted">
           Live risk signals from global news flow.
         </p>
+
+        {/* Mini summary rail */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <SummaryPill
+            label="High"
+            value={loading ? null : stats.severityBuckets.high}
+            accent="rose"
+          />
+          <SummaryPill
+            label="Medium"
+            value={loading ? null : stats.severityBuckets.medium}
+            accent="amber"
+          />
+          <SummaryPill
+            label="Low"
+            value={loading ? null : stats.severityBuckets.low}
+            accent="emerald"
+          />
+        </div>
+
+        {lastUpdated ? (
+          <p className="mt-3 text-[11px] uppercase tracking-[0.16em] text-muted/60">
+            Updated{" "}
+            <span className="text-muted/90">{formatShortTimestamp(lastUpdated)}</span>
+          </p>
+        ) : null}
       </div>
 
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
@@ -142,7 +171,7 @@ export function LeftPanel({
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">
-                Total events
+                Total signals
               </p>
               <p className="mt-2 text-3xl font-semibold text-white">
                 {loading ? "..." : totalCount.toLocaleString()}
@@ -216,4 +245,41 @@ export function LeftPanel({
       </div>
     </aside>
   );
+}
+
+type SummaryPillProps = {
+  accent: "rose" | "amber" | "emerald";
+  label: string;
+  value: number | null;
+};
+
+function SummaryPill({ accent, label, value }: SummaryPillProps) {
+  const colorMap = {
+    rose: "text-rose-300",
+    amber: "text-amber-300",
+    emerald: "text-emerald-300"
+  };
+
+  return (
+    <div className="rounded-2xl border border-white/6 bg-white/4 px-2 py-2 text-center">
+      <p className={`text-base font-bold ${colorMap[accent]}`}>
+        {value === null ? "—" : value}
+      </p>
+      <p className="mt-0.5 text-[10px] uppercase tracking-[0.14em] text-muted">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function formatShortTimestamp(isoString: string): string {
+  try {
+    return new Intl.DateTimeFormat("en", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true
+    }).format(new Date(isoString));
+  } catch {
+    return isoString;
+  }
 }

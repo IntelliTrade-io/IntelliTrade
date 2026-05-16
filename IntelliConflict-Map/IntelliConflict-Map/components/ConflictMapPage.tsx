@@ -24,9 +24,10 @@ import type {
 import { CATEGORY_DEFINITIONS, type CategoryId } from "@/lib/scoring";
 import {
   buildConflictStats,
-  formatTimestamp,
   matchesSearch
 } from "@/lib/utils";
+
+type DataState = "live" | "stale" | "offline" | "loading";
 
 export function ConflictMapPage() {
   const [windowValue, setWindowValue] = useState<ConflictWindow>("24h");
@@ -38,7 +39,7 @@ export function ConflictMapPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [dataState, setDataState] = useState<DataState>("loading");
   const [reducedMotion, setReducedMotion] = useState(false);
   const deferredSearch = useDeferredValue(search);
 
@@ -56,20 +57,20 @@ export function ConflictMapPage() {
 
     async function loadSignals() {
       setLoading(true);
-      setErrorMessage(null);
+      setDataState("loading");
 
       try {
         const nextUrl = new URL("/api/conflicts", window.location.origin);
         nextUrl.searchParams.set("window", windowValue);
         nextUrl.searchParams.set("severity", severity);
 
-        const response = await fetch(nextUrl.toString(), {
+        const res = await fetch(nextUrl.toString(), {
           cache: "no-store",
           signal: controller.signal
         });
 
-        if (!response.ok) {
-          const errorBody = (await response.json().catch(() => null)) as {
+        if (!res.ok) {
+          const errorBody = (await res.json().catch(() => null)) as {
             error?: string;
           } | null;
           throw new Error(
@@ -77,23 +78,26 @@ export function ConflictMapPage() {
           );
         }
 
-        const payload = (await response.json()) as ConflictsResponse;
+        const payload = (await res.json()) as ConflictsResponse;
         setResponse(payload);
 
-        if (
-          selectedId &&
-          !payload.geojson.features.some(
-            (feature) => String(feature.id) === selectedId
-          )
-        ) {
-          setSelectedId(null);
+        // Determine data state from meta source
+        const source = payload.meta.source;
+        if (source === "offline") {
+          setDataState("offline");
+        } else if (source === "stale") {
+          setDataState("stale");
+        } else {
+          setDataState("live");
         }
       } catch (error) {
         if ((error as Error).name === "AbortError") {
           return;
         }
-
-        setErrorMessage((error as Error).message);
+        // Network-level failure: preserve previous data as stale or go offline
+        setDataState((current) =>
+          current === "live" || current === "stale" ? "stale" : "offline"
+        );
       } finally {
         setLoading(false);
       }
@@ -102,7 +106,7 @@ export function ConflictMapPage() {
     void loadSignals();
 
     return () => controller.abort();
-  }, [refreshToken, selectedId, severity, windowValue]);
+  }, [refreshToken, severity, windowValue]);
 
   const visibleCollection = useMemo<ConflictFeatureCollection>(() => {
     const baseFeatures = response?.geojson.features ?? [];
@@ -134,6 +138,7 @@ export function ConflictMapPage() {
     };
   }, [activeCategories, deferredSearch, response?.geojson.features]);
 
+  // If filtered selection is no longer visible, deselect
   const selectedFeature =
     visibleCollection.features.find(
       (feature) => String(feature.id) === selectedId
@@ -152,7 +157,8 @@ export function ConflictMapPage() {
   );
 
   const lastUpdated = response?.meta.generatedAt;
-  const isSample = response?.meta.source === "sample";
+  const isOffline = dataState === "offline";
+  const isStale = dataState === "stale";
 
   function toggleCategory(categoryId: CategoryId) {
     setActiveCategories((current) =>
@@ -172,11 +178,28 @@ export function ConflictMapPage() {
     setSelectedId(String(feature.id));
   }
 
+  function handleSeverityChange(value: SeverityFilter) {
+    setSeverity(value);
+    // If the currently selected feature would be filtered out, deselect
+    if (selectedFeature) {
+      const featureSeverity =
+        selectedFeature.properties.severityLabel.toLowerCase();
+      if (value !== "all" && featureSeverity !== value) {
+        setSelectedId(null);
+      }
+    }
+  }
+
+  function handleWindowChange(value: ConflictWindow) {
+    setWindowValue(value);
+    setSelectedId(null);
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden">
       <MapView
         data={visibleCollection}
-        densityEnabled={densityEnabled}
+        densityEnabled={densityEnabled && !isOffline}
         onSelect={handleSelect}
         reducedMotion={reducedMotion}
         selectedFeatureId={selectedId}
@@ -190,11 +213,12 @@ export function ConflictMapPage() {
           id,
           label
         }))}
+        lastUpdated={lastUpdated}
         loading={loading}
         onCategoryToggle={toggleCategory}
         onSearchChange={(value) => startTransition(() => setSearch(value))}
-        onSeverityChange={setSeverity}
-        onWindowChange={setWindowValue}
+        onSeverityChange={handleSeverityChange}
+        onWindowChange={handleWindowChange}
         search={search}
         severity={severity}
         stats={stats}
@@ -202,6 +226,7 @@ export function ConflictMapPage() {
         windowValue={windowValue}
       />
 
+      {/* Top-right control bar */}
       <div className="pointer-events-auto absolute right-4 top-4 z-20 flex max-w-[calc(100vw-2rem)] items-start gap-3">
         <div className="glass-panel flex flex-wrap items-center gap-2 rounded-2xl px-3 py-3">
           <Tooltip content="Refreshes the live cache-backed dataset.">
@@ -216,14 +241,25 @@ export function ConflictMapPage() {
           >
             Density
           </Button>
-          {isSample && <Badge tone="sample">Sample data mode</Badge>}
-          {errorMessage && <Badge tone="medium">{errorMessage}</Badge>}
+          {/* Stale data notice */}
+          {isStale ? (
+            <Badge tone="medium">
+              Live refresh unavailable — showing latest available data
+            </Badge>
+          ) : null}
           <div className="min-w-[9rem] text-right">
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted">
               Last updated
             </p>
             <p className="mt-1 text-sm font-medium text-white">
-              {lastUpdated ? formatTimestamp(lastUpdated) : "Loading..."}
+              {lastUpdated
+                ? new Intl.DateTimeFormat("en", {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                  }).format(new Date(lastUpdated))
+                : loading
+                  ? "Loading..."
+                  : "—"}
             </p>
           </div>
         </div>
@@ -235,6 +271,30 @@ export function ConflictMapPage() {
         windowValue={windowValue}
       />
 
+      {/* Offline overlay — shown when no data is available at all */}
+      {isOffline ? (
+        <div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="glass-panel mx-4 max-w-sm rounded-[28px] p-8 text-center">
+            <div className="mb-4 text-4xl">⚡</div>
+            <h2 className="text-xl font-semibold text-white">
+              Server currently offline, map will be back online ASAP
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              Live conflict signals are temporarily unavailable. The map will
+              resume automatically when service is restored.
+            </p>
+            <button
+              type="button"
+              className="mt-6 rounded-2xl border border-white/12 bg-white/8 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/14"
+              onClick={handleRefresh}
+            >
+              Retry now
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Bottom attribution */}
       <div className="pointer-events-auto absolute bottom-4 left-4 z-20 flex max-w-[min(28rem,calc(100vw-2rem))] flex-wrap items-center gap-3">
         <div className="glass-panel rounded-full px-3 py-2 text-xs uppercase tracking-[0.18em] text-muted">
           Data: GDELT

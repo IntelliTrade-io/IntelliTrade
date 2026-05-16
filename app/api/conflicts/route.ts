@@ -121,13 +121,20 @@ export async function GET(request: Request) {
     source = "gdelt";
     writeCache(window, generatedAt, source, geojson);
   } else if (cache) {
+    // Live refresh failed — serve stale cache
     geojson = cache.geojson;
     generatedAt = cache.fetched_at;
-    source = cache.source;
-  } else {
+    source = "stale";
+  } else if (payload.geojson.features.length > 0) {
+    // No cache — serve sample fallback (dev only)
     geojson = payload.geojson;
     generatedAt = payload.generatedAt;
     source = payload.upstreamSource;
+  } else {
+    // No data at all
+    geojson = payload.geojson;
+    generatedAt = payload.generatedAt;
+    source = "offline";
   }
 
   const filtered = filterBySeverity(geojson, severity);

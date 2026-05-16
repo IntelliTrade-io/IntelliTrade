@@ -3,18 +3,41 @@ import { describe, expect, it } from "vitest";
 import { scoreHotspotSeverity, scoreSeverity } from "@/lib/scoring";
 
 describe("scoreSeverity", () => {
-  it("boosts severe and recent language", () => {
+  it("produces High for missile strike with recent date", () => {
     const result = scoreSeverity({
-      title: "Missile strike and shelling reported near the border",
+      title: "Missile strike kills dozens near the capital",
       dateIso: "2026-03-13T11:30:00Z",
       now: new Date("2026-03-13T12:00:00Z")
     });
 
-    expect(result.severityScore).toBeGreaterThanOrEqual(55);
-    expect(result.severityLabel).toBe("Medium");
+    expect(result.severityScore).toBeGreaterThanOrEqual(67);
+    expect(result.severityLabel).toBe("High");
+    expect(result.severityReasons.some((r) => r.includes("missile"))).toBe(true);
   });
 
-  it("adds tone-based severity for negative signals", () => {
+  it("produces at least Medium for airstrike content", () => {
+    const result = scoreSeverity({
+      title: "Airstrike reported near the border crossing",
+      dateIso: "2026-03-13T11:30:00Z",
+      now: new Date("2026-03-13T12:00:00Z")
+    });
+
+    expect(result.severityScore).toBeGreaterThanOrEqual(34);
+    expect(["Medium", "High"]).toContain(result.severityLabel);
+  });
+
+  it("produces at least Medium for explosion content with strong boost", () => {
+    const result = scoreSeverity({
+      title: "Explosion kills multiple civilians in busy market",
+      dateIso: "2026-03-13T11:30:00Z",
+      now: new Date("2026-03-13T12:00:00Z")
+    });
+
+    expect(result.severityScore).toBeGreaterThanOrEqual(34);
+    expect(["Medium", "High"]).toContain(result.severityLabel);
+  });
+
+  it("adds tone-based severity for very negative signals", () => {
     const result = scoreSeverity({
       title: "Attack reported after overnight barrage",
       dateIso: "2026-03-13T09:30:00Z",
@@ -25,14 +48,35 @@ describe("scoreSeverity", () => {
     expect(result.severityScore).toBeGreaterThan(40);
   });
 
-  it("reduces diplomatic items toward low severity", () => {
+  it("keeps diplomacy-only content at Low", () => {
     const result = scoreSeverity({
-      title: "Ceasefire talks and negotiations continue",
+      title: "Ceasefire talks and negotiations continue in Vienna",
       dateIso: "2026-02-12T09:30:00Z",
       now: new Date("2026-03-13T12:00:00Z")
     });
 
-    expect(result.severityScore).toBe(0);
+    expect(result.severityLabel).toBe("Low");
+    expect(result.severityReasons.some((r) => r.toLowerCase().includes("diplomacy"))).toBe(true);
+  });
+
+  it("populates severityReasons for all scored events", () => {
+    const result = scoreSeverity({
+      title: "Shelling reported along the northern front",
+      dateIso: "2026-03-13T11:00:00Z",
+      now: new Date("2026-03-13T12:00:00Z")
+    });
+
+    expect(Array.isArray(result.severityReasons)).toBe(true);
+    expect(result.severityReasons.length).toBeGreaterThan(0);
+  });
+
+  it("does not push ceasefire + diplomacy content above Low", () => {
+    const result = scoreSeverity({
+      title: "Summit delegation agrees diplomatic statement on ceasefire",
+      dateIso: "2026-03-10T09:00:00Z",
+      now: new Date("2026-03-13T12:00:00Z")
+    });
+
     expect(result.severityLabel).toBe("Low");
   });
 });
@@ -100,5 +144,50 @@ describe("scoreHotspotSeverity", () => {
 
     expect(result.severityScore).toBe(100);
     expect(result.severityLabel).toBe("High");
+  });
+
+  it("forces at least Medium when severe term appears in hotspot headline with meaningful count", () => {
+    const result = scoreHotspotSeverity({
+      hotspotCount: 5,
+      maxHotspotCount: 50,
+      recencyBoost: 0,
+      headlineText: "Missile strike reported near the border"
+    });
+
+    expect(result.severityLabel).not.toBe("Low");
+    expect(result.severityScore).toBeGreaterThanOrEqual(34);
+    expect(
+      result.severityReasons.some((r) =>
+        r.toLowerCase().includes("missile")
+      )
+    ).toBe(true);
+  });
+
+  it("does not give a keyword boost when no severe terms are present", () => {
+    const withoutKeyword = scoreHotspotSeverity({
+      hotspotCount: 5,
+      maxHotspotCount: 50,
+      recencyBoost: 0,
+      headlineText: "Peace negotiations continue in Geneva"
+    });
+
+    const withKeyword = scoreHotspotSeverity({
+      hotspotCount: 5,
+      maxHotspotCount: 50,
+      recencyBoost: 0,
+      headlineText: "Airstrike destroys bridge on the frontline"
+    });
+
+    expect(withKeyword.severityScore).toBeGreaterThan(withoutKeyword.severityScore);
+  });
+
+  it("populates severityReasons for all scored hotspots", () => {
+    const result = scoreHotspotSeverity({
+      hotspotCount: 50,
+      maxHotspotCount: 100,
+      recencyBoost: 5
+    });
+
+    expect(Array.isArray(result.severityReasons)).toBe(true);
   });
 });

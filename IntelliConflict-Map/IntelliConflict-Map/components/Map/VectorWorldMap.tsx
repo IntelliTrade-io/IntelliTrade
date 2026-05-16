@@ -17,7 +17,11 @@ import {
 } from "d3-zoom";
 
 import { projectStrategicLabels } from "@/components/Map/labels";
-import { projectConflictMarkers } from "@/components/Map/hotspots";
+import {
+  clusterSvgMarkers,
+  projectConflictMarkers,
+  type ClusterMarker
+} from "@/components/Map/hotspots";
 import {
   getDensityProfile
 } from "@/components/Map/density";
@@ -45,6 +49,13 @@ const DEFAULT_VIEWPORT = {
   height: 900
 };
 
+// Zoom in/out step multiplier
+const ZOOM_STEP = 1.4;
+// Grid size (in SVG units) for clustering at low zoom
+const CLUSTER_GRID_SIZE = 26;
+// Threshold: apply clustering when scale ≤ this value
+const CLUSTER_SCALE_THRESHOLD = 2.2;
+
 export function VectorWorldMap({
   data,
   densityEnabled,
@@ -61,6 +72,8 @@ export function VectorWorldMap({
   const animationFrameRef = useRef<number | null>(null);
   const transformRef = useRef<ZoomTransform>(zoomIdentity);
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
+  // Triggers cluster/solo switch only when crossing CLUSTER_SCALE_THRESHOLD
+  const [isZoomedOut, setIsZoomedOut] = useState(true);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -124,8 +137,16 @@ export function VectorWorldMap({
       projectConflictMarkers(data.features, projection, selectedFeatureId),
     [data.features, projection, selectedFeatureId]
   );
-  // Density mode intentionally simplifies as visible point counts grow so SVG glow
-  // rendering stays responsive without changing the overall look of the map.
+
+  // Clustering: group nearby markers at low zoom to reduce visual clutter
+  const { soloMarkers, clusters } = useMemo(() => {
+    if (!isZoomedOut) {
+      return { soloMarkers: markers, clusters: [] as ClusterMarker[] };
+    }
+    return clusterSvgMarkers(markers, CLUSTER_GRID_SIZE);
+  }, [isZoomedOut, markers]);
+
+  // Density profile is based on all visible markers (including clustered)
   const densityProfile = useMemo(
     () => getDensityProfile(markers.length),
     [markers.length]
@@ -153,11 +174,18 @@ export function VectorWorldMap({
       .translateExtent(createViewportExtent(viewport.width, viewport.height))
       .filter((event) => event.type !== "dblclick")
       .on("zoom", (event) => {
-        transformRef.current = event.transform;
+        const k: number = (event.transform as ZoomTransform).k;
+        const wasZoomedOut = transformRef.current.k <= CLUSTER_SCALE_THRESHOLD;
+        const nowZoomedOut = k <= CLUSTER_SCALE_THRESHOLD;
+        transformRef.current = event.transform as ZoomTransform;
         viewportNode.setAttribute(
           "transform",
-          `translate(${event.transform.x} ${event.transform.y}) scale(${event.transform.k})`
+          `translate(${(event.transform as ZoomTransform).x} ${(event.transform as ZoomTransform).y}) scale(${k})`
         );
+        // Only update state when crossing the cluster threshold (avoids 60fps re-renders)
+        if (wasZoomedOut !== nowZoomedOut) {
+          setIsZoomedOut(nowZoomedOut);
+        }
       });
 
     zoomBehaviorRef.current = behavior;
@@ -254,6 +282,89 @@ export function VectorWorldMap({
     }
   }
 
+  function animateToTransform(
+    targetTransform: ZoomTransform,
+    duration: number
+  ) {
+    const svgNode = svgRef.current;
+    const behavior = zoomBehaviorRef.current;
+    if (!svgNode || !behavior) return;
+    const svg = select(svgNode);
+
+    if (reducedMotion) {
+      svg.call(behavior.transform as never, targetTransform);
+      return;
+    }
+
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    const startTransform = transformRef.current;
+    let startTime: number | null = null;
+
+    const tick = (timestamp: number) => {
+      if (startTime === null) startTime = timestamp;
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const interpolated = zoomIdentity
+        .translate(
+          startTransform.x + (targetTransform.x - startTransform.x) * eased,
+          startTransform.y + (targetTransform.y - startTransform.y) * eased
+        )
+        .scale(startTransform.k + (targetTransform.k - startTransform.k) * eased);
+
+      svg.call(behavior.transform as never, interpolated);
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(tick);
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(tick);
+  }
+
+  function handleZoomIn() {
+    const t = transformRef.current;
+    const targetK = Math.min(t.k * ZOOM_STEP, 6);
+    const cx = viewport.width / 2;
+    const cy = viewport.height / 2;
+    const kRatio = targetK / t.k;
+    animateToTransform(
+      zoomIdentity.translate(cx - (cx - t.x) * kRatio, cy - (cy - t.y) * kRatio).scale(targetK),
+      200
+    );
+  }
+
+  function handleZoomOut() {
+    const t = transformRef.current;
+    const targetK = Math.max(t.k / ZOOM_STEP, 1);
+    const cx = viewport.width / 2;
+    const cy = viewport.height / 2;
+    const kRatio = targetK / t.k;
+    animateToTransform(
+      zoomIdentity.translate(cx - (cx - t.x) * kRatio, cy - (cy - t.y) * kRatio).scale(targetK),
+      200
+    );
+  }
+
+  function handleResetView() {
+    animateToTransform(zoomIdentity, 300);
+  }
+
+  function handleClusterClick(cluster: ClusterMarker) {
+    const targetK = Math.min(transformRef.current.k * 2.2, 6);
+    animateToTransform(
+      zoomIdentity
+        .translate(
+          viewport.width / 2 - cluster.x * targetK,
+          viewport.height / 2 - cluster.y * targetK
+        )
+        .scale(targetK),
+      250
+    );
+  }
+
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden">
       <svg
@@ -278,11 +389,12 @@ export function VectorWorldMap({
           <filter id="map-point-glow" x="-120%" y="-120%" width="340%" height="340%">
             <feGaussianBlur stdDeviation="4.5" />
           </filter>
-          <linearGradient id="map-ocean" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="rgba(9,12,20,0.98)" />
-            <stop offset="100%" stopColor="rgba(4,7,14,0.88)" />
-          </linearGradient>
         </defs>
+
+        <linearGradient id="map-ocean" x1="0%" y1="0%" x2="100%" y2="100%" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="rgba(9,12,20,0.98)" />
+          <stop offset="100%" stopColor="rgba(4,7,14,0.88)" />
+        </linearGradient>
 
         <rect width={viewport.width} height={viewport.height} fill="url(#map-ocean)" />
 
@@ -336,7 +448,7 @@ export function VectorWorldMap({
           ))}
 
           {densityEnabled
-            ? markers.map((marker) => (
+            ? soloMarkers.map((marker) => (
                 <circle
                   key={`density-${marker.id}`}
                   cx={marker.x}
@@ -350,7 +462,51 @@ export function VectorWorldMap({
               ))
             : null}
 
-          {markers.map((marker) => (
+          {/* Cluster markers — visible when zoomed out */}
+          {clusters.map((cluster) => (
+            <g
+              key={cluster.id}
+              transform={`translate(${cluster.x} ${cluster.y})`}
+              className="cursor-pointer"
+              role="button"
+              tabIndex={0}
+              aria-label={`${cluster.count} events in this area`}
+              onClick={() => handleClusterClick(cluster)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleClusterClick(cluster);
+                }
+              }}
+            >
+              <title>{cluster.count} events — click to zoom in</title>
+              <circle
+                r={14}
+                fill={cluster.color}
+                opacity="0.18"
+                filter="url(#map-point-glow)"
+              />
+              <circle
+                r={9}
+                fill={cluster.color}
+                opacity="0.78"
+                stroke="rgba(246,248,254,0.7)"
+                strokeWidth="1.2"
+              />
+              <text
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="rgba(6,9,16,0.95)"
+                fontSize="7.5"
+                fontWeight="700"
+                letterSpacing="0"
+              >
+                {cluster.count > 99 ? "99+" : cluster.count}
+              </text>
+            </g>
+          ))}
+
+          {soloMarkers.map((marker) => (
             <g
               key={marker.id}
               transform={`translate(${marker.x} ${marker.y})`}
@@ -418,6 +574,45 @@ export function VectorWorldMap({
           ))}
         </g>
       </svg>
+
+      {/* Zoom controls — positioned bottom-right, outside SVG for DOM hit testing */}
+      <div
+        className="absolute bottom-14 right-4 z-10 flex flex-col gap-1"
+        aria-label="Zoom controls"
+      >
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors duration-150 hover:bg-white/12 active:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+          aria-label="Zoom in"
+          onClick={handleZoomIn}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 2v10M2 7h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-black/40 text-white backdrop-blur-md transition-colors duration-150 hover:bg-white/12 active:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+          aria-label="Zoom out"
+          onClick={handleZoomOut}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M2 7h10" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-black/40 text-white/70 backdrop-blur-md transition-colors duration-150 hover:bg-white/12 hover:text-white active:bg-white/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+          aria-label="Reset view"
+          title="Reset to world view"
+          onClick={handleResetView}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.6" />
+            <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
