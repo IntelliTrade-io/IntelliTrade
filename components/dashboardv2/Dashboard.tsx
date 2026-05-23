@@ -8,7 +8,7 @@ import { useContainerWidth } from "react-grid-layout";
 import { useState } from "react";
 import { BookOpen, CalendarDays, CandlestickChart, Calculator, FileText, Gamepad2, Globe2, LayoutDashboard, Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { GRID_MARGIN, GRID_ROW_HEIGHT } from "./constants";
+import { GRID_MARGIN, GRID_ROW_HEIGHT, WORKSPACE_PRESETS } from "./constants";
 import { useWorkspace } from "./hooks/use-workspace";
 import { WorkspaceHeader } from "./workspace/workspace-header";
 import { TradingViewPanel } from "./panels/trading-view-panel";
@@ -103,7 +103,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen w-full bg-transparent px-6 pb-8 pt-4 text-white sm:px-8 lg:px-10">
-      <div className="mx-auto w-full" style={{ maxWidth: workspaceConfig.maxWidth }}>
+      <div className="mx-auto w-full" style={{ maxWidth: focusedType !== null ? WORKSPACE_PRESETS.standard.maxWidth : workspaceConfig.maxWidth }}>
 
         {/* Panel switcher pill nav */}
         <div className="mb-4 flex justify-center">

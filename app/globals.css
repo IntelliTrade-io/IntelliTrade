@@ -144,10 +144,10 @@
   }
 
   .nav-header-logo {
-    max-width: 20vh;
-    max-height: 40px;
-    height: auto;
+    height: 36px;
     width: auto;
+    max-width: 140px;
+    object-fit: contain;
   }
 
 
