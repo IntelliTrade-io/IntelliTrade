@@ -136,7 +136,7 @@ export function EmbeddedStrengthPanel({
       subtitle={
         isIntraday
           ? "3-day relative momentum across 8 major currencies."
-          : "20-day relative momentum across 8 major currencies."
+          : "6-day relative momentum across 8 major currencies."
       }
       className="h-full"
       contentClassName="min-h-0"
@@ -166,7 +166,7 @@ export function EmbeddedStrengthPanel({
         {!loading && !error && data && (
           <div className="mb-3 flex items-center justify-between">
             <span className="text-[10px] uppercase tracking-[0.22em] text-white/30">
-              {isIntraday ? "3-day momentum" : "20-day momentum"}
+              {isIntraday ? "3-day momentum" : "6-day momentum"}
             </span>
             <span className="text-[10px] text-white/28">
               Updated {formatAge(data.cacheAgeSeconds)}
