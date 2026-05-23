@@ -27,9 +27,9 @@ const PANEL_TABS = [
   { id: "calculator",      label: "Calculator",   icon: Calculator,      comingSoon: false },
   { id: "chart",           label: "TradingView",  icon: CandlestickChart,comingSoon: false },
   { id: "strength",        label: "Strength",     icon: Radar,           comingSoon: false },
+  { id: "game",            label: "Bull vs Bear", icon: Gamepad2,        comingSoon: false },
   { id: "conflict",        label: "Conflict Map", icon: Globe2,          comingSoon: true  },
   { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: true  },
-  { id: "game",            label: "Bull vs Bear", icon: Gamepad2,        comingSoon: false },
   { id: "macro",           label: "Macro Mastery",icon: BookOpen,        comingSoon: true  },
 ] as const;
 
@@ -115,20 +115,19 @@ export function Dashboard() {
                 return (
                   <div
                     key={String(tab.id)}
-                    className="relative inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm"
+                    className="inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/[0.06] px-4 text-sm text-violet-300/60"
                   >
-                    <span className="flex items-center gap-2 blur-[2px] pointer-events-none text-white/68">
-                      <Icon className="h-4 w-4" />
-                      {tab.label}
-                    </span>
-                    <span className="absolute inset-0 flex items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-widest text-white/50">
-                      Coming soon
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                    <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-violet-400/70">
+                      Soon
                     </span>
                   </div>
                 );
               }
               return (
                 <button
+                  type="button"
                   key={String(tab.id)}
                   onClick={() => setFocusedType(tab.id)}
                   className={cn(

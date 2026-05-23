@@ -90,6 +90,11 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     description: "Embedded intraday scanner surface for session bias.",
     icon: Waves,
   },
+  game: {
+    label: "Bull vs Bear",
+    description: "Live interactive game module.",
+    icon: Gamepad2,
+  },
   conflict: {
     label: "Conflict map",
     description: "Bundled geopolitical map with hotspot drilldown.",
@@ -101,11 +106,6 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     description: "Journal overview with equity pulse and recent executions.",
     icon: FileText,
     comingSoon: true,
-  },
-  game: {
-    label: "Bull vs Bear",
-    description: "Live interactive game module.",
-    icon: Gamepad2,
   },
   macro: {
     label: "Macro Mastery",
