@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import { motion } from "framer-motion";
-import "@/styles/lot-size-calculator.css";
 import NewsletterForm from "@/components/NewsletterForm";
 
 

@@ -5,7 +5,6 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { client } from "@/sanity/client"
 import imageUrlBuilder from "@sanity/image-url"
-import '@/styles/lot-size-calculator.css'
 
 // Standard Sanity Image Helper
 const builder = imageUrlBuilder(client)

@@ -7,7 +7,6 @@ import {
   RadialBackdrop,
   getChartTabClassName,
 } from "../gold-price-today/lib/pricePageBrand";
-import "@/styles/lot-size-calculator.css";
 import { client } from "@/sanity/client";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────

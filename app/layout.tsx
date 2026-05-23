@@ -1,4 +1,5 @@
 import '@/styles/tailwind.css';
+import '@/styles/main.css';
 import 'remark-github-blockquote-alert/alert.css';
 import { Space_Grotesk } from 'next/font/google';
 // import { Analytics, AnalyticsConfig } from 'pliny/analytics';

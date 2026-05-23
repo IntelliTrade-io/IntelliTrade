@@ -102,7 +102,7 @@ export function Dashboard() {
   const [focusedType, setFocusedType] = useState<TabId>(null);
 
   return (
-    <div className="min-h-screen bg-transparent px-6 pb-8 pt-4 text-white sm:px-8 lg:px-10">
+    <div className="min-h-screen w-full bg-transparent px-6 pb-8 pt-4 text-white sm:px-8 lg:px-10">
       <div className={cn("mx-auto", workspaceConfig.maxWidthClass)}>
 
         {/* Panel switcher pill nav */}
@@ -181,15 +181,33 @@ export function Dashboard() {
 
         {/* Focused panel view */}
         {focusedType !== null && (
-          <div className="h-[calc(100vh-160px)]">
-            {renderPanel(
-              { ...FOCUS_PANEL, type: focusedType as WidgetType },
-              12,
-              () => {},
-              () => {},
-              focusedType === "chart" ? () => {} : undefined,
-            )}
-          </div>
+          focusedType === "strength" ? (
+            /* Strength: show both meters side by side */
+            <div className="grid h-[calc(100vh-160px)] grid-cols-1 gap-4 lg:grid-cols-2">
+              {renderPanel(
+                { ...FOCUS_PANEL, type: "strength" },
+                12,
+                () => {},
+                () => {},
+              )}
+              {renderPanel(
+                { ...FOCUS_PANEL, id: "focus-view-intraday", type: "strengthIntraday" },
+                12,
+                () => {},
+                () => {},
+              )}
+            </div>
+          ) : (
+            <div className="h-[calc(100vh-160px)]">
+              {renderPanel(
+                { ...FOCUS_PANEL, type: focusedType as WidgetType },
+                12,
+                () => {},
+                () => {},
+                focusedType === "chart" ? () => {} : undefined,
+              )}
+            </div>
+          )
         )}
       </div>
     </div>

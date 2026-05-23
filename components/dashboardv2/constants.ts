@@ -31,7 +31,7 @@ export const GRID_MARGIN: [number, number] = [20, 20];
 export const WORKSPACE_PRESETS: Record<WorkspaceMode, WorkspacePreset> = {
   standard: {
     label: "Standard",
-    shortLabel: "Std",
+    shortLabel: "Standard",
     cols: 12,
     maxWidthClass: "max-w-[1560px]",
   },
