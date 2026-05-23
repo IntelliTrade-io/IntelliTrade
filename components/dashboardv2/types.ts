@@ -61,7 +61,8 @@ export interface WorkspacePreset {
   label: string;
   shortLabel: string;
   cols: number;
-  maxWidthClass: string;
+  maxWidthClass: string; // kept for backwards compat
+  maxWidth: string;      // inline-style value, e.g. "90vw"
 }
 
 export interface PanelDimension {

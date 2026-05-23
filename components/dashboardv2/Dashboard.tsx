@@ -103,7 +103,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen w-full bg-transparent px-6 pb-8 pt-4 text-white sm:px-8 lg:px-10">
-      <div className={cn("mx-auto", workspaceConfig.maxWidthClass)}>
+      <div className="mx-auto w-full" style={{ maxWidth: workspaceConfig.maxWidth }}>
 
         {/* Panel switcher pill nav */}
         <div className="mb-4 flex justify-center">
