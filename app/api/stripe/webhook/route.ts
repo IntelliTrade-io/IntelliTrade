@@ -44,6 +44,18 @@ async function syncSubscription(subscription: Stripe.Subscription) {
   const userId = existing?.user_id ?? (subscription.metadata?.user_id as string | undefined);
   if (!userId) return;
 
+  // current_period_end moved off the top-level subscription object in newer Stripe
+  // API versions — fall back to the first item's billing period if not present.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rawSub = subscription as any;
+  const periodEndSeconds: number | undefined =
+    rawSub.current_period_end ??
+    rawSub.items?.data?.[0]?.current_period_end;
+
+  const current_period_end = periodEndSeconds
+    ? new Date(periodEndSeconds * 1000).toISOString()
+    : null;
+
   await supabaseAdmin.from("subscriptions").upsert(
     {
       user_id: userId,
@@ -51,9 +63,7 @@ async function syncSubscription(subscription: Stripe.Subscription) {
       stripe_subscription_id: subscription.id,
       plan: isActive ? "pro" : "demo",
       status: subscription.status,
-      current_period_end: new Date(
-        (subscription as Stripe.Subscription & { current_period_end: number }).current_period_end * 1000,
-      ).toISOString(),
+      current_period_end,
     },
     { onConflict: "user_id" },
   );
