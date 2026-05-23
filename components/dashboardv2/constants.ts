@@ -33,19 +33,22 @@ export const WORKSPACE_PRESETS: Record<WorkspaceMode, WorkspacePreset> = {
     label: "Standard",
     shortLabel: "Standard",
     cols: 12,
-    maxWidthClass: "max-w-[1560px]",
+    maxWidthClass: "",
+    maxWidth: "72vw",
   },
   wide: {
     label: "Wide",
     shortLabel: "Wide",
     cols: 16,
-    maxWidthClass: "max-w-[1880px]",
+    maxWidthClass: "",
+    maxWidth: "82vw",
   },
   studio: {
     label: "Studio",
     shortLabel: "Studio",
     cols: 20,
-    maxWidthClass: "max-w-[2240px]",
+    maxWidthClass: "",
+    maxWidth: "90vw",
   },
 };
 
