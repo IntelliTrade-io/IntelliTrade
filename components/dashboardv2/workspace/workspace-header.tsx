@@ -264,21 +264,21 @@ export function WorkspaceHeader({
                       return (
                         <div
                           key={type}
-                          className="relative flex items-start gap-3 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 select-none cursor-not-allowed"
+                          className="relative flex items-start gap-3 rounded-[20px] border border-violet-500/20 bg-violet-500/[0.06] px-4 py-3 select-none cursor-not-allowed"
                         >
                           <div className="blur-[3px] flex items-start gap-3 flex-1 pointer-events-none">
-                            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/76">
+                            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/[0.08] text-violet-300/60">
                               <Icon className="h-4 w-4" />
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-white">{item.label}</div>
-                              <div className="mt-1 text-sm leading-relaxed text-white/46">
+                              <div className="text-sm font-medium text-violet-200/70">{item.label}</div>
+                              <div className="mt-1 text-sm leading-relaxed text-violet-300/40">
                                 {item.description}
                               </div>
                             </div>
                           </div>
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest text-white/50 backdrop-blur-sm">
-                            Coming soon
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-widest text-violet-400/70">
+                            Soon
                           </span>
                         </div>
                       );
