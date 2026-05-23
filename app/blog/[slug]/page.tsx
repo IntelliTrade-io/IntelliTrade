@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import ReadingProgressBar from "@/components/readingProgressBar"; // We'll create this next
 import { ArrowLeft } from "lucide-react"; // or use your preferred icon set
-import '@/styles/lot-size-calculator.css'
 
 
 const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]`;

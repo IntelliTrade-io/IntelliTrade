@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import "../../styles/lot-size-calculator.css";
 import LotSizeCalculator from "@/components/lot-size-calculator-2";
 import TradingViewWidget from "@/components/tradingView";
 import "@/node_modules/flag-icons/css/flag-icons.min.css";

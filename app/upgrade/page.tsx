@@ -7,15 +7,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const FEATURES = [
-  { icon: LayoutDashboard, label: "Full Dashboard V2" },
-  { icon: CandlestickChart, label: "TradingView charts" },
-  { icon: CalendarDays,    label: "Economic calendar" },
-  { icon: Calculator,      label: "Position size calculator" },
-  { icon: Radar,           label: "Currency strength meter" },
-  { icon: FileText,        label: "Trading journal" },
-  { icon: BookOpen,        label: "Macro Mastery module" },
-  { icon: Gamepad2,        label: "Bull vs Bear game" },
-  { icon: Globe2,          label: "Conflict map" },
+  { icon: LayoutDashboard, label: "Custom Trading Dashboard", soon: false },
+  { icon: CandlestickChart, label: "TradingView charts",      soon: false },
+  { icon: CalendarDays,    label: "Economic calendar",        soon: false },
+  { icon: Calculator,      label: "Position size calculator", soon: false },
+  { icon: Radar,           label: "Currency strength meter",  soon: false },
+  { icon: FileText,        label: "Trading journal",          soon: true  },
+  { icon: BookOpen,        label: "Macro Mastery module",     soon: true  },
+  { icon: Gamepad2,        label: "Bull vs Bear game",        soon: true  },
+  { icon: Globe2,          label: "Conflict map",             soon: true  },
 ];
 
 export default async function UpgradePage({
@@ -93,10 +93,19 @@ export default async function UpgradePage({
               Everything included
             </p>
             <ul className="grid gap-3">
-              {FEATURES.map(({ label }) => (
-                <li key={label} className="flex items-center gap-3 text-sm text-white/80">
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-violet-400" />
-                  {label}
+              {FEATURES.map(({ label, soon }) => (
+                <li key={label} className="flex items-center gap-3 text-sm">
+                  {/* Blurred portion — icon + label */}
+                  <span className={`flex items-center gap-3 flex-1 ${soon ? "blur-[2px] select-none text-white/40" : "text-white/80"}`}>
+                    <CheckCircle2 className={`h-4 w-4 shrink-0 ${soon ? "text-white/20" : "text-violet-400"}`} />
+                    {label}
+                  </span>
+                  {/* Badge stays crisp */}
+                  {soon && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-white/40">
+                      Coming soon
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

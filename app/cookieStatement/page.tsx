@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import "@/styles/lot-size-calculator.css";
 
 // -----------------------------
 // Hooks (Consistent with Macro Mastery style)

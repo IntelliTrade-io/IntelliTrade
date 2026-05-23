@@ -8,7 +8,6 @@ import {
 
   getChartTabClassName
 } from "./lib/pricePageBrand";
-import '@/styles/lot-size-calculator.css';
 import { client } from "@/sanity/client";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
