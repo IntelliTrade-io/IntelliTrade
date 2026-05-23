@@ -94,11 +94,13 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     label: "Conflict map",
     description: "Bundled geopolitical map with hotspot drilldown.",
     icon: Globe2,
+    comingSoon: true,
   },
   journal: {
     label: "IntelliJournal",
     description: "Journal overview with equity pulse and recent executions.",
     icon: FileText,
+    comingSoon: true,
   },
   game: {
     label: "Bull vs Bear",
@@ -109,6 +111,7 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     label: "Macro Mastery",
     description: "Interactive macro reader with guided tracks and chapter depth.",
     icon: BookOpen,
+    comingSoon: true,
   },
 };
 

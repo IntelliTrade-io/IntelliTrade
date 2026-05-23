@@ -76,4 +76,5 @@ export interface WidgetCatalogEntry {
   label: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
+  comingSoon?: boolean;
 }

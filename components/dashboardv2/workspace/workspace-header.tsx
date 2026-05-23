@@ -260,6 +260,29 @@ export function WorkspaceHeader({
                 {(Object.entries(WIDGET_CATALOG) as [WidgetType, (typeof WIDGET_CATALOG)[WidgetType]][]).map(
                   ([type, item]) => {
                     const Icon = item.icon;
+                    if (item.comingSoon) {
+                      return (
+                        <div
+                          key={type}
+                          className="relative flex items-start gap-3 rounded-[20px] border border-white/10 bg-white/[0.03] px-4 py-3 select-none cursor-not-allowed"
+                        >
+                          <div className="blur-[3px] flex items-start gap-3 flex-1 pointer-events-none">
+                            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/76">
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-white">{item.label}</div>
+                              <div className="mt-1 text-sm leading-relaxed text-white/46">
+                                {item.description}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[10px] font-medium uppercase tracking-widest text-white/50 backdrop-blur-sm">
+                            Coming soon
+                          </span>
+                        </div>
+                      );
+                    }
                     return (
                       <button
                         key={type}
