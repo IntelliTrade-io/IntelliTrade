@@ -22,15 +22,15 @@ import { MacroMasteryPanel } from "./panels/macro-mastery-panel";
 import type { Panel, WidgetType } from "./types";
 
 const PANEL_TABS = [
-  { id: null,              label: "Dashboard",    icon: LayoutDashboard },
-  { id: "calendar",        label: "Calendar",     icon: CalendarDays },
-  { id: "calculator",      label: "Calculator",   icon: Calculator },
-  { id: "chart",           label: "TradingView",  icon: CandlestickChart },
-  { id: "strength",        label: "Strength",     icon: Radar },
-  { id: "conflict",        label: "Conflict Map", icon: Globe2 },
-  { id: "journal",         label: "Journal",      icon: FileText },
-  { id: "game",            label: "Bull vs Bear", icon: Gamepad2 },
-  { id: "macro",           label: "Macro Mastery",icon: BookOpen },
+  { id: null,              label: "Dashboard",    icon: LayoutDashboard, comingSoon: false },
+  { id: "calendar",        label: "Calendar",     icon: CalendarDays,    comingSoon: false },
+  { id: "calculator",      label: "Calculator",   icon: Calculator,      comingSoon: false },
+  { id: "chart",           label: "TradingView",  icon: CandlestickChart,comingSoon: false },
+  { id: "strength",        label: "Strength",     icon: Radar,           comingSoon: false },
+  { id: "conflict",        label: "Conflict Map", icon: Globe2,          comingSoon: true  },
+  { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: true  },
+  { id: "game",            label: "Bull vs Bear", icon: Gamepad2,        comingSoon: false },
+  { id: "macro",           label: "Macro Mastery",icon: BookOpen,        comingSoon: true  },
 ] as const;
 
 type TabId = typeof PANEL_TABS[number]["id"];
@@ -111,6 +111,22 @@ export function Dashboard() {
             {PANEL_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = focusedType === tab.id;
+              if (tab.comingSoon) {
+                return (
+                  <div
+                    key={String(tab.id)}
+                    className="relative inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm"
+                  >
+                    <span className="flex items-center gap-2 blur-[2px] pointer-events-none text-white/68">
+                      <Icon className="h-4 w-4" />
+                      {tab.label}
+                    </span>
+                    <span className="absolute inset-0 flex items-center justify-center rounded-full text-[9px] font-semibold uppercase tracking-widest text-white/50">
+                      Coming soon
+                    </span>
+                  </div>
+                );
+              }
               return (
                 <button
                   key={String(tab.id)}
