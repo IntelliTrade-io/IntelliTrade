@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { CheckCircle2, LayoutDashboard, CalendarDays, CandlestickChart, BookOpen, Gamepad2, FileText, Radar, Globe2, Calculator } from "lucide-react";
-import { UpgradeButton, ManageBillingButton } from "./_components/UpgradeButton";
+import { UpgradeButton } from "./_components/UpgradeButton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
