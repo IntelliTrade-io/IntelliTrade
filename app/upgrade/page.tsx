@@ -1,8 +1,10 @@
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { CheckCircle2, LayoutDashboard, CalendarDays, CandlestickChart, BookOpen, Gamepad2, FileText, Radar, Globe2, Calculator } from "lucide-react";
 import { UpgradeButton } from "./_components/UpgradeButton";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 const FEATURES = [
   { icon: LayoutDashboard, label: "Full Dashboard V2" },
@@ -27,6 +29,17 @@ export default async function UpgradePage({
   ]);
 
   const { data: { user } } = await supabase.auth.getUser();
+
+  // If the user already has an active subscription, send them straight to the dashboard
+  if (user) {
+    const { data: sub } = await supabaseAdmin
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", user.id)
+      .single();
+    const isActive = sub && ["active", "trialing"].includes(sub.status as string);
+    if (isActive) redirect("/dashboardv2");
+  }
 
   const amount = price.unit_amount ? (price.unit_amount / 100).toFixed(2) : "—";
   const currency = price.currency.toUpperCase();
