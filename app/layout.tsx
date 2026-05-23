@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 relative z-[9999] navigation-div" style={{ overflow: "visible" }}>
               <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
                 <div className="flex gap-5 items-center font-semibold">
-                  <Link href="/">
+                  <Link href="/" style={{ display: "block", height: "48px", overflow: "visible" }}>
                     <Image
                       src={IntelliTradeLogo}
                       width={500}
