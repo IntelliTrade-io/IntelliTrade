@@ -52,7 +52,7 @@ export default function NavLinks() {
         </Button>
 
         {open && (
-          <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-44 overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 shadow-[0_16px_48px_rgba(0,0,0,0.7)] backdrop-blur-xl">
+          <div className="absolute right-0 top-[calc(100%+6px)] z-[99999] w-44 overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 shadow-[0_16px_48px_rgba(0,0,0,0.7)] backdrop-blur-xl">
             {PRICE_LINKS.map((item) => (
               <Link
                 key={item.href}

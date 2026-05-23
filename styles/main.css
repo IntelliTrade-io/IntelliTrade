@@ -59,8 +59,8 @@ body {
 .navigation-div {
   position: sticky;
   top: 0;
-  z-index: 500;
-  /* background-color: rgba(36, 40, 50, 1); background-image: linear-gradient(135deg, rgba(36, 40, 50, 1) 0%, rgba(36, 40, 50, 1) 40%, rgba(37, 28, 40, 1) 100%); */
+  z-index: 9999;
+  overflow: visible;
   border: none;
 }
 
