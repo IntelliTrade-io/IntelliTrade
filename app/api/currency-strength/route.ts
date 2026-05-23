@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
-const DAILY_LOOKBACK = 20;    // trading days → proxy for D1
+const DAILY_LOOKBACK = 6;     // trading days (~2 weeks calendar) → proxy for D1
 const INTRADAY_LOOKBACK = 3;  // trading days → proxy for H1/M15
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -104,47 +104,65 @@ function computeStrength(
 
 // ─── FastForex fetch ──────────────────────────────────────────────────────────
 
-async function fetchFromFastForex(): Promise<StrengthPayload | null> {
+async function fetchFromFastForex(): Promise<
+  { payload: StrengthPayload } | { error: string }
+> {
   const apiKey = process.env.FASTFOREX_API_KEY;
-  if (!apiKey) {
-    console.error("[currency-strength] FASTFOREX_API_KEY not set");
-    return null;
-  }
+  if (!apiKey) return { error: "FASTFOREX_API_KEY not set" };
 
-  const to   = new Date().toISOString().split("T")[0];
-  const from = new Date(Date.now() - 42 * 24 * 60 * 60 * 1000)
-    .toISOString().split("T")[0]; // 42 days back → ~30 trading days
+  const end   = new Date().toISOString().split("T")[0];
+  const start = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000)
+    .toISOString().split("T")[0];
 
-  const symbols = CURRENCIES.filter((c) => c !== "USD").join(",");
-  const url = `https://api.fastforex.io/time-series?from=${from}&to=${to}&base=USD&symbols=${symbols}&api_key=${apiKey}`;
+  const nonUSD = CURRENCIES.filter((c) => c !== "USD");
 
   try {
-    const res = await fetch(url, { cache: "no-store" });
+    // FastForex time-series only accepts one target currency per call — run in parallel
+    const results = await Promise.all(
+      nonUSD.map(async (currency) => {
+        const url = `https://api.fastforex.io/time-series?from=USD&to=${currency}&start=${start}&end=${end}&api_key=${apiKey}`;
+        const res  = await fetch(url, { cache: "no-store" });
+        const text = await res.text();
 
-    if (!res.ok) {
-      console.error(`[currency-strength] FastForex ${res.status}: ${await res.text()}`);
-      return null;
+        if (!res.ok) {
+          throw new Error(`FastForex HTTP ${res.status} for USD/${currency}: ${text}`);
+        }
+
+        let json: Record<string, unknown>;
+        try { json = JSON.parse(text); }
+        catch { throw new Error(`FastForex non-JSON for ${currency}: ${text.slice(0, 100)}`); }
+
+        // Response: { results: { "EUR": { "2026-05-10": 0.8498, ... } } }
+        const currencyBlock = (json.results as Record<string, Record<string, number>>)?.[currency] ?? {};
+        return { currency, raw: currencyBlock };
+      }),
+    );
+
+    // Merge into { "2024-01-01": { EUR: 0.923, GBP: 0.789, ... }, ... }
+    const timeSeries: Record<string, Record<string, number>> = {};
+
+    for (const { currency, raw } of results) {
+      for (const [date, value] of Object.entries(raw)) {
+        if (!timeSeries[date]) timeSeries[date] = {};
+        // raw is now { "2026-05-10": 0.8498, ... } — plain date → rate
+        timeSeries[date][currency] = typeof value === "number" ? value : 0;
+      }
     }
 
-    const json = await res.json();
-    // FastForex returns { base, results: { "2024-01-01": { EUR: 0.923, ... } }, ms }
-    const timeSeries: Record<string, Record<string, number>> =
-      json.results ?? json.data ?? json.series ?? {};
-
     if (Object.keys(timeSeries).length === 0) {
-      console.error("[currency-strength] Empty time-series from FastForex");
-      return null;
+      return { error: `All FastForex calls returned empty results. First raw: ${JSON.stringify(results[0]?.raw).slice(0, 200)}` };
     }
 
     const daily    = computeStrength(timeSeries, DAILY_LOOKBACK);
     const intraday = computeStrength(timeSeries, INTRADAY_LOOKBACK);
 
-    if (!daily || !intraday) return null;
+    if (!daily || !intraday) {
+      return { error: `Not enough trading days. Got ${Object.keys(timeSeries).length}, need ${DAILY_LOOKBACK + 1}` };
+    }
 
-    return { daily, intraday, fetchedAt: new Date().toISOString() };
+    return { payload: { daily, intraday, fetchedAt: new Date().toISOString() } };
   } catch (err) {
-    console.error("[currency-strength] Fetch error:", err);
-    return null;
+    return { error: String(err) };
   }
 }
 
@@ -177,9 +195,8 @@ function writeCache(payload: StrengthPayload): void {
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
-  const type = new URL(request.url).searchParams.get("type") === "intraday"
-    ? "intraday"
-    : "daily";
+  const type = new URL(request.url).searchParams.get("type") === "intraday" ? "intraday" : "daily";
+
 
   const cache    = await readCache();
   const cacheAge = cache ? Date.now() - new Date(cache.updated_at).getTime() : Infinity;
@@ -187,14 +204,14 @@ export async function GET(request: Request) {
   let payload = cache?.data ?? null;
 
   if (!payload || cacheAge > CACHE_TTL_MS) {
-    const fresh = await fetchFromFastForex();
-    if (fresh) {
-      payload = fresh;
-      writeCache(fresh);
+    const result = await fetchFromFastForex();
+    if ("payload" in result) {
+      payload = result.payload;
+      writeCache(result.payload);
     } else if (payload) {
-      console.warn("[currency-strength] Serving stale cache (FastForex fetch failed)");
+      console.warn("[currency-strength] Serving stale cache:", result.error);
     } else {
-      return NextResponse.json({ error: "No data available" }, { status: 503 });
+      return NextResponse.json({ error: result.error }, { status: 503 });
     }
   }
 
