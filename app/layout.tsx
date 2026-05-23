@@ -79,7 +79,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 relative z-[9999] navigation-div" style={{ overflow: "visible" }}>
               <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
                 <div className="flex gap-5 items-center font-semibold">
-                  <Link href="/" style={{ display: "block", height: "48px", overflow: "visible" }}>
+                  <div style={{ position: "relative", height: "48px", width: "120px", flexShrink: 0 }}>
+                    <Link href="/" aria-label="IntelliTrade home" style={{ position: "absolute", inset: 0, zIndex: 1 }} />
                     <Image
                       src={IntelliTradeLogo}
                       width={500}
@@ -87,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="nav-header-logo"
                       alt="IntelliTrade"
                     />
-                  </Link>
+                  </div>
                   
                 </div>
                 <div className="hidden md:flex items-center gap-3">
