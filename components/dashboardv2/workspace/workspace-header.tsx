@@ -277,7 +277,7 @@ export function WorkspaceHeader({
                               </div>
                             </div>
                           </div>
-                          <span className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-widest text-violet-400/70">
+                          <span className="absolute right-4 top-3 rounded-full border border-violet-400/30 bg-violet-500/20 px-2.5 py-1 text-[9px] font-semibold uppercase tracking-widest text-violet-200">
                             Soon
                           </span>
                         </div>

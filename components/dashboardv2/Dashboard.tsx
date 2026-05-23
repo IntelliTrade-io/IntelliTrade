@@ -115,11 +115,13 @@ export function Dashboard() {
                 return (
                   <div
                     key={String(tab.id)}
-                    className="inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/[0.06] px-4 text-sm text-violet-300/60"
+                    className="inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/[0.06] px-4 text-sm"
                   >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
-                    <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-violet-400/70">
+                    <span className="flex items-center gap-2 blur-sm pointer-events-none text-violet-300/60">
+                      <Icon className="h-4 w-4" />
+                      {tab.label}
+                    </span>
+                    <span className="rounded-full border border-violet-400/30 bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-violet-200">
                       Soon
                     </span>
                   </div>
