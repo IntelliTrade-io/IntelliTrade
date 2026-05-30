@@ -1,0 +1,23 @@
+FastForex Paid Plan Upgrade
+===========================
+File: app/api/currency-strength/route.ts
+
+Two changes needed:
+
+1. DAILY_LOOKBACK — change from 6 back to 20
+   Current:  const DAILY_LOOKBACK = 6;
+   Change to: const DAILY_LOOKBACK = 20;
+
+2. Date range — change from 13 days back to 42 days
+   Current:  const start = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000)
+   Change to: const start = new Date(Date.now() - 42 * 24 * 60 * 60 * 1000)
+
+3. Panel subtitle — update in components/dashboardv2/panels/strength-panel.tsx
+   Current:  "6-day relative momentum across 8 major currencies."
+   Change to: "20-day relative momentum across 8 major currencies."
+
+   Current:  {isIntraday ? "3-day momentum" : "6-day momentum"}
+   Change to: {isIntraday ? "3-day momentum" : "20-day momentum"}
+
+After making changes, delete the Supabase cache row to force a fresh fetch:
+   DELETE FROM scanner_results WHERE key = 'currency_strength';

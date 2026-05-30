@@ -14,10 +14,10 @@ export async function AuthButton() {
   if (!user) {
     return (
       <div className="flex gap-2">
-        <Button asChild size="sm">
+        <Button asChild size="sm" variant="ghost" className="text-slate-400 hover:text-white hover:bg-white/[0.06] border border-white/10 hover:border-white/20">
           <Link href="/auth/login">Sign in</Link>
         </Button>
-        <Button asChild size="sm">
+        <Button asChild size="sm" className="bg-gradient-to-r from-brand to-brandLight hover:from-brand-500 hover:to-brandLight-400 text-white border-0 shadow-lg shadow-brand/35 transition-all duration-200">
           <Link href="/auth/sign-up">Sign up</Link>
         </Button>
       </div>

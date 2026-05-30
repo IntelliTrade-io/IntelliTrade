@@ -1,0 +1,17 @@
+python "C:\IntelliTrade\Currency Strength Scanner\currency_strength_scanner_mt5_v1_5_2.py" ^
+  --preset v43 ^
+  --trend-mode bos_only ^
+  --bos-excess-d1-atr 0.04 --bos-excess-d1-pips 0.5 ^
+  --d1-depth 3,1 ^
+  --use-adx  --adx-d1-min 20 --adx-h4-min 18 ^
+  --use-chop --chop-d1-max 55 --chop-h4-max 58 ^
+  --use-avwap-accept --accept-d1-bars 1 --accept-h4-bars 3 --accept-atr-band 0.20 ^
+  --use-triangle-consistency --triangle-penalty 0.50 ^
+  --emit-confidence --soft-gating --penalty-adx 0.6 --penalty-chop 0.7 --penalty-avwap 0.6 --penalty-triangle 0.8 ^
+  --weighted-aggregation ^
+  --warmup-first ^
+  --max-retries 4 --retry-wait 0.30 ^
+  --out-json "C:\IntelliTrade\out\heatmap_pairs_v152.json" ^
+  --out-csv  "C:\IntelliTrade\out\heatmap_pairs_v152.csv" ^
+  --out-currencies-json "C:\IntelliTrade\out\heatmap_currencies_v152.json" ^
+  --out-currencies-csv  "C:\IntelliTrade\out\heatmap_currencies_v152.csv"

@@ -1,12 +1,12 @@
-import Link from './Link'
+import Link from '@/components/blog/Link'
 import siteMetadata from '@/data/blog/siteMetadata'
 import SocialIcon from '@/components/blog/social-icons'
 // import NewsletterForm from '@/node_modules/pliny/ui/NewsletterForm'
-import NewsletterForm from '../NewsletterForm'
+import NewsletterForm from './NewsletterForm'
 
 export default function Footer() {
   return (
-<footer className="z-10 flex flex-col md:flex-row items-center justify-around relative text-white mt-[2vh] mb-[2vh] footer-div">
+<footer className="z-10 flex flex-col md:flex-row items-center justify-around relative text-white mt-[2vh] bg-white/5 backdrop-blur-sm border-t border-white/10 py-8">
       {siteMetadata.newsletter?.provider && (
         <div className="flex items-center justify-center">
           {/* <NewsletterForm />

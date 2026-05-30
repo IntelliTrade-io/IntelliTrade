@@ -84,7 +84,7 @@ return (
     id="tsparticles"
     init={particlesInit}
     options={options}
-    className="fixed top-0 left-0 w-full h-full -z-10"
+    className="fixed top-0 left-0 w-full h-full z-[1]"
   />
 );
 }

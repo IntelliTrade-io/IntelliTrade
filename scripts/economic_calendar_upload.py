@@ -63,6 +63,25 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
             "url": ev.get("url", ""),
             "announcement_time_local": announcement_time,
             "extras": extras,
+            # v8 scraper fields
+            "default_dashboard": ev.get("default_dashboard", False),
+            "event_group_key": ev.get("event_group_key"),
+            "event_group_title": ev.get("event_group_title"),
+            "event_group_type": ev.get("event_group_type"),
+            "event_group_priority": ev.get("event_group_priority"),
+            "trader_relevance_score": ev.get("trader_relevance_score"),
+            "asset_focus": ev.get("asset_focus") or [],
+            "source_reliability": extras.get("source_reliability"),
+            "time_confidence": extras.get("time_confidence"),
+            "source_url": ev.get("source_url") or extras.get("source_url_standardized"),
+            "source_name": ev.get("source_name"),
+            "lkg_used": ev.get("lkg_used"),
+            "curated_fallback_reviewed_at": ev.get("curated_fallback_reviewed_at"),
+            "curated_fallback_age_days": ev.get("curated_fallback_age_days"),
+            "curated_fallback_max_age_days": ev.get("curated_fallback_max_age_days"),
+            "post_release_status": extras.get("post_release_status"),
+            "schedule_confidence": extras.get("schedule_confidence"),
+            "bls_selected_source_path": extras.get("bls_selected_source_path"),
         }
         rows.append(row)
 
