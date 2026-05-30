@@ -148,7 +148,7 @@
     left: 0;
     top: 50%;
     transform: translateY(-50%);
-    height: 15vh;
+    height: 20vh;
     width: auto;
     object-fit: contain;
     pointer-events: none;

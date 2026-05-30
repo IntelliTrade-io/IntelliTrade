@@ -24,7 +24,7 @@ export interface EventExtras {
 }
 
 export interface CalendarEvent {
-  id: number;
+  id: string;
   isoDateTime: string;
   dateLabel: string;
   timeLabel: string;
@@ -37,6 +37,24 @@ export interface CalendarEvent {
   source: string;
   rawUrl: string;
   extras: EventExtras;
+  // v8 scraper fields
+  defaultDashboard: boolean;
+  eventGroupKey: string | null;
+  eventGroupTitle: string | null;
+  eventGroupType: string | null;
+  eventGroupPriority: number | null;
+  traderRelevanceScore: number | null;
+  assetFocus: string[];
+  sourceReliability: string | null;
+  sourceName: string | null;
+  sourceUrl: string | null;
+  lkgUsed: boolean | null;
+  curatedFallbackReviewedAt: string | null;
+  curatedFallbackAgeDays: number | null;
+  curatedFallbackMaxAgeDays: number | null;
+  postReleaseStatus: string | null;
+  scheduleConfidence: string | null;
+  blsSelectedSourcePath: string | null;
 }
 
 export interface Panel {
@@ -61,8 +79,8 @@ export interface WorkspacePreset {
   label: string;
   shortLabel: string;
   cols: number;
-  maxWidthClass: string; // kept for backwards compat
-  maxWidth: string;      // inline-style value, e.g. "90vw"
+  maxWidthClass: string;
+  maxWidth: string;
 }
 
 export interface PanelDimension {

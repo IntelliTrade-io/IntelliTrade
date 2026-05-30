@@ -1,11 +1,39 @@
 import type { CalendarEvent } from "../types";
 
+const V8_DEFAULTS: Pick<
+  CalendarEvent,
+  | "defaultDashboard" | "eventGroupKey" | "eventGroupTitle" | "eventGroupType"
+  | "eventGroupPriority" | "traderRelevanceScore" | "assetFocus"
+  | "sourceReliability" | "sourceName" | "sourceUrl" | "lkgUsed"
+  | "curatedFallbackReviewedAt" | "curatedFallbackAgeDays" | "curatedFallbackMaxAgeDays"
+  | "postReleaseStatus" | "scheduleConfidence" | "blsSelectedSourcePath"
+> = {
+  defaultDashboard: true,
+  eventGroupKey: null,
+  eventGroupTitle: null,
+  eventGroupType: null,
+  eventGroupPriority: null,
+  traderRelevanceScore: null,
+  assetFocus: [],
+  sourceReliability: "official",
+  sourceName: null,
+  sourceUrl: null,
+  lkgUsed: null,
+  curatedFallbackReviewedAt: null,
+  curatedFallbackAgeDays: null,
+  curatedFallbackMaxAgeDays: null,
+  postReleaseStatus: null,
+  scheduleConfidence: null,
+  blsSelectedSourcePath: null,
+};
+
 export const EVENTS: CalendarEvent[] = [
   {
-    id: 1,
+    ...V8_DEFAULTS,
+    id: "1",
     isoDateTime: "2026-03-11T17:30:00Z",
     dateLabel: "Mar 11",
-    timeLabel: "12:30 PM",
+    timeLabel: "12:30",
     currency: "USD",
     region: "United States",
     flagCode: "us",
@@ -13,7 +41,7 @@ export const EVENTS: CalendarEvent[] = [
     impact: "high",
     agency: "BLS",
     source: "BLS_ICS",
-    rawUrl: "a433dd4a-c0ee-4d66-9bba-cbddef492430",
+    rawUrl: "https://www.bls.gov/schedule/news_release/",
     extras: {
       release_time_local: "08:30",
       event_local_tz: "America/New_York",
@@ -21,17 +49,15 @@ export const EVENTS: CalendarEvent[] = [
       category: "inflation",
       source_url_standardized: "https://www.bls.gov/schedule/news_release/",
       event_description: "Measures the monthly change in consumer prices and is a key gauge of inflation pressures.",
-      pair_relevance: {
-        primary_fx_pairs: ["EURUSD", "GBPUSD", "USDJPY"],
-        related_assets: ["XAUUSD", "US500", "US10Y"],
-      },
+      pair_relevance: { primary_fx_pairs: ["EURUSD", "GBPUSD", "USDJPY"], related_assets: ["XAUUSD", "US500", "US10Y"] },
     },
   },
   {
-    id: 2,
+    ...V8_DEFAULTS,
+    id: "2",
     isoDateTime: "2026-03-12T11:00:00Z",
     dateLabel: "Mar 12",
-    timeLabel: "11:00 AM",
+    timeLabel: "11:00",
     currency: "EUR",
     region: "Eurozone",
     flagCode: "eu",
@@ -47,17 +73,15 @@ export const EVENTS: CalendarEvent[] = [
       category: "inflation",
       source_url_standardized: "https://ec.europa.eu/eurostat/news/release-calendar",
       event_description: "Scheduled macroeconomic release that can shift rate expectations and euro sentiment.",
-      pair_relevance: {
-        primary_fx_pairs: ["EURUSD", "EURJPY", "EURGBP"],
-        related_assets: ["GER40", "EU50"],
-      },
+      pair_relevance: { primary_fx_pairs: ["EURUSD", "EURJPY", "EURGBP"], related_assets: ["GER40", "EU50"] },
     },
   },
   {
-    id: 3,
+    ...V8_DEFAULTS,
+    id: "3",
     isoDateTime: "2026-03-13T07:00:00Z",
     dateLabel: "Mar 13",
-    timeLabel: "07:00 AM",
+    timeLabel: "07:00",
     currency: "GBP",
     region: "United Kingdom",
     flagCode: "gb",
@@ -73,17 +97,15 @@ export const EVENTS: CalendarEvent[] = [
       category: "growth",
       source_url_standardized: "https://www.ons.gov.uk/releases/gdpmonthlyestimateukjanuary2026timeseries",
       event_description: "Measures the pace of economic growth and is a core indicator of macroeconomic performance.",
-      pair_relevance: {
-        primary_fx_pairs: ["GBPUSD", "EURGBP", "GBPJPY"],
-        related_assets: ["UK100"],
-      },
+      pair_relevance: { primary_fx_pairs: ["GBPUSD", "EURGBP", "GBPJPY"], related_assets: ["UK100"] },
     },
   },
   {
-    id: 4,
+    ...V8_DEFAULTS,
+    id: "4",
     isoDateTime: "2026-03-13T17:30:00Z",
     dateLabel: "Mar 13",
-    timeLabel: "12:30 PM",
+    timeLabel: "12:30",
     currency: "CAD",
     region: "Canada",
     flagCode: "ca",
@@ -99,10 +121,7 @@ export const EVENTS: CalendarEvent[] = [
       category: "housing",
       source_url_standardized: "https://www150.statcan.gc.ca/n1/daily-quotidien/20260312/dq260312a-eng.htm",
       event_description: "Measures construction and housing-market activity, offering insight into cyclical demand.",
-      pair_relevance: {
-        primary_fx_pairs: ["USDCAD", "CADJPY"],
-        related_assets: ["WTI"],
-      },
+      pair_relevance: { primary_fx_pairs: ["USDCAD", "CADJPY"], related_assets: ["WTI"] },
     },
   },
 ];

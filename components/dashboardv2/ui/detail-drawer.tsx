@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3, ExternalLink, FileText, Globe2, Info, Radar, X } from "lucide-react";
+import { Clock3, ExternalLink, FileText, Globe2, Info, Radar, Shield, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { impactMeta } from "../constants";
@@ -14,9 +14,63 @@ interface DetailDrawerProps {
   onClose: () => void;
 }
 
+function getUserTz(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return "Europe/Amsterdam"; }
+}
+
+function formatLocalTime(isoUtc: string, tz: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit", minute: "2-digit", timeZone: tz, hour12: false,
+    month: "short", day: "numeric",
+  }).format(new Date(isoUtc));
+}
+
+function humanSourceReliability(val: string | null): string {
+  const map: Record<string, string> = {
+    official: "Official source",
+    curated: "Curated official schedule",
+    estimated: "Estimated",
+    scraper: "Web scraper",
+  };
+  return val ? (map[val] ?? val) : "—";
+}
+
+function humanTimeConfidence(val: string | null): string {
+  const map: Record<string, string> = {
+    exact: "Exact scheduled time",
+    tentative: "Tentative scheduled time",
+    estimated: "Estimated time",
+    unknown: "Time unknown",
+  };
+  return val ? (map[val] ?? val) : "—";
+}
+
+function humanScheduleConfidence(val: string | null): string {
+  const map: Record<string, string> = {
+    high: "High schedule confidence",
+    medium_high: "Medium-high schedule confidence",
+    medium: "Medium schedule confidence",
+    medium_low: "Medium-low schedule confidence",
+    low: "Low schedule confidence",
+  };
+  return val ? (map[val] ?? val) : "—";
+}
+
 function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () => void }) {
   const impact = impactMeta[event.impact];
-  const sourceUrl = event.extras.source_url_standardized;
+  const sourceUrl = event.sourceUrl ?? event.extras.source_url_standardized;
+  const userTz = getUserTz();
+  const userLocalTime = formatLocalTime(event.isoDateTime, userTz);
+  const eventLocalTime = event.extras.event_local_tz && event.extras.event_local_tz !== userTz
+    ? formatLocalTime(event.isoDateTime, event.extras.event_local_tz)
+    : null;
+
+  const allAssets = [
+    ...(event.assetFocus ?? []),
+    ...(event.extras.pair_relevance?.primary_fx_pairs ?? []),
+    ...(event.extras.pair_relevance?.related_assets ?? []),
+  ];
+  const uniqueAssets = [...new Set(allAssets)];
 
   return (
     <motion.div
@@ -36,6 +90,8 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
         <div className="relative min-h-full p-5 sm:p-6">
           <ShellTexture />
           <div className="relative z-10">
+
+            {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.05]">
@@ -44,22 +100,20 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Tag>{event.currency}</Tag>
-                    <span
-                      className={cn(
-                        "rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.16em]",
-                        impact.badge,
-                      )}
-                    >
+                    <span className={cn("rounded-full border px-2.5 py-1 text-[11px] uppercase tracking-[0.16em]", impact.badge)}>
                       {impact.label} impact
                     </span>
+                    {event.eventGroupTitle && (
+                      <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 text-[11px] text-violet-300 uppercase tracking-[0.16em]">
+                        PMI cluster
+                      </span>
+                    )}
                   </div>
-                  <h3 className="mt-3 text-2xl font-semibold leading-tight text-white">
-                    {event.title}
-                  </h3>
+                  <h3 className="mt-3 text-2xl font-semibold leading-tight text-white">{event.title}</h3>
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/48">
                     <span>{event.region}</span>
-                    <span>{event.agency}</span>
-                    <span>{event.extras.category}</span>
+                    {event.agency && <span>{event.agency}</span>}
+                    {event.extras.category && <span>{event.extras.category}</span>}
                   </div>
                 </div>
               </div>
@@ -71,51 +125,126 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
               </button>
             </div>
 
-            <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/74">
-              {event.extras.event_description}
+            {/* Description */}
+            {event.extras.event_description && (
+              <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-white/74">
+                {event.extras.event_description}
+              </div>
+            )}
+
+            {/* Time & location */}
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <MetaCard label="Your local time" value={userLocalTime} icon={Clock3} />
+              {eventLocalTime && (
+                <MetaCard label={`${event.extras.event_local_tz} time`} value={eventLocalTime} icon={Globe2} />
+              )}
+              <MetaCard label="Timezone" value={event.extras.event_local_tz} icon={Globe2} />
+              {event.extras.category && (
+                <MetaCard label="Category" value={event.extras.category} icon={Info} />
+              )}
             </div>
 
+            {/* Source confidence */}
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <MetaCard
-                label="Release time"
-                value={`${event.extras.release_time_local} local`}
-                icon={Clock3}
+                label="Source reliability"
+                value={humanSourceReliability(event.sourceReliability)}
+                icon={Shield}
               />
-              <MetaCard label="Timezone" value={event.extras.event_local_tz} icon={Globe2} />
-              <MetaCard label="Category" value={event.extras.category} icon={Info} />
-              <MetaCard label="Confidence" value={event.extras.time_confidence} icon={FileText} />
+              <MetaCard
+                label="Time confidence"
+                value={humanTimeConfidence(event.extras.time_confidence || event.sourceReliability)}
+                icon={FileText}
+              />
+              {event.scheduleConfidence && (
+                <MetaCard
+                  label="Schedule confidence"
+                  value={humanScheduleConfidence(event.scheduleConfidence)}
+                  icon={FileText}
+                />
+              )}
+              {event.traderRelevanceScore != null && (
+                <MetaCard
+                  label="Trader relevance"
+                  value={`${Math.round(event.traderRelevanceScore * 100)}%`}
+                  icon={Radar}
+                />
+              )}
             </div>
 
-            <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/34">
-                <Radar className="h-3.5 w-3.5" />
-                Market relevance
+            {/* Market relevance */}
+            {uniqueAssets.length > 0 && (
+              <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/34">
+                  <Radar className="h-3.5 w-3.5" />
+                  Affected assets
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueAssets.map((a) => <Tag key={a}>{a}</Tag>)}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {event.extras.pair_relevance.primary_fx_pairs.map((pair) => (
-                  <Tag key={pair}>{pair}</Tag>
-                ))}
-                {event.extras.pair_relevance.related_assets.map((asset) => (
-                  <Tag key={asset}>{asset}</Tag>
-                ))}
-              </div>
-            </div>
+            )}
 
-            <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
-              <div className="mb-3 text-[11px] uppercase tracking-[0.18em] text-white/34">Source</div>
-              <div className="rounded-[18px] border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/56 break-all">
-                {sourceUrl}
+            {/* Fallback / LKG metadata */}
+            {(event.lkgUsed || event.curatedFallbackAgeDays != null || event.blsSelectedSourcePath) && (
+              <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 text-[11px] uppercase tracking-[0.18em] text-white/34">Schedule metadata</div>
+                <div className="grid gap-2 text-xs text-white/56">
+                  {event.lkgUsed && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Source</span>
+                      <span>Last-known-good cache</span>
+                    </div>
+                  )}
+                  {event.curatedFallbackAgeDays != null && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Fallback age</span>
+                      <span>{event.curatedFallbackAgeDays}d (max {event.curatedFallbackMaxAgeDays}d)</span>
+                    </div>
+                  )}
+                  {event.curatedFallbackReviewedAt && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Schedule reviewed</span>
+                      <span>{event.curatedFallbackReviewedAt.slice(0, 10)}</span>
+                    </div>
+                  )}
+                  {event.blsSelectedSourcePath && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40">BLS source</span>
+                      <span className="text-right max-w-[60%] break-all">{event.blsSelectedSourcePath}</span>
+                    </div>
+                  )}
+                  {event.postReleaseStatus && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Release status</span>
+                      <span>{event.postReleaseStatus}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white transition-all hover:border-white/18 hover:bg-white/[0.08]"
-              >
-                Open source
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </div>
+            )}
+
+            {/* Source link */}
+            {sourceUrl && (
+              <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.03] p-4">
+                <div className="mb-3 text-[11px] uppercase tracking-[0.18em] text-white/34">
+                  Source{event.sourceName ? ` · ${event.sourceName}` : ""}
+                </div>
+                <div className="rounded-[18px] border border-white/10 bg-black/20 p-3 text-sm leading-relaxed text-white/56 break-all">
+                  {sourceUrl}
+                </div>
+                <a
+                  href={sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-white transition-all hover:border-white/18 hover:bg-white/[0.08]"
+                >
+                  Open source
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+            )}
+
           </div>
         </div>
       </motion.aside>

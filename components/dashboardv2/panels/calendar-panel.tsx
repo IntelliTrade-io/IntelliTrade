@@ -2,13 +2,16 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CalendarDays, ChevronDown, CircleDot, Search, Waves, Zap } from "lucide-react";
+import {
+  BarChart2, CalendarDays, ChevronDown, CircleDot, Search, Star, Waves, Zap,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill, SmallAction } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
 import { CalendarRow } from "../ui/calendar-row";
 import { DetailDrawer } from "../ui/detail-drawer";
+import { impactMeta } from "../constants";
 import type { CalendarEvent, ImpactLevel, Panel } from "../types";
 
 interface CalendarPanelProps {
@@ -17,7 +20,47 @@ interface CalendarPanelProps {
   onRemove: () => void;
 }
 
-// Maps 2-letter country code → currency ticker
+// -- Timezone --
+function getUserTz(): string {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { return "Europe/Amsterdam"; }
+}
+const USER_TZ = getUserTz();
+
+function formatDateLabel(isoUtc: string): string {
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", timeZone: USER_TZ }).format(new Date(isoUtc));
+}
+
+function formatTimeLabel(isoUtc: string): string {
+  return new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit", timeZone: USER_TZ, hour12: false }).format(new Date(isoUtc));
+}
+
+function dateInTz(isoUtc: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: USER_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(isoUtc));
+}
+
+function todayInTz(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: USER_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+}
+
+function weekRangeInTz(offsetWeeks = 0): { start: string; end: string } {
+  const today = todayInTz();
+  const d = new Date(today + "T12:00:00Z");
+  const dow = d.getUTCDay();
+  const daysToMon = dow === 0 ? -6 : 1 - dow;
+  const mon = new Date(d);
+  mon.setUTCDate(d.getUTCDate() + daysToMon + offsetWeeks * 7);
+  const sun = new Date(mon);
+  sun.setUTCDate(mon.getUTCDate() + 6);
+  return { start: mon.toISOString().slice(0, 10), end: sun.toISOString().slice(0, 10) };
+}
+
+function upcomingEnd(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 30);
+  return d.toISOString().slice(0, 10);
+}
+
+// -- Country maps --
 const COUNTRY_TO_CURRENCY: Record<string, string> = {
   US: "USD", EU: "EUR", GB: "GBP", JP: "JPY", AU: "AUD",
   CA: "CAD", CH: "CHF", NZ: "NZD", CN: "CNY", IN: "INR",
@@ -27,7 +70,6 @@ const COUNTRY_TO_CURRENCY: Record<string, string> = {
   PH: "PHP", IL: "ILS", CZ: "CZK", HU: "HUF", RO: "RON",
 };
 
-// Maps 2-letter country code → display region name
 const COUNTRY_TO_REGION: Record<string, string> = {
   US: "United States", EU: "Euro Area", GB: "United Kingdom",
   JP: "Japan", AU: "Australia", CA: "Canada", CH: "Switzerland",
@@ -39,20 +81,6 @@ const COUNTRY_TO_REGION: Record<string, string> = {
   CZ: "Czech Republic", HU: "Hungary", RO: "Romania",
 };
 
-function formatDateLabel(iso: string, tz?: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short", day: "numeric", timeZone: tz || "UTC",
-  }).format(new Date(iso));
-}
-
-function formatTimeLabel(iso: string, localTime?: string, tz?: string): string {
-  if (localTime) return localTime;
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "2-digit", minute: "2-digit", timeZone: tz || "UTC",
-  }).format(new Date(iso));
-}
-
-// Normalise API impact string ("High" / "Medium" / "Low") to ImpactLevel
 function toImpactLevel(raw: string): ImpactLevel {
   const map: Record<string, ImpactLevel> = {
     High: "high", Medium: "medium", Low: "low",
@@ -61,7 +89,7 @@ function toImpactLevel(raw: string): ImpactLevel {
   return map[raw] ?? "low";
 }
 
-// Shape returned by /api/economic-events
+// -- API shape --
 interface ApiEvent {
   id: string | number;
   source?: string;
@@ -73,47 +101,217 @@ interface ApiEvent {
   impact: string;
   url?: string;
   extras?: Record<string, unknown>;
+  default_dashboard?: boolean;
+  event_group_key?: string | null;
+  event_group_title?: string | null;
+  event_group_type?: string | null;
+  event_group_priority?: number | null;
+  trader_relevance_score?: number | null;
+  asset_focus?: string[];
+  source_reliability?: string | null;
+  time_confidence?: string | null;
+  source_url?: string | null;
+  source_name?: string | null;
+  lkg_used?: boolean | null;
+  curated_fallback_reviewed_at?: string | null;
+  curated_fallback_age_days?: number | null;
+  curated_fallback_max_age_days?: number | null;
+  post_release_status?: string | null;
+  schedule_confidence?: string | null;
+  bls_selected_source_path?: string | null;
 }
 
 function toCalendarEvent(e: ApiEvent): CalendarEvent {
   const country = e.country ?? "EU";
-  const flagCode = country.toLowerCase();
-  const currency = COUNTRY_TO_CURRENCY[country] ?? country;
-  const region = COUNTRY_TO_REGION[country] ?? country;
   const extras = (e.extras ?? {}) as Record<string, unknown>;
 
   return {
-    id: Number(e.id),
+    id: String(e.id),
     isoDateTime: e.date_time_utc,
-    currency,
-    region,
-    flagCode,
+    currency: COUNTRY_TO_CURRENCY[country] ?? country,
+    region: COUNTRY_TO_REGION[country] ?? country,
+    flagCode: country.toLowerCase(),
     title: e.title,
     impact: toImpactLevel(e.impact),
     agency: (e.agency as string) ?? "",
     source: (e.source as string) ?? "",
     rawUrl: (e.url as string) ?? "",
-    dateLabel: formatDateLabel(e.date_time_utc, e.event_local_tz),
-    timeLabel: formatTimeLabel(
-      e.date_time_utc,
-      (extras.release_time_local as string) ?? undefined,
-      e.event_local_tz,
-    ),
+    dateLabel: formatDateLabel(e.date_time_utc),
+    timeLabel: formatTimeLabel(e.date_time_utc),
     extras: {
       release_time_local: (extras.release_time_local as string) ?? "",
       event_local_tz: e.event_local_tz ?? "UTC",
-      time_confidence: (extras.time_confidence as string) ?? "",
+      time_confidence: e.time_confidence ?? (extras.time_confidence as string) ?? "",
       category: (extras.category as string) ?? "",
-      source_url_standardized: (extras.source_url_standardized as string) ?? (e.url as string) ?? "",
+      source_url_standardized: e.source_url ?? (extras.source_url_standardized as string) ?? (e.url as string) ?? "",
       event_description: (extras.event_description as string) ?? "",
-      pair_relevance: (extras.pair_relevance as { primary_fx_pairs: string[]; related_assets: string[] }) ?? {
-        primary_fx_pairs: [],
-        related_assets: [],
-      },
+      pair_relevance: (extras.pair_relevance as { primary_fx_pairs: string[]; related_assets: string[] }) ?? { primary_fx_pairs: [], related_assets: [] },
     },
+    defaultDashboard: e.default_dashboard ?? false,
+    eventGroupKey: e.event_group_key ?? null,
+    eventGroupTitle: e.event_group_title ?? null,
+    eventGroupType: e.event_group_type ?? null,
+    eventGroupPriority: e.event_group_priority ?? null,
+    traderRelevanceScore: e.trader_relevance_score ?? null,
+    assetFocus: e.asset_focus ?? [],
+    sourceReliability: e.source_reliability ?? null,
+    sourceName: e.source_name ?? null,
+    sourceUrl: e.source_url ?? null,
+    lkgUsed: e.lkg_used ?? null,
+    curatedFallbackReviewedAt: e.curated_fallback_reviewed_at ?? null,
+    curatedFallbackAgeDays: e.curated_fallback_age_days ?? null,
+    curatedFallbackMaxAgeDays: e.curated_fallback_max_age_days ?? null,
+    postReleaseStatus: e.post_release_status ?? null,
+    scheduleConfidence: e.schedule_confidence ?? null,
+    blsSelectedSourcePath: e.bls_selected_source_path ?? null,
   };
 }
 
+// -- PMI clustering --
+const IMPACT_RANK: Record<ImpactLevel, number> = { high: 3, medium: 2, low: 1 };
+
+interface PmiCluster {
+  groupKey: string;
+  groupTitle: string;
+  groupPriority: number;
+  highestImpact: ImpactLevel;
+  firstTime: number;
+  events: CalendarEvent[];
+  currencies: string[];
+  assets: string[];
+}
+
+type ListItem =
+  | { type: "event"; event: CalendarEvent }
+  | { type: "cluster"; cluster: PmiCluster };
+
+function buildListItems(events: CalendarEvent[]): ListItem[] {
+  const clusterMap = new Map<string, CalendarEvent[]>();
+  const standalone: CalendarEvent[] = [];
+
+  for (const ev of events) {
+    if (ev.eventGroupType === "pmi_cluster" && ev.eventGroupKey) {
+      const arr = clusterMap.get(ev.eventGroupKey) ?? [];
+      arr.push(ev);
+      clusterMap.set(ev.eventGroupKey, arr);
+    } else {
+      standalone.push(ev);
+    }
+  }
+
+  const clusters: PmiCluster[] = [];
+  for (const [groupKey, clusterEvents] of clusterMap) {
+    const first = clusterEvents[0];
+    const highestImpact = clusterEvents.reduce<ImpactLevel>(
+      (acc, ev) => (IMPACT_RANK[ev.impact] > IMPACT_RANK[acc] ? ev.impact : acc),
+      "low",
+    );
+    clusters.push({
+      groupKey,
+      groupTitle: first.eventGroupTitle ?? groupKey,
+      groupPriority: first.eventGroupPriority ?? 99,
+      highestImpact,
+      firstTime: new Date(first.isoDateTime).getTime(),
+      events: clusterEvents,
+      currencies: [...new Set(clusterEvents.map((ev) => ev.currency))],
+      assets: [...new Set(clusterEvents.flatMap((ev) => ev.assetFocus))],
+    });
+  }
+
+  const items: ListItem[] = [
+    ...standalone.map((event) => ({ type: "event" as const, event })),
+    ...clusters.map((cluster) => ({ type: "cluster" as const, cluster })),
+  ];
+
+  items.sort((a, b) => {
+    const at = a.type === "event" ? new Date(a.event.isoDateTime).getTime() : a.cluster.firstTime;
+    const bt = b.type === "event" ? new Date(b.event.isoDateTime).getTime() : b.cluster.firstTime;
+    return at - bt;
+  });
+
+  return items;
+}
+
+// -- PMI Cluster card --
+function PmiClusterCard({
+  cluster,
+  expanded,
+  onToggle,
+  onOpen,
+  now,
+}: {
+  cluster: PmiCluster;
+  expanded: boolean;
+  onToggle: () => void;
+  onOpen: (event: CalendarEvent) => void;
+  now?: number;
+}) {
+  const meta = impactMeta[cluster.highestImpact];
+  return (
+    <div className="rounded-[22px] border border-violet-400/20 bg-[linear-gradient(180deg,rgba(124,58,237,0.08),rgba(11,11,16,0.95))] overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-4 flex items-center justify-between text-left hover:bg-white/[0.02] transition-all"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10 shrink-0">
+            <BarChart2 className="h-5 w-5 text-violet-400" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="text-sm font-semibold text-white">{cluster.groupTitle}</span>
+              <span className={cn("rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-[0.18em]", meta.badge)}>
+                {meta.label}
+              </span>
+            </div>
+            <div className="text-xs text-white/38">
+              {cluster.events.length} events · {cluster.currencies.slice(0, 4).join(", ")}
+              {cluster.assets.length > 0 && ` · ${cluster.assets.slice(0, 3).join(", ")}`}
+            </div>
+          </div>
+        </div>
+        <ChevronDown className={cn("h-4 w-4 text-white/40 shrink-0 transition-transform ml-2", expanded ? "rotate-180" : "")} />
+      </button>
+
+      {expanded && (
+        <div className="border-t border-white/[0.06] px-2 pb-2 pt-1 space-y-2">
+          {cluster.events.map((event) => (
+            <CalendarRow key={event.id} event={event} onOpen={onOpen} now={now} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -- Date filter types --
+type DateFilter = "today" | "this_week" | "next_week" | "upcoming";
+type ViewMode = "market_movers" | "full_calendar";
+
+const DATE_FILTER_LABELS: Record<DateFilter, string> = {
+  today: "Today",
+  this_week: "This week",
+  next_week: "Next week",
+  upcoming: "Upcoming",
+};
+
+function matchesDateFilter(isoUtc: string, filter: DateFilter): boolean {
+  const evDate = dateInTz(isoUtc);
+  const today = todayInTz();
+  if (filter === "today") return evDate === today;
+  if (filter === "this_week") {
+    const { start, end } = weekRangeInTz(0);
+    return evDate >= start && evDate <= end;
+  }
+  if (filter === "next_week") {
+    const { start, end } = weekRangeInTz(1);
+    return evDate >= start && evDate <= end;
+  }
+  if (filter === "upcoming") return evDate >= today && evDate <= upcomingEnd();
+  return true;
+}
+
+// -- Data hook --
 function useEconomicEvents() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +350,7 @@ function useLiveClock() {
   return now;
 }
 
+// -- Panel --
 export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelProps) {
   const { events, loading, error } = useEconomicEvents();
   const now = useLiveClock();
@@ -161,31 +360,54 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
   const [filters, setFilters] = useState({ high: true, medium: true, low: false });
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("market_movers");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("this_week");
+  const [showDateMenu, setShowDateMenu] = useState(false);
+  const [expandedClusters, setExpandedClusters] = useState<Set<string>>(new Set());
 
-  // Derive currency list from live data
   const availableCurrencies = useMemo(() => {
     const seen = new Set<string>();
     events.forEach((e) => seen.add(e.currency));
     return ["All", ...Array.from(seen).sort()];
   }, [events]);
 
-  const visibleEvents = useMemo(
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      if (viewMode === "market_movers" && !event.defaultDashboard) return false;
+      if (!matchesDateFilter(event.isoDateTime, dateFilter)) return false;
+      if (selectedCurrency !== "All" && event.currency !== selectedCurrency) return false;
+      if (!filters[event.impact]) return false;
+      if (query) {
+        const haystack = `${event.title} ${event.currency} ${event.region} ${event.agency}`.toLowerCase();
+        if (!haystack.includes(query.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [events, viewMode, dateFilter, query, selectedCurrency, filters]);
+
+  const listItems = useMemo(() => buildListItems(filteredEvents), [filteredEvents]);
+
+  const visibleItems = useMemo(
     () =>
-      events.filter((event) => {
-        const matchesCurrency = selectedCurrency === "All" || event.currency === selectedCurrency;
-        const matchesImpact = filters[event.impact];
-        const matchesQuery =
-          !query ||
-          `${event.title} ${event.currency} ${event.region} ${event.agency}`
-            .toLowerCase()
-            .includes(query.toLowerCase());
-        return matchesCurrency && matchesImpact && matchesQuery;
+      listItems.filter((item) => {
+        if (now === null) return true;
+        const t = item.type === "event"
+          ? new Date(item.event.isoDateTime).getTime()
+          : item.cluster.firstTime;
+        return now - t < 4000;
       }),
-    [events, query, selectedCurrency, filters],
+    [listItems, now],
   );
 
   const toggleImpact = (impact: keyof typeof filters) =>
     setFilters((prev) => ({ ...prev, [impact]: !prev[impact] }));
+
+  const toggleCluster = (groupKey: string) =>
+    setExpandedClusters((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupKey)) next.delete(groupKey); else next.add(groupKey);
+      return next;
+    });
 
   return (
     <>
@@ -196,15 +418,64 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
         contentClassName="min-h-0"
         headerRight={
           <>
-            <Pill active>
-              <CalendarDays className="h-3.5 w-3.5" />
-              This week
-            </Pill>
+            <div className="relative">
+              <button
+                onClick={() => setShowDateMenu((v) => !v)}
+                className="flex items-center gap-1.5"
+              >
+                <Pill active>
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  {DATE_FILTER_LABELS[dateFilter]}
+                  <ChevronDown className={cn("h-3 w-3 transition-transform", showDateMenu ? "rotate-180" : "")} />
+                </Pill>
+              </button>
+              {showDateMenu && (
+                <div className="absolute right-0 z-20 mt-2 w-36 overflow-hidden rounded-[18px] border border-white/10 bg-[#0d0d13]/95 p-1.5 shadow-2xl backdrop-blur-2xl">
+                  {(["today", "this_week", "next_week", "upcoming"] as DateFilter[]).map((f) => (
+                    <button
+                      key={f}
+                      onClick={() => { setDateFilter(f); setShowDateMenu(false); }}
+                      className={cn(
+                        "flex w-full items-center rounded-2xl px-3 py-2 text-left text-sm transition-all",
+                        dateFilter === f ? "bg-white/[0.08] text-white" : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                      )}
+                    >
+                      {DATE_FILTER_LABELS[f]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <PanelActions locked={panel.locked} onToggleLock={onToggleLock} onRemove={onRemove} />
           </>
         }
       >
         <div className="flex h-full min-h-0 flex-col gap-4">
+          {/* View mode toggle */}
+          <div className="flex gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 w-fit">
+            <button
+              onClick={() => setViewMode("market_movers")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+                viewMode === "market_movers" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80",
+              )}
+            >
+              <Star className="h-3 w-3" />
+              Market Movers
+            </button>
+            <button
+              onClick={() => setViewMode("full_calendar")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+                viewMode === "full_calendar" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80",
+              )}
+            >
+              <CalendarDays className="h-3 w-3" />
+              Full Calendar
+            </button>
+          </div>
+
+          {/* Impact filters */}
           <div className="flex flex-wrap gap-2">
             <SmallAction active={filters.high} onClick={() => toggleImpact("high")}>
               <Zap className="h-4 w-4" />
@@ -220,6 +491,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             </SmallAction>
           </div>
 
+          {/* Search + currency */}
           <div className="grid gap-3 md:grid-cols-[1fr_180px]">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" />
@@ -240,66 +512,65 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
                   <span className="text-white/42">Currency:</span>{" "}
                   <span className="font-medium">{selectedCurrency}</span>
                 </span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 text-white/42 transition-transform",
-                    showCurrencyMenu ? "rotate-180" : "rotate-0",
-                  )}
-                />
+                <ChevronDown className={cn("h-4 w-4 text-white/42 transition-transform", showCurrencyMenu ? "rotate-180" : "rotate-0")} />
               </button>
-
-              {showCurrencyMenu ? (
+              {showCurrencyMenu && (
                 <div className="absolute right-0 z-20 mt-2 w-full overflow-hidden rounded-[20px] border border-white/10 bg-[#0d0d13]/95 p-2 shadow-2xl backdrop-blur-2xl">
                   {availableCurrencies.map((item) => (
                     <button
                       key={item}
-                      onClick={() => {
-                        setSelectedCurrency(item);
-                        setShowCurrencyMenu(false);
-                      }}
+                      onClick={() => { setSelectedCurrency(item); setShowCurrencyMenu(false); }}
                       className={cn(
                         "flex w-full items-center justify-between rounded-2xl px-4 py-2.5 text-left text-sm transition-all",
-                        selectedCurrency === item
-                          ? "bg-white/[0.08] text-white"
-                          : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                        selectedCurrency === item ? "bg-white/[0.08] text-white" : "text-white/70 hover:bg-white/[0.04] hover:text-white",
                       )}
                     >
                       <span>{item}</span>
-                      {selectedCurrency === item ? (
-                        <span className="h-2 w-2 rounded-full bg-violet-300/80" />
-                      ) : null}
+                      {selectedCurrency === item && <span className="h-2 w-2 rounded-full bg-violet-300/80" />}
                     </button>
                   ))}
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
 
+          {/* Event list */}
           <div className="flex-1 min-h-0 overflow-y-auto pr-1">
-            {loading && (
-              <p className="py-8 text-center text-sm text-white/40">Loading events…</p>
-            )}
-            {error && (
-              <p className="py-8 text-center text-sm text-red-400/80">Error: {error}</p>
-            )}
-            {!loading && !error && visibleEvents.length === 0 && (
+            {loading && <p className="py-8 text-center text-sm text-white/40">Loading events…</p>}
+            {error && <p className="py-8 text-center text-sm text-red-400/80">Error: {error}</p>}
+            {!loading && !error && visibleItems.length === 0 && (
               <p className="py-8 text-center text-sm text-white/40">No events match your filters.</p>
             )}
             {!loading && !error && (
               <div className="grid gap-3">
                 <AnimatePresence initial={false}>
-                  {visibleEvents
-                    .filter((event) => now === null || now - new Date(event.isoDateTime).getTime() < 4000)
-                    .map((event) => (
+                  {visibleItems.map((item) =>
+                    item.type === "event" ? (
                       <motion.div
-                        key={event.id}
+                        key={item.event.id}
                         layout
                         exit={{ opacity: 0, x: -20, scale: 0.96 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
                       >
-                        <CalendarRow event={event} onOpen={setActiveEvent} now={now ?? undefined} />
+                        <CalendarRow event={item.event} onOpen={setActiveEvent} now={now ?? undefined} />
                       </motion.div>
-                    ))}
+                    ) : (
+                      <motion.div
+                        key={item.cluster.groupKey}
+                        layout
+                        exit={{ opacity: 0, x: -20, scale: 0.96 }}
+                        transition={{ duration: 0.45, ease: "easeOut" }}
+                      >
+                        <PmiClusterCard
+                          cluster={item.cluster}
+                          expanded={expandedClusters.has(item.cluster.groupKey)}
+                          onToggle={() => toggleCluster(item.cluster.groupKey)}
+                          onOpen={setActiveEvent}
+                          now={now ?? undefined}
+                        />
+                      </motion.div>
+                    ),
+                  )}
                 </AnimatePresence>
               </div>
             )}

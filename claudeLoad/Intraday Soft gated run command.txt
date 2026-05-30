@@ -1,0 +1,10 @@
+python "C:\IntelliTrade\Currency Strength Scanner\currency_strength_scanner_mt5_intraday_v1_0.py" ^
+  --use-adx  --adx-hi-min 18 --adx-lo-min 16 ^
+  --use-chop --chop-hi-max 58 --chop-lo-max 60 ^
+  --use-avwap-accept --accept-hi-bars 1 --accept-lo-bars 3 --accept-atr-band 0.20 ^
+  --use-triangle-consistency --triangle-penalty 0.50 ^
+  --emit-confidence --soft-gating --weighted-aggregation ^
+  --out-json "C:\IntelliTrade\out\intraday_pairs_trusted.json" ^
+  --out-csv  "C:\IntelliTrade\out\intraday_pairs_trusted.csv" ^
+  --out-currencies-json "C:\IntelliTrade\out\intraday_currencies_trusted.json" ^
+  --out-currencies-csv  "C:\IntelliTrade\out\intraday_currencies_trusted.csv"

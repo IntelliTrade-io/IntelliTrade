@@ -4,7 +4,7 @@ import 'remark-github-blockquote-alert/alert.css';
 import { Space_Grotesk } from 'next/font/google';
 // import { Analytics, AnalyticsConfig } from 'pliny/analytics';
 import { SearchProvider, SearchConfig } from 'pliny/search';
-import Footer from '@/components/blog/Footer';
+import Footer from '@/components/Footer';
 import siteMetadata from '@/data/blog/siteMetadata';
 import { ThemeProvider } from 'next-themes';
 import { Metadata } from 'next';
@@ -76,10 +76,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
             
             {/* Header */}
-            <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 relative z-[9999] navigation-div" style={{ overflow: "visible" }}>
-              <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm mx-auto">
-                <div className="flex gap-5 items-center font-semibold">
-                  <div style={{ position: "relative", height: "48px", width: "120px", flexShrink: 0 }}>
+            <nav className="sticky top-0 w-full h-16 bg-white/5 backdrop-blur-md border-b border-white/10 z-[9999]" style={{ overflow: "visible" }}>
+              <div className="w-full max-w-5xl flex items-center h-full px-5 mx-auto">
+                {/* Logo — left */}
+                <div className="flex-1">
+                  <div style={{ position: "relative", height: "48px", width: "150px", flexShrink: 0 }}>
                     <Link href="/" aria-label="IntelliTrade home" style={{ position: "absolute", inset: 0, zIndex: 1 }} />
                     <Image
                       src={IntelliTradeLogo}
@@ -89,10 +90,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       alt="IntelliTrade"
                     />
                   </div>
-                  
                 </div>
-                <div className="hidden md:flex items-center gap-3">
+                {/* Nav links — center */}
+                <div className="hidden md:flex">
                   <NavLinks />
+                </div>
+                {/* Auth — right */}
+                <div className="flex-1 hidden md:flex justify-end">
                   {!hasEnvVars ? null : <AuthButton />}
                 </div>
                 <MobileNav />
