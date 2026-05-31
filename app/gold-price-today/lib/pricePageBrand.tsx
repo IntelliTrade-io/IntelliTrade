@@ -104,6 +104,8 @@ export function PricePageBrandStyles({ theme = "gold" }: { theme?: PriceTheme })
       .price-surface-content {
         position: relative;
         z-index: 1;
+        overflow-x: hidden;
+        max-width: 100%;
       }
       .price-eyebrow {
         color: rgba(${accentL}, 0.78);
@@ -125,6 +127,8 @@ export function PricePageBrandStyles({ theme = "gold" }: { theme?: PriceTheme })
       .price-chart-shell {
         background: rgba(5, 5, 7, 0.58);
         border: 1px solid rgba(255, 255, 255, 0.07);
+        overflow: hidden;
+        max-width: 100%;
       }
       .price-chart-shell-hover {
         transition: border-color 200ms;
