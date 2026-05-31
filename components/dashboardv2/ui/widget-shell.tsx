@@ -76,7 +76,7 @@ interface WidgetShellProps {
 
 export function WidgetShell({
   title,
-  subtitle: _subtitle, // eslint-disable-line @typescript-eslint/no-unused-vars
+  subtitle: _subtitle,
   tone = "neutral",
   headerRight,
   children,

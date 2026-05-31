@@ -9,7 +9,6 @@ import type { Panel } from "../types";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
-type Currency = typeof CURRENCIES[number];
 
 // Standard market-convention pairs (base first). Used to detect "Inv" in the matrix.
 const STANDARD_PAIRS = new Set([
@@ -183,7 +182,7 @@ function BiasChip({ state }: { state: "Bullish" | "Bearish" | "Neutral" | "Stron
 
 // ─── Ladder ───────────────────────────────────────────────────────────────────
 
-function LadderRow({ code, data, rank }: { code: string; data: CurrencyStrength; rank: number }) {
+function LadderRow({ code, data }: { code: string; data: CurrencyStrength; rank?: number }) {
   const conf = Math.min(Math.round(Math.abs(data.score)), 100);
   return (
     <article
