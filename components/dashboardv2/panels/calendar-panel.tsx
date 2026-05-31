@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetShell } from "../ui/widget-shell";
-import { Pill, SmallAction } from "../ui/primitives";
+import { SmallAction } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
 import { CalendarRow } from "../ui/calendar-row";
 import { DetailDrawer } from "../ui/detail-drawer";
