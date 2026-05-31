@@ -25,7 +25,6 @@ interface WorkspaceHeaderProps {
 
 export function WorkspaceHeader({
   panels,
-  workspaceConfig,
   workspaceMode,
   lockedCount,
   savedWorkspaces,
