@@ -61,10 +61,10 @@ export function WorkspaceHeader({
         <div className="inline-flex items-center rounded-full border border-white/12 bg-white/[0.03] px-4 py-2 text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
           IntelliTrade workspace
         </div>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        <h1 className="mt-3 text-xl font-semibold tracking-tight text-white">
           Custom dashboard
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/46 sm:text-base">
+        <p className="mt-1 text-sm text-white/40">
           Arrange, resize, and lock premium modules inside a snapped IntelliTrade workspace.
         </p>
       </div>

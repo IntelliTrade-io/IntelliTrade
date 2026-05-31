@@ -2,6 +2,8 @@
 
 import { Clock3, ExternalLink, FileText, Globe2, Info, Mic, Radar, Shield, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 import { impactMeta } from "../constants";
 import type { CalendarEvent } from "../types";
@@ -289,9 +291,15 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
 }
 
 export function DetailDrawer({ event, onClose }: DetailDrawerProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {event ? <DrawerContent event={event} onClose={onClose} /> : null}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
