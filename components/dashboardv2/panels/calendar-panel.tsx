@@ -411,6 +411,25 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
 
   const listItems = useMemo(() => buildListItems(filteredEvents), [filteredEvents]);
 
+  const marketMoversCount = useMemo(() => {
+    const f = events.filter(e =>
+      e.defaultDashboard &&
+      matchesDateFilter(e.isoDateTime, dateFilter) &&
+      (selectedCurrency === "All" || e.currency === selectedCurrency) &&
+      filters[e.impact],
+    );
+    return buildListItems(f).length;
+  }, [events, dateFilter, selectedCurrency, filters]);
+
+  const fullCalendarCount = useMemo(() => {
+    const f = events.filter(e =>
+      matchesDateFilter(e.isoDateTime, dateFilter) &&
+      (selectedCurrency === "All" || e.currency === selectedCurrency) &&
+      filters[e.impact],
+    );
+    return buildListItems(f).length;
+  }, [events, dateFilter, selectedCurrency, filters]);
+
   const visibleItems = useMemo(
     () =>
       listItems.filter((item) => {
@@ -422,6 +441,27 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
       }),
     [listItems, now],
   );
+
+  const groupedItems = useMemo(() => {
+    const groups: Array<{ dateKey: string; dateLabel: string; items: typeof visibleItems }> = [];
+    for (const item of visibleItems) {
+      const iso = item.type === "event" ? item.event.isoDateTime : new Date(item.cluster.firstTime).toISOString();
+      const dateKey = dateInTz(iso);
+      const last = groups[groups.length - 1];
+      if (last?.dateKey === dateKey) {
+        last.items.push(item);
+      } else {
+        groups.push({
+          dateKey,
+          dateLabel: new Intl.DateTimeFormat(undefined, {
+            weekday: "long", month: "short", day: "numeric", timeZone: USER_TZ,
+          }).format(new Date(dateKey + "T12:00:00Z")),
+          items: [item],
+        });
+      }
+    }
+    return groups;
+  }, [visibleItems]);
 
   const toggleImpact = (impact: keyof typeof filters) =>
     setFilters((prev) => ({ ...prev, [impact]: !prev[impact] }));
@@ -486,6 +526,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             >
               <Star className="h-3 w-3" />
               Market Movers
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] tabular-nums">{marketMoversCount}</span>
             </button>
             <button
               onClick={() => setViewMode("full_calendar")}
@@ -496,6 +537,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             >
               <CalendarDays className="h-3 w-3" />
               Full Calendar
+              <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] tabular-nums">{fullCalendarCount}</span>
             </button>
           </div>
 
@@ -590,37 +632,51 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
               <p className="py-8 text-center text-sm text-white/40">No events match your filters.</p>
             )}
             {!loading && !error && (
-              <div className="grid gap-2 sm:gap-3 w-full min-w-0">
+              <div className="w-full min-w-0 space-y-4">
                 <AnimatePresence initial={false}>
-                  {visibleItems.map((item) =>
-                    item.type === "event" ? (
-                      <motion.div
-                        key={item.event.id}
-                        layout
-                        exit={{ opacity: 0, x: -20, scale: 0.96 }}
-                        transition={{ duration: 0.45, ease: "easeOut" }}
-                        className="min-w-0 w-full"
-                      >
-                        <CalendarRow event={item.event} onOpen={setActiveEvent} now={now ?? undefined} />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key={item.cluster.groupKey}
-                        layout
-                        exit={{ opacity: 0, x: -20, scale: 0.96 }}
-                        transition={{ duration: 0.45, ease: "easeOut" }}
-                        className="min-w-0 w-full"
-                      >
-                        <PmiClusterCard
-                          cluster={item.cluster}
-                          expanded={expandedClusters.has(item.cluster.groupKey)}
-                          onToggle={() => toggleCluster(item.cluster.groupKey)}
-                          onOpen={setActiveEvent}
-                          now={now ?? undefined}
-                        />
-                      </motion.div>
-                    ),
-                  )}
+                  {groupedItems.map((group) => (
+                    <div key={group.dateKey} className="min-w-0">
+                      {/* Day separator */}
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/32 whitespace-nowrap">
+                          {group.dateLabel}
+                        </span>
+                        <div className="flex-1 h-px bg-white/8" />
+                      </div>
+                      {/* Events for this day */}
+                      <div className="grid gap-2 sm:gap-3 w-full min-w-0">
+                        {group.items.map((item) =>
+                          item.type === "event" ? (
+                            <motion.div
+                              key={item.event.id}
+                              layout
+                              exit={{ opacity: 0, x: -20, scale: 0.96 }}
+                              transition={{ duration: 0.45, ease: "easeOut" }}
+                              className="min-w-0 w-full"
+                            >
+                              <CalendarRow event={item.event} onOpen={setActiveEvent} now={now ?? undefined} />
+                            </motion.div>
+                          ) : (
+                            <motion.div
+                              key={item.cluster.groupKey}
+                              layout
+                              exit={{ opacity: 0, x: -20, scale: 0.96 }}
+                              transition={{ duration: 0.45, ease: "easeOut" }}
+                              className="min-w-0 w-full"
+                            >
+                              <PmiClusterCard
+                                cluster={item.cluster}
+                                expanded={expandedClusters.has(item.cluster.groupKey)}
+                                onToggle={() => toggleCluster(item.cluster.groupKey)}
+                                onOpen={setActiveEvent}
+                                now={now ?? undefined}
+                              />
+                            </motion.div>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </AnimatePresence>
               </div>
             )}

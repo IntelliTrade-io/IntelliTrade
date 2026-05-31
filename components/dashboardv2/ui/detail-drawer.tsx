@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock3, ExternalLink, FileText, Globe2, Info, Radar, Shield, X } from "lucide-react";
+import { Clock3, ExternalLink, FileText, Globe2, Info, Mic, Radar, Shield, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { impactMeta } from "../constants";
@@ -124,6 +124,42 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
                 <X className="h-4 w-4" />
               </button>
             </div>
+
+            {/* Speaker section */}
+            {event.extras.speaker_event && (
+              <div className="mt-5 rounded-[22px] border border-violet-400/20 bg-violet-500/[0.06] p-4">
+                <div className="mb-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-violet-300/70">
+                  <Mic className="h-3.5 w-3.5" />
+                  Speaker
+                </div>
+                <div className="grid gap-2 text-sm">
+                  {event.extras.speaker_name && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40 text-xs">Name</span>
+                      <span className="text-white font-medium">{event.extras.speaker_name}</span>
+                    </div>
+                  )}
+                  {event.extras.speaker_role && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40 text-xs">Role</span>
+                      <span className="text-white/80">{event.extras.speaker_role}</span>
+                    </div>
+                  )}
+                  {event.extras.speaker_institution && (
+                    <div className="flex justify-between">
+                      <span className="text-white/40 text-xs">Institution</span>
+                      <span className="text-white/80">{event.extras.speaker_institution}</span>
+                    </div>
+                  )}
+                  {event.extras.policy_relevance && (
+                    <div className="flex flex-col gap-1 mt-1">
+                      <span className="text-white/40 text-xs">Policy relevance</span>
+                      <span className="text-white/70 text-xs leading-relaxed">{event.extras.policy_relevance}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             {event.extras.event_description && (
