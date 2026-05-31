@@ -35,6 +35,7 @@ export function SignUpForm() {
       });
       if (error) throw error;
       if (data.session) {
+        router.refresh();
         router.push("/upgrade");
       } else {
         router.push("/auth/sign-up-success");

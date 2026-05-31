@@ -71,22 +71,32 @@ export function WorkspaceHeader({
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        {/* Stats */}
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-white/35">Panels</div>
-            <div className="mt-1 text-lg font-semibold text-white">{panels.length}</div>
-          </div>
-          <div className="rounded-[22px] border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-xl">
-            <div className="text-[10px] uppercase tracking-[0.22em] text-white/35">Workspace</div>
-            <div className="mt-1 text-lg font-semibold text-white">
-              {workspaceConfig.label} · {workspaceConfig.cols} cols
-            </div>
-            <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/34">
-              {lockedCount ? `${lockedCount} locked` : "Snapped grid"}
-            </div>
-          </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Subtle stats */}
+        <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs text-white/40">
+          <span>{panels.length} panels</span>
+          {lockedCount > 0 && <><span>·</span><span>{lockedCount} locked</span></>}
+        </div>
+
+        {/* Mode switcher */}
+        <div className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/[0.03] p-1">
+          {(Object.entries(WORKSPACE_PRESETS) as [WorkspaceMode, WorkspacePreset][]).map(
+            ([mode, preset]) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => onChangeMode(mode)}
+                className={cn(
+                  "inline-flex h-7 items-center rounded-full px-3 text-xs transition-all",
+                  workspaceMode === mode
+                    ? "border border-violet-400/18 bg-violet-500/[0.10] text-white"
+                    : "text-white/50 hover:text-white",
+                )}
+              >
+                {preset.shortLabel}
+              </button>
+            ),
+          )}
         </div>
 
         {/* Workspace library */}
@@ -94,7 +104,7 @@ export function WorkspaceHeader({
           <button
             type="button"
             onClick={toggleWorkspaceMenu}
-            className="inline-flex h-12 items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-4 text-sm text-white transition-all hover:border-white/18"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 text-sm text-white transition-all hover:border-white/18"
           >
             <FolderOpen className="h-4 w-4 text-white/70" />
             <span className="max-w-[160px] truncate font-medium">
@@ -217,27 +227,6 @@ export function WorkspaceHeader({
           ) : null}
         </div>
 
-        {/* Mode switcher */}
-        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 backdrop-blur-xl">
-          {(Object.entries(WORKSPACE_PRESETS) as [WorkspaceMode, WorkspacePreset][]).map(
-            ([mode, preset]) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => onChangeMode(mode)}
-                className={cn(
-                  "inline-flex h-10 items-center rounded-full px-4 text-sm transition-all",
-                  workspaceMode === mode
-                    ? "border border-violet-400/18 bg-violet-500/[0.10] text-white"
-                    : "text-white/58 hover:text-white",
-                )}
-              >
-                {preset.shortLabel}
-              </button>
-            ),
-          )}
-        </div>
-
         {/* Add widget */}
         <div className="relative">
           <button
@@ -245,7 +234,7 @@ export function WorkspaceHeader({
               setShowWorkspaceMenu(false);
               setShowAddMenu((v) => !v);
             }}
-            className="inline-flex h-12 items-center gap-2 rounded-full border border-violet-400/18 bg-violet-500/[0.12] px-5 text-sm font-medium text-white transition-all hover:border-violet-300/26 hover:bg-violet-500/[0.16]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-violet-400/18 bg-violet-500/[0.12] px-4 text-sm font-medium text-white transition-all hover:border-violet-300/26 hover:bg-violet-500/[0.16]"
           >
             <span className="text-lg leading-none">+</span>
             Add widget
