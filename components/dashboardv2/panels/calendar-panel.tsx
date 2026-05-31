@@ -146,6 +146,14 @@ function toCalendarEvent(e: ApiEvent): CalendarEvent {
       source_url_standardized: e.source_url ?? (extras.source_url_standardized as string) ?? (e.url as string) ?? "",
       event_description: (extras.event_description as string) ?? "",
       pair_relevance: (extras.pair_relevance as { primary_fx_pairs: string[]; related_assets: string[] }) ?? { primary_fx_pairs: [], related_assets: [] },
+      // speaker fields
+      speaker_event: (extras.speaker_event as boolean) ?? false,
+      speaker_name: (extras.speaker_name as string) ?? "",
+      speaker_role: (extras.speaker_role as string) ?? "",
+      speaker_institution: (extras.speaker_institution as string) ?? "",
+      speaker_priority: (extras.speaker_priority as number) ?? null,
+      speech_topic: (extras.speech_topic as string) ?? "",
+      policy_relevance: (extras.policy_relevance as string) ?? "",
     },
     defaultDashboard: e.default_dashboard ?? false,
     eventGroupKey: e.event_group_key ?? null,
@@ -206,12 +214,13 @@ function buildListItems(events: CalendarEvent[]): ListItem[] {
       (acc, ev) => (IMPACT_RANK[ev.impact] > IMPACT_RANK[acc] ? ev.impact : acc),
       "low",
     );
+    const firstTime = Math.min(...clusterEvents.map((ev) => new Date(ev.isoDateTime).getTime()));
     clusters.push({
       groupKey,
       groupTitle: first.eventGroupTitle ?? groupKey,
       groupPriority: first.eventGroupPriority ?? 99,
       highestImpact,
-      firstTime: new Date(first.isoDateTime).getTime(),
+      firstTime,
       events: clusterEvents,
       currencies: [...new Set(clusterEvents.map((ev) => ev.currency))],
       assets: [...new Set(clusterEvents.flatMap((ev) => ev.assetFocus))],
