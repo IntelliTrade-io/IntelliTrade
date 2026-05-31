@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import Main from "@/app/blog/Main";
 
 interface Post {
@@ -44,6 +46,12 @@ export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] 
   return (
     <div className="relative bg-black text-slate-100 pb-12">
       <div className="relative z-10 w-full pt-10">
+        <div className="mb-6 text-left">
+          <Link href="/blog" className="group inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-brand/80 transition-colors">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to insights
+          </Link>
+        </div>
         <header className="mb-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}

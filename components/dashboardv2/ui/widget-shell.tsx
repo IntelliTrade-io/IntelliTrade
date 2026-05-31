@@ -76,7 +76,7 @@ interface WidgetShellProps {
 
 export function WidgetShell({
   title,
-  subtitle,
+  subtitle: _subtitle,
   tone = "neutral",
   headerRight,
   children,
@@ -97,17 +97,19 @@ export function WidgetShell({
       <SoftLines />
       <ShellTexture brand={tone === "brand"} />
       <div className="relative z-10 flex h-full min-h-0 flex-col p-3 sm:p-5 lg:p-6">
-        <div className="flex flex-col gap-2 border-b border-white/8 pb-3 sm:gap-4 sm:pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="panel-title min-w-0">
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+        <div className="flex items-center border-b border-white/8 pb-3 gap-2 sm:pb-4">
+          <div className="panel-title min-w-0 shrink-0">
+            <h2 className="text-base font-semibold tracking-tight text-white">
               {title}
             </h2>
-            {subtitle ? (
-              <p className="mt-0.5 hidden sm:block text-sm text-white/40">{subtitle}</p>
-            ) : null}
           </div>
+          {_subtitle ? (
+            <div className="flex-1 text-center">
+              <span className="text-[10px] text-white/34">{_subtitle}</span>
+            </div>
+          ) : <div className="flex-1" />}
           {headerRight ? (
-            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
               {headerRight}
             </div>
           ) : null}

@@ -8,7 +8,7 @@ import { Menu, X, Calculator, BookOpen, Info, TrendingUp, LogIn, UserPlus } from
 
 const MAIN_LINKS = [
   { label: "Lot size calculator", href: "/lotsizecalculator", icon: Calculator },
-  { label: "Blog", href: "/blog/all", icon: BookOpen },
+  { label: "Blog", href: "/blog", icon: BookOpen },
   { label: "About", href: "/about", icon: Info },
 ];
 

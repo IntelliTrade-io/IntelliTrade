@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LayoutDashboard, User, LogOut, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,8 +18,6 @@ export function UserDropdown({ email, isSubscribed }: UserDropdownProps) {
   const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
@@ -47,8 +44,7 @@ export function UserDropdown({ email, isSubscribed }: UserDropdownProps) {
     setOpen(false);
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.refresh();
-    router.push("/");
+    window.location.href = "/";
   };
 
   const initial = email.charAt(0).toUpperCase();
