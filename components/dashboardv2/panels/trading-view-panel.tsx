@@ -10,6 +10,7 @@ interface TradingViewPanelProps {
   onToggleLock: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
+  mobile?: boolean;
 }
 
 export function TradingViewPanel({
@@ -17,6 +18,7 @@ export function TradingViewPanel({
   onToggleLock,
   onDuplicate,
   onRemove,
+  mobile,
 }: TradingViewPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -69,29 +71,33 @@ export function TradingViewPanel({
     };
   }, []);
 
+  const chart = (
+    <div className="h-full min-h-0 overflow-hidden rounded-[22px] border border-white/10 bg-[#0d0d13]">
+      <div
+        ref={containerRef}
+        className="tradingview-widget-container"
+        style={{ height: "100%", width: "100%" }}
+      />
+    </div>
+  );
+
+  if (mobile) return <div className="h-full">{chart}</div>;
+
   return (
     <WidgetShell
       title="TradingView chart"
       className="h-full"
       contentClassName="min-h-0"
       headerRight={
-        <>
-          <PanelActions
-            locked={panel.locked}
-            onToggleLock={onToggleLock}
-            onDuplicate={onDuplicate}
-            onRemove={onRemove}
-          />
-        </>
+        <PanelActions
+          locked={panel.locked}
+          onToggleLock={onToggleLock}
+          onDuplicate={onDuplicate}
+          onRemove={onRemove}
+        />
       }
     >
-      <div className="h-full min-h-0 overflow-hidden rounded-[22px] border border-white/10 bg-[#0d0d13]">
-        <div
-          ref={containerRef}
-          className="tradingview-widget-container"
-          style={{ height: "100%", width: "100%" }}
-        />
-      </div>
+      {chart}
     </WidgetShell>
   );
 }

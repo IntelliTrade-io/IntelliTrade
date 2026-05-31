@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BarChart2, CalendarDays, ChevronDown, CircleDot, Search, Star, Waves, Zap,
+  BarChart2, CalendarDays, ChevronDown, CircleDot, Search, Star, Waves, X, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WidgetShell } from "../ui/widget-shell";
@@ -358,6 +358,9 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
   const [query, setQuery] = useState("");
   const [selectedCurrency, setSelectedCurrency] = useState("All");
   const [showCurrencyMenu, setShowCurrencyMenu] = useState(false);
+  const [ccySearch, setCcySearch] = useState("");
+  const ccyInputRef = useRef<HTMLInputElement>(null);
+  const ccyDropdownRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState({ high: true, medium: true, low: false });
   const [activeEvent, setActiveEvent] = useState<CalendarEvent | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("market_movers");
@@ -370,6 +373,27 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
     events.forEach((e) => seen.add(e.currency));
     return ["All", ...Array.from(seen).sort()];
   }, [events]);
+
+  const filteredCurrencyOptions = useMemo(() => {
+    const q = ccySearch.trim().toUpperCase();
+    if (!q) return availableCurrencies;
+    return availableCurrencies.filter((c) => c.toUpperCase().includes(q));
+  }, [availableCurrencies, ccySearch]);
+
+  useEffect(() => {
+    if (!showCurrencyMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        !ccyInputRef.current?.closest("[data-ccy-combo]")?.contains(e.target as Node) &&
+        !ccyDropdownRef.current?.contains(e.target as Node)
+      ) {
+        setShowCurrencyMenu(false);
+        setCcySearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showCurrencyMenu]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -418,19 +442,19 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
         contentClassName="min-h-0"
         headerRight={
           <>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <button
                 onClick={() => setShowDateMenu((v) => !v)}
-                className="flex items-center gap-1.5"
+                className="flex w-full items-center justify-between gap-1.5 rounded-full border border-violet-400/18 bg-violet-500/[0.08] px-3 py-2 text-xs uppercase tracking-[0.18em] text-white/88 sm:w-auto sm:inline-flex"
               >
-                <Pill active>
+                <span className="flex items-center gap-2">
                   <CalendarDays className="h-3.5 w-3.5" />
                   {DATE_FILTER_LABELS[dateFilter]}
-                  <ChevronDown className={cn("h-3 w-3 transition-transform", showDateMenu ? "rotate-180" : "")} />
-                </Pill>
+                </span>
+                <ChevronDown className={cn("h-3 w-3 transition-transform", showDateMenu ? "rotate-180" : "")} />
               </button>
               {showDateMenu && (
-                <div className="absolute right-0 z-20 mt-2 w-36 overflow-hidden rounded-[18px] border border-white/10 bg-[#0d0d13]/95 p-1.5 shadow-2xl backdrop-blur-2xl">
+                <div className="absolute left-0 right-0 z-20 mt-2 overflow-hidden rounded-[18px] border border-white/10 bg-[#0d0d13]/95 p-1.5 shadow-2xl backdrop-blur-2xl sm:left-auto sm:right-0 sm:w-36">
                   {(["today", "this_week", "next_week", "upcoming"] as DateFilter[]).map((f) => (
                     <button
                       key={f}
@@ -450,13 +474,13 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
           </>
         }
       >
-        <div className="flex h-full min-h-0 flex-col gap-4">
+        <div className="flex h-full min-h-0 flex-col gap-2 sm:gap-4">
           {/* View mode toggle */}
-          <div className="flex gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 w-fit">
+          <div className="flex gap-1 rounded-full border border-white/10 bg-white/[0.03] p-1 w-full">
             <button
               onClick={() => setViewMode("market_movers")}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
                 viewMode === "market_movers" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80",
               )}
             >
@@ -466,7 +490,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
             <button
               onClick={() => setViewMode("full_calendar")}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
                 viewMode === "full_calendar" ? "bg-white/10 text-white" : "text-white/50 hover:text-white/80",
               )}
             >
@@ -476,16 +500,16 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
           </div>
 
           {/* Impact filters */}
-          <div className="flex flex-wrap gap-2">
-            <SmallAction active={filters.high} onClick={() => toggleImpact("high")}>
+          <div className="flex gap-2">
+            <SmallAction active={filters.high} onClick={() => toggleImpact("high")} className="flex-1 justify-center h-8 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
               <Zap className="h-4 w-4" />
               High
             </SmallAction>
-            <SmallAction active={filters.medium} onClick={() => toggleImpact("medium")}>
+            <SmallAction active={filters.medium} onClick={() => toggleImpact("medium")} className="flex-1 justify-center h-8 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
               <Waves className="h-4 w-4" />
               Medium
             </SmallAction>
-            <SmallAction active={filters.low} onClick={() => toggleImpact("low")}>
+            <SmallAction active={filters.low} onClick={() => toggleImpact("low")} className="flex-1 justify-center h-8 sm:h-10 text-xs sm:text-sm px-2 sm:px-4">
               <CircleDot className="h-4 w-4" />
               Low
             </SmallAction>
@@ -499,30 +523,54 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search events or agencies"
-                className="h-11 w-full rounded-full border border-white/10 bg-white/[0.035] pl-11 pr-4 text-white outline-none transition-all placeholder:text-white/28 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                className="h-9 sm:h-11 w-full rounded-full border border-white/10 bg-white/[0.035] pl-11 pr-4 text-sm text-white outline-none transition-all placeholder:text-white/28 focus:border-violet-400/22 focus:bg-white/[0.05]"
               />
             </label>
 
-            <div className="relative">
-              <button
-                onClick={() => setShowCurrencyMenu((v) => !v)}
-                className="flex h-11 w-full items-center justify-between rounded-full border border-white/10 bg-white/[0.035] px-4 text-sm text-white transition-all hover:border-white/18"
-              >
-                <span>
-                  <span className="text-white/42">Currency:</span>{" "}
-                  <span className="font-medium">{selectedCurrency}</span>
-                </span>
-                <ChevronDown className={cn("h-4 w-4 text-white/42 transition-transform", showCurrencyMenu ? "rotate-180" : "rotate-0")} />
-              </button>
+            <div className="relative" data-ccy-combo>
               {showCurrencyMenu && (
-                <div className="absolute right-0 z-20 mt-2 w-full overflow-hidden rounded-[20px] border border-white/10 bg-[#0d0d13]/95 p-2 shadow-2xl backdrop-blur-2xl">
-                  {availableCurrencies.map((item) => (
+                <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
+              )}
+              <input
+                ref={ccyInputRef}
+                value={showCurrencyMenu ? ccySearch : selectedCurrency === "All" ? "" : selectedCurrency}
+                placeholder={showCurrencyMenu ? "Search currency…" : "Currency: All"}
+                readOnly={!showCurrencyMenu}
+                onClick={() => { setShowCurrencyMenu(true); setCcySearch(""); }}
+                onChange={(e) => setCcySearch(e.target.value)}
+                className={cn(
+                  "h-9 sm:h-11 w-full rounded-full border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/42 cursor-pointer",
+                  showCurrencyMenu ? "border-violet-400/40 bg-white/[0.05] pl-9 pr-9" : "border-white/10 pl-4 pr-9",
+                )}
+              />
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                {showCurrencyMenu && ccySearch ? (
+                  <button
+                    type="button"
+                    className="pointer-events-auto text-white/30 hover:text-white/60"
+                    onClick={(e) => { e.stopPropagation(); setCcySearch(""); ccyInputRef.current?.focus(); }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <ChevronDown className={cn("h-4 w-4 text-white/42 transition-transform", showCurrencyMenu ? "rotate-180" : "")} />
+                )}
+              </div>
+              {showCurrencyMenu && (
+                <div
+                  ref={ccyDropdownRef}
+                  className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-48 overflow-y-auto rounded-[20px] border border-white/10 bg-[#0d0d13]/96 py-1.5 shadow-2xl backdrop-blur-2xl"
+                >
+                  {filteredCurrencyOptions.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-white/38">No match</div>
+                  ) : filteredCurrencyOptions.map((item) => (
                     <button
                       key={item}
-                      onClick={() => { setSelectedCurrency(item); setShowCurrencyMenu(false); }}
+                      type="button"
+                      onMouseDown={(e) => { e.preventDefault(); setSelectedCurrency(item); setShowCurrencyMenu(false); setCcySearch(""); }}
                       className={cn(
-                        "flex w-full items-center justify-between rounded-2xl px-4 py-2.5 text-left text-sm transition-all",
-                        selectedCurrency === item ? "bg-white/[0.08] text-white" : "text-white/70 hover:bg-white/[0.04] hover:text-white",
+                        "flex w-full items-center justify-between px-4 py-2 text-left text-sm transition-colors",
+                        selectedCurrency === item ? "bg-violet-500/[0.14] text-white" : "text-white/72 hover:bg-white/[0.04] hover:text-white",
                       )}
                     >
                       <span>{item}</span>
@@ -535,14 +583,14 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
           </div>
 
           {/* Event list */}
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pr-1 w-full">
             {loading && <p className="py-8 text-center text-sm text-white/40">Loading events…</p>}
             {error && <p className="py-8 text-center text-sm text-red-400/80">Error: {error}</p>}
             {!loading && !error && visibleItems.length === 0 && (
               <p className="py-8 text-center text-sm text-white/40">No events match your filters.</p>
             )}
             {!loading && !error && (
-              <div className="grid gap-3">
+              <div className="grid gap-2 sm:gap-3 w-full min-w-0">
                 <AnimatePresence initial={false}>
                   {visibleItems.map((item) =>
                     item.type === "event" ? (
@@ -551,6 +599,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
                         layout
                         exit={{ opacity: 0, x: -20, scale: 0.96 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
+                        className="min-w-0 w-full"
                       >
                         <CalendarRow event={item.event} onOpen={setActiveEvent} now={now ?? undefined} />
                       </motion.div>
@@ -560,6 +609,7 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
                         layout
                         exit={{ opacity: 0, x: -20, scale: 0.96 }}
                         transition={{ duration: 0.45, ease: "easeOut" }}
+                        className="min-w-0 w-full"
                       >
                         <PmiClusterCard
                           cluster={item.cluster}

@@ -270,7 +270,7 @@ const sections = useMemo<Section[]>(
         </aside>
 
         {/* Right: content */}
-        <main className="flex-1 space-y-16">
+        <main className="flex-1 space-y-6 lg:space-y-16">
           {sections.map((s, index) => {
             const isHero = s.id === "about-intro";
             const isCTA = s.id === "about-cta";

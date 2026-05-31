@@ -154,7 +154,7 @@ export default function Page() {
 
           <Link
             href="/lotsizecalculator/faq"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm text-white/70 transition-all hover:border-white/18 hover:text-white"
+            className="self-center sm:self-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/[0.08] px-5 py-2.5 text-sm font-medium text-white transition-all hover:border-white/40 hover:bg-white/[0.12]"
           >
             <BookOpen className="h-4 w-4" />
             Guide &amp; FAQ

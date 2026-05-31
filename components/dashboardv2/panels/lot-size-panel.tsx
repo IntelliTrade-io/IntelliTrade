@@ -1,8 +1,6 @@
 "use client";
 
-import { Calculator } from "lucide-react";
 import { WidgetShell } from "../ui/widget-shell";
-import { Pill } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
 import LotSizeCalculator from "@/components/lot-size-calculator-2";
 import type { Panel } from "../types";
@@ -12,9 +10,18 @@ interface LotSizePanelProps {
   workspaceCols?: number;
   onToggleLock: () => void;
   onRemove: () => void;
+  focused?: boolean;
 }
 
-export function LotSizePanel({ panel, onToggleLock, onRemove }: LotSizePanelProps) {
+export function LotSizePanel({ panel, onToggleLock, onRemove, focused }: LotSizePanelProps) {
+  if (focused) {
+    return (
+      <div className="h-full overflow-y-auto p-1">
+        <LotSizeCalculator />
+      </div>
+    );
+  }
+
   return (
     <WidgetShell
       title="Lot size calculator"
@@ -22,13 +29,7 @@ export function LotSizePanel({ panel, onToggleLock, onRemove }: LotSizePanelProp
       className="h-full"
       contentClassName="min-h-0 overflow-y-auto"
       headerRight={
-        <>
-          <Pill>
-            <Calculator className="h-3.5 w-3.5" />
-            Lot Size
-          </Pill>
-          <PanelActions locked={panel.locked} onToggleLock={onToggleLock} onRemove={onRemove} />
-        </>
+        <PanelActions locked={panel.locked} onToggleLock={onToggleLock} onRemove={onRemove} />
       }
     >
       <LotSizeCalculator className="h-full" />

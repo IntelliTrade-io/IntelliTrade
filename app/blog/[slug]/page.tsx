@@ -42,13 +42,15 @@ export default async function PostPage({ params }: { params: { slug: string } })
         
         <div className="radial-backdrop" />
         {/* Navigation */}
-        <Link 
-          href="/" 
-          className="group inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-brand/80 transition-colors mb-12"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Insights
-        </Link>
+        <div className="text-left mb-6 md:mb-12">
+          <Link
+            href="/"
+            className="group inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-brand/80 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Back to Insights
+          </Link>
+        </div>
 
         {/* Header Section */}
         <header className="mb-12">

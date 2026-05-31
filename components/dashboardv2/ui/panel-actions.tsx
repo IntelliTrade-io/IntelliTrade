@@ -85,7 +85,7 @@ export function PanelActions({
   onDuplicate,
 }: PanelActionsProps) {
   return (
-    <>
+    <div className="panel-actions flex items-center gap-2">
       <DragHandle locked={locked} />
       {onDuplicate ? (
         <IconAction label="Duplicate panel" onClick={onDuplicate}>
@@ -102,6 +102,6 @@ export function PanelActions({
       <IconAction label="Remove panel" onClick={onRemove}>
         <X className="h-4 w-4" />
       </IconAction>
-    </>
+    </div>
   );
 }

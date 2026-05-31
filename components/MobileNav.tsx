@@ -1,106 +1,122 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, X, Calculator, BookOpen, Info, TrendingUp, LogIn, UserPlus } from "lucide-react";
 
-const navSections = [
-  {
-    title: "PLATFORM",
-    links: [
-      { label: "Dashboard", href: "/dashboard" },
-      { label: "Dashboard V2", href: "/dashboardv2" },
-      { label: "Lot Size Calculator", href: "/lotsizecalculator" },
-    ],
-  },
-  {
-    title: "PRICES",
-    links: [
-      { label: "Gold", href: "/gold-price-today" },
-      { label: "Silver", href: "/silver-price-today" },
-      { label: "Oil", href: "/oil-price-today" },
-      { label: "Bitcoin", href: "/bitcoin-price-today" },
-    ],
-  },
-  {
-    title: "COMPANY",
-    links: [
-      { label: "About", href: "/about" },
-      { label: "Blog", href: "/blog" },
-    ],
-  },
-  {
-    title: "ACCOUNT",
-    links: [
-      { label: "Sign In", href: "/auth/login" },
-      { label: "Sign Up", href: "/auth/sign-up" },
-    ],
-  },
-  {
-    title: "LEGAL",
-    links: [
-      { label: "Privacy", href: "/privacyStatement" },
-      { label: "Terms", href: "/termsOfService" },
-      { label: "Cookies", href: "/cookieStatement" },
-    ],
-  },
+const MAIN_LINKS = [
+  { label: "Lot size calculator", href: "/lotsizecalculator", icon: Calculator },
+  { label: "Blog", href: "/blog/all", icon: BookOpen },
+  { label: "About", href: "/about", icon: Info },
+];
+
+const PRICE_LINKS = [
+  { label: "Gold", href: "/gold-price-today", symbol: "XAU/USD" },
+  { label: "Silver", href: "/silver-price-today", symbol: "XAG/USD" },
+  { label: "Oil", href: "/oil-price-today", symbol: "Brent" },
+  { label: "Bitcoin", href: "/bitcoin-price-today", symbol: "BTC/USD" },
 ];
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
-  return (
+  useEffect(() => { setMounted(true); }, []);
+
+  const panel = (
     <>
-      <div className="md:hidden">
-        <div className="hamburger-bg">
-          <button
-            className={`menu__icon${isOpen ? " is-open" : ""}`}
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            <span className="bg-brand"></span>
-            <span></span>
-            <span></span>
-          </button>
-        </div>
-      </div>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-[99998]"
+        onClick={() => setIsOpen(false)}
+      />
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-50 md:hidden"
-          onClick={() => setIsOpen(false)}
-        >
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-
-          <div
-            className="absolute top-20 left-4 right-4 rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/70 overflow-hidden p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.18),transparent_55%),radial-gradient(circle_at_bottom,_rgba(187,68,240,0.12),transparent_55%)]" />
-
-            <div className="relative z-10 space-y-6">
-              {navSections.map((section) => (
-                <div key={section.title}>
-                  <p className="text-[10px] font-semibold tracking-[0.3em] text-brand/70 uppercase mb-3">
-                    {section.title}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {section.links.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200 hover:bg-white/10 transition"
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
+      {/* Dropdown panel — portaled to body to escape nav stacking context */}
+      <div className="fixed left-3 right-3 top-[68px] z-[99999] rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden">
+            <div className="p-3 space-y-1">
+              {/* Main links */}
+              {MAIN_LINKS.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                    pathname === href
+                      ? "text-white bg-white/10"
+                      : "text-white/80 hover:text-white hover:bg-white/[0.08]"
+                  }`}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-white/50" />
+                  {label}
+                </Link>
               ))}
+
+              {/* Divider */}
+              <div className="h-px bg-white/10 mx-1 my-2" />
+
+              {/* Prices section */}
+              <div className="px-3 py-1">
+                <p className="text-[10px] font-semibold tracking-widest text-white uppercase mb-2 flex items-center gap-1.5">
+                  <TrendingUp className="h-3 w-3" />
+                  Prices today
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {PRICE_LINKS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-white/80 hover:text-white hover:bg-white/[0.08] transition-all duration-150"
+                    >
+                      <span>{item.label}</span>
+                      <span className="text-[10px] text-white/30 font-mono">{item.symbol}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="h-px bg-white/10 mx-1 my-2" />
+
+              {/* Auth links */}
+              <div className="grid grid-cols-2 gap-2 px-1">
+                <Link
+                  href="/auth/login"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white border border-white/20 hover:border-white/40 hover:bg-white/[0.06] transition-all duration-200"
+                >
+                  <LogIn className="h-3.5 w-3.5" />
+                  Sign in
+                </Link>
+                <Link
+                  href="/auth/sign-up"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-brand to-brandLight shadow-lg shadow-brand/35 transition-all duration-200"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Sign up
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      )}
     </>
+  );
+
+  return (
+    <div className="md:hidden">
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        aria-label="Toggle menu"
+        aria-expanded={isOpen}
+        className="flex items-center justify-center w-9 h-9 rounded-lg text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-200"
+      >
+        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>
+
+      {mounted && isOpen && createPortal(panel, document.body)}
+    </div>
   );
 }

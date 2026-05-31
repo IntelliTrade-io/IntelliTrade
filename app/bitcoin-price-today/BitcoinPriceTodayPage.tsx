@@ -379,8 +379,8 @@ function MiniPriceWidget({ quote }: { quote: BitcoinQuote | null }) {
       <div className="price-surface-content">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Bitcoin Price</p>
-            <p className="price-value-brand mt-4 text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01]">
+            <p className="text-base sm:text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Bitcoin Price</p>
+            <p className="price-value-brand mt-1 sm:mt-4 text-xl sm:text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01] break-all">
               {quote?.formatted.price ?? "—"}
             </p>
           </div>
@@ -421,7 +421,7 @@ export default function BitcoinPriceTodayPage() {
   const activeLargeChartTab = LARGE_CHART_TABS.find((t) => t.value === selectedRange) ?? LARGE_CHART_TABS[0];
 
   return (
-    <div className="min-h-screen bg-[#020203] text-slate-100">
+    <div className="min-h-screen bg-[#020203] text-slate-100 overflow-x-hidden">
       <PricePageBrandStyles theme="bitcoin" />
       <div className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-10 lg:px-8">
 
@@ -436,8 +436,8 @@ export default function BitcoinPriceTodayPage() {
           <div className="price-surface-content grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
               <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Live Price · IntelliTrade</p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-50 md:text-6xl">Bitcoin Price Today</h1>
-              <p className="mt-4 text-xl text-slate-300">Live BTC/USD price with market insights</p>
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50 md:text-6xl">Bitcoin Price Today</h1>
+              <p className="mt-3 text-base sm:text-xl text-slate-300">Live BTC/USD price with market insights</p>
               <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90 md:max-w-xl">
                 <p>Stay informed with the latest bitcoin price in USD. Below is the live BTC/USD price, updated in real time, along with a chart, market analysis, and the main forces influencing bitcoin today.</p>
               </div>
@@ -494,7 +494,7 @@ export default function BitcoinPriceTodayPage() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
-                <p className="text-4xl font-semibold tracking-tight text-slate-100 price-value-brand">
+                <p className="text-lg sm:text-4xl font-semibold tracking-tight text-slate-100 price-value-brand break-all">
                   {bitcoinQuote?.formatted.price ?? "—"}
                 </p>
               </div>

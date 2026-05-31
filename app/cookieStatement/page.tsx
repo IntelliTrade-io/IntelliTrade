@@ -186,7 +186,7 @@ export default function CookieStatementPage() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 space-y-16">
+        <main className="flex-1 space-y-6 lg:space-y-16">
           {sections.map((s, index) => (
             <section key={s.id} id={s.id} className="scroll-mt-28 relative">
               <motion.div

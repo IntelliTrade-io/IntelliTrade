@@ -5,7 +5,7 @@ import "react-resizable/css/styles.css";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const ReactGridLayout = require("react-grid-layout").default ?? require("react-grid-layout");
 import { useContainerWidth } from "react-grid-layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookOpen, CalendarDays, CandlestickChart, Calculator, FileText, Gamepad2, Globe2, LayoutDashboard, Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GRID_MARGIN, GRID_ROW_HEIGHT, WORKSPACE_PRESETS } from "./constants";
@@ -43,6 +43,8 @@ function renderPanel(
   onToggleLock: () => void,
   onRemove: () => void,
   onDuplicate?: () => void,
+  focused?: boolean,
+  mobile?: boolean,
 ) {
   const base = { panel, workspaceCols, onToggleLock, onRemove };
 
@@ -52,12 +54,13 @@ function renderPanel(
         <TradingViewPanel
           {...base}
           onDuplicate={onDuplicate ?? (() => {})}
+          mobile={focused && mobile}
         />
       );
     case "calendar":
       return <CalendarPanel {...base} />;
     case "calculator":
-      return <LotSizePanel {...base} />;
+      return <LotSizePanel {...base} focused={focused} />;
     case "strength":
       return <CurrencyStrengthPanel {...base} />;
     case "strengthIntraday":
@@ -67,7 +70,7 @@ function renderPanel(
     case "journal":
       return <JournalPanel {...base} />;
     case "game":
-      return <BullBearPanel {...base} />;
+      return <BullBearPanel {...base} mobile={focused && mobile} />;
     case "macro":
       return <MacroMasteryPanel {...base} />;
     default:
@@ -99,11 +102,25 @@ export function Dashboard() {
 
   const { width, containerRef } = useContainerWidth({ initialWidth: 1520 });
 
-  const [focusedType, setFocusedType] = useState<TabId>(null);
+  const [focusedType, setFocusedType] = useState<TabId>(() =>
+    typeof window !== "undefined" && window.innerWidth < 768 ? "calendar" : null
+  );
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setFocusedType((t) => t ?? "calendar");
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   return (
-    <div className="min-h-screen w-full bg-transparent px-6 pb-8 pt-4 text-white sm:px-8 lg:px-10">
-      <div className="mx-auto w-full" style={{ maxWidth: focusedType !== null ? WORKSPACE_PRESETS.standard.maxWidth : workspaceConfig.maxWidth }}>
+    <div className="min-h-screen w-full bg-transparent px-4 pb-8 pt-4 text-white sm:px-8 lg:px-10">
+      <div className="mx-auto w-full" style={{ maxWidth: isMobile ? "100%" : (focusedType !== null ? WORKSPACE_PRESETS.standard.maxWidth : workspaceConfig.maxWidth) }}>
 
         {/* Panel switcher pill nav */}
         <div className="mb-4 flex justify-center">
@@ -134,6 +151,7 @@ export function Dashboard() {
                   onClick={() => setFocusedType(tab.id)}
                   className={cn(
                     "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm transition-all",
+                    tab.id === null && "hidden md:inline-flex",
                     isActive
                       ? "border-violet-400/20 bg-violet-500/[0.12] text-white"
                       : "border-white/10 bg-white/[0.04] text-white/68 hover:border-white/18 hover:text-white",
@@ -147,8 +165,8 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Grid view — always mounted so containerRef/ResizeObserver stay alive */}
-        <div className={focusedType !== null ? "hidden" : ""}>
+        {/* Grid view — desktop only, always mounted so containerRef/ResizeObserver stay alive */}
+        <div className={cn("hidden md:block", focusedType !== null && "md:hidden")}>
           <WorkspaceHeader
             panels={panels}
             workspaceConfig={workspaceConfig}
@@ -199,8 +217,7 @@ export function Dashboard() {
         {/* Focused panel view */}
         {focusedType !== null && (
           focusedType === "strength" ? (
-            /* Strength: show both meters side by side */
-            <div className="grid h-[calc(100vh-160px)] grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="grid h-[calc(100vh-160px)] grid-cols-1 gap-4 lg:grid-cols-2 [&_.panel-actions]:hidden [&_.panel-title]:hidden">
               {renderPanel(
                 { ...FOCUS_PANEL, type: "strength" },
                 12,
@@ -215,13 +232,15 @@ export function Dashboard() {
               )}
             </div>
           ) : (
-            <div className="h-[calc(100vh-160px)]">
+            <div className="h-[calc(100vh-160px)] [&_.panel-actions]:hidden [&_.panel-title]:hidden">
               {renderPanel(
                 { ...FOCUS_PANEL, type: focusedType as WidgetType },
                 12,
                 () => {},
                 () => {},
                 focusedType === "chart" ? () => {} : undefined,
+                true,
+                isMobile,
               )}
             </div>
           )

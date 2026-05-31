@@ -422,17 +422,17 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
 
   return (
     <div className={`w-full text-white ${className || ""}`}>
-      <div className="grid gap-4 lg:grid-cols-[1fr_0.92fr]">
+      <div className="grid gap-3 lg:grid-cols-[1fr_0.92fr]">
         {/* Inputs */}
-        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.82),rgba(10,10,14,0.86))] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] backdrop-blur-xl">
-          <div className="mb-5 flex flex-col gap-1 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.82),rgba(10,10,14,0.86))] p-3 sm:p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] backdrop-blur-xl">
+          <div className="mb-3 sm:mb-5 flex flex-col gap-1 border-b border-white/8 pb-3 sm:pb-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/35">Position inputs</div>
               <div className="mt-1 text-sm text-white/48">Account, pair, stop, and risk settings</div>
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {/* Account currency — searchable combobox */}
             <div className="flex flex-col gap-2">
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Account currency</div>
@@ -459,7 +459,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       setCcyHighlightedIdx(filteredCurrencies.indexOf(currency));
                     }
                   }}
-                  className={`h-11 w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 cursor-pointer ${
+                  className={`h-9 sm:h-11 w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 cursor-pointer ${
                     ccyOpen ? "border-violet-400/40 bg-white/[0.05] pl-9 pr-9" : "border-white/10 pl-4 pr-9"
                   }`}
                 />
@@ -540,7 +540,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       setHighlightedIdx(filteredPairs.indexOf(pair));
                     }
                   }}
-                  className={`h-11 w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 ${
+                  className={`h-9 sm:h-11 w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 ${
                     loadingPairs ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
                   } ${pairOpen ? "border-violet-400/40 bg-white/[0.05] pl-9 pr-9" : "border-white/10 pl-4 pr-9"}`}
                 />
@@ -607,7 +607,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                   value={balance}
                   onChange={(e) => setBalance(e.target.value)}
                   placeholder="e.g. 5000"
-                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                  className="h-9 sm:h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
                 />
                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">{currency}</div>
               </div>
@@ -622,7 +622,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                   value={riskPercent}
                   onChange={(e) => setRiskPercent(e.target.value)}
                   placeholder="e.g. 1"
-                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-10 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                  className="h-9 sm:h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-10 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
                 />
                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">%</div>
               </div>
@@ -637,7 +637,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                   value={stopLoss}
                   onChange={(e) => setStopLoss(e.target.value)}
                   placeholder="e.g. 30"
-                  className="h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
+                  className="h-9 sm:h-11 w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 pr-14 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05]"
                 />
                 <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">pips</div>
               </div>
@@ -646,33 +646,33 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
 
           <button
             onClick={handleCalculate}
-            className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full border border-violet-400/18 bg-violet-500/[0.10] text-sm font-medium text-white transition-all hover:border-violet-300/26 hover:bg-violet-500/[0.16]"
+            className="mt-3 sm:mt-5 inline-flex h-9 sm:h-11 w-full items-center justify-center rounded-full border border-violet-400/18 bg-violet-500/[0.10] text-sm font-medium text-white transition-all hover:border-violet-300/26 hover:bg-violet-500/[0.16]"
           >
             Calculate
           </button>
         </div>
 
         {/* Results */}
-        <div className="flex flex-col gap-3">
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-[24px] border border-violet-400/16 bg-violet-500/[0.06] p-6 text-center shadow-[inset_0_0_0_1px_rgba(167,139,250,0.06)]">
+        <div className="flex flex-col gap-2 sm:gap-3">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-[24px] border border-violet-400/16 bg-violet-500/[0.06] p-3 sm:p-4 text-center shadow-[inset_0_0_0_1px_rgba(167,139,250,0.06)]">
             <div className="text-[10px] uppercase tracking-[0.22em] text-white/35">Position size</div>
-            <div className="mt-3 text-4xl font-semibold tracking-tight text-white">
+            <div className="mt-1.5 text-2xl sm:text-4xl font-semibold tracking-tight text-white">
               {positionSize ? positionSize.replace(" lots", "") : "—"}
             </div>
-            <div className="mt-1 text-sm text-white/38">lots</div>
+            <div className="mt-0.5 text-xs sm:text-sm text-white/38">lots</div>
             {calcContext && (
-              <div className="mt-3 text-[11px] leading-relaxed text-white/30">{calcContext}</div>
+              <div className="mt-1.5 text-[10px] sm:text-[11px] leading-relaxed text-white/30">{calcContext}</div>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-center">
+            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-3 text-center">
               <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">Risk amount</div>
-              <div className="mt-2 text-lg font-semibold text-white">{riskAmount || "—"}</div>
+              <div className="mt-1.5 text-base sm:text-lg font-semibold text-white">{riskAmount || "—"}</div>
             </div>
-            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-4 text-center">
+            <div className="rounded-[22px] border border-white/10 bg-white/[0.03] p-3 text-center">
               <div className="text-[10px] uppercase tracking-[0.18em] text-white/35">Pip value / lot</div>
-              <div className="mt-2 text-lg font-semibold text-white">{pipValue || "—"}</div>
+              <div className="mt-1.5 text-base sm:text-lg font-semibold text-white">{pipValue || "—"}</div>
             </div>
           </div>
         </div>

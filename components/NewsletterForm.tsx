@@ -42,7 +42,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 
   return (
-    <section className="w-full rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/70 px-2 py-6 md:px-8 md:py-8 relative overflow-hidden">
+    <section className="w-full md:rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border border-slate-800/70 px-2 py-6 md:px-8 md:py-8 relative overflow-hidden">
           {/* Ambient glows */}
           <div className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top,_rgba(124,58,237,0.18),transparent_55%),radial-gradient(circle_at_bottom,_rgba(187,68,240,0.18),transparent_55%)]" />
     

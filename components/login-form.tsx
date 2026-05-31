@@ -1,25 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -31,12 +17,8 @@ export function LoginForm({
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       router.push("/dashboardv2");
     } catch (error: unknown) {
@@ -47,63 +29,69 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                  <Link
-                    href="/auth/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Sign up
+    <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-8 shadow-[0_32px_80px_rgba(0,0,0,0.85)]">
+      <div className="radial-backdrop" />
+      <div className="relative z-10">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-white">Welcome back</h1>
+          <p className="mt-1 text-sm text-white/50">Sign in to your account to continue</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/46">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@domain.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 text-sm text-white placeholder:text-white/24 outline-none transition-all focus:border-violet-400/40 focus:bg-white/[0.05]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-white/46">
+                Password
+              </label>
+              <Link href="/auth/forgot-password" className="text-[11px] text-white/40 hover:text-white transition-colors">
+                Forgot password?
               </Link>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <input
+              id="password"
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.035] px-4 text-sm text-white placeholder:text-white/24 outline-none transition-all focus:border-violet-400/40 focus:bg-white/[0.05]"
+            />
+          </div>
+
+          {error && (
+            <p className="text-sm text-red-400">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="mt-1 w-full h-11 rounded-xl bg-gradient-to-r from-brand to-brandLight text-sm font-semibold text-white shadow-lg shadow-brand/35 transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Signing in…" : "Sign in"}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-sm text-white/40">
+          Don&apos;t have an account?{" "}
+          <Link href="/auth/sign-up" className="text-white/70 hover:text-white transition-colors">
+            Sign up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

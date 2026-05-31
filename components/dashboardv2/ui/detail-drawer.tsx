@@ -74,7 +74,7 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
 
   return (
     <motion.div
-      className="fixed inset-0 z-50"
+      className="fixed inset-0 z-[99999]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -85,7 +85,7 @@ function DrawerContent({ event, onClose }: { event: CalendarEvent; onClose: () =
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
         transition={{ type: "spring", damping: 28, stiffness: 240 }}
-        className="absolute right-0 top-0 h-full w-full max-w-[520px] overflow-y-auto border-l border-white/10 bg-[linear-gradient(180deg,rgba(12,12,16,0.98),rgba(7,7,10,0.98))] shadow-2xl"
+        className="absolute right-0 top-0 h-full w-full max-w-[520px] overflow-y-auto border-l border-white/10 bg-[linear-gradient(180deg,rgba(12,12,16,0.98),rgba(7,7,10,0.98))] shadow-2xl pt-16 sm:pt-0"
       >
         <div className="relative min-h-full p-5 sm:p-6">
           <ShellTexture />
