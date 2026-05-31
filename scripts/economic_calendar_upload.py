@@ -21,7 +21,6 @@ import os
 import sys
 from pathlib import Path
 
-# Add scripts dir to path so we can import the scraper
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 logging.basicConfig(
@@ -31,8 +30,45 @@ logging.basicConfig(
 logger = logging.getLogger("economic_calendar_upload")
 
 
+def prune_stale_events(client, new_scraper_ids: list[str], start_dt: str, end_dt: str) -> int:
+    """
+    Delete rows in the scraped time window whose scraperID is NOT in the new batch.
+
+    This removes stale rows caused by ID changes (e.g. Eurostat UTC timestamp fixes
+    change the SHA-1 hash, producing new scraperIDs while old rows remain).
+    Must be called BEFORE upserting so the window is clean.
+
+    Batches the NOT IN filter to stay within URL length limits.
+    """
+    if not new_scraper_ids:
+        return 0
+
+    CHUNK = 200
+    total_deleted = 0
+
+    for i in range(0, len(new_scraper_ids), CHUNK):
+        chunk = new_scraper_ids[i : i + CHUNK]
+        try:
+            result = (
+                client.table("economic_events")
+                .delete()
+                .gte("date_time_utc", start_dt)
+                .lte("date_time_utc", end_dt)
+                .not_.in_("scraperID", chunk)
+                .execute()
+            )
+            deleted = len(result.data) if result.data else 0
+            total_deleted += deleted
+        except Exception as exc:
+            logger.warning("Prune chunk %d failed (non-fatal): %s", i // CHUNK + 1, exc)
+
+    if total_deleted:
+        logger.info("Pruned %d stale row(s) from [%s … %s]", total_deleted, start_dt[:10], end_dt[:10])
+    return total_deleted
+
+
 def upload_events(events: list[dict], supabase_url: str, service_role_key: str) -> int:
-    """Upsert events into Supabase economic_events table. Returns count upserted."""
+    """Prune stale rows then upsert events. Returns count upserted."""
     try:
         from supabase import create_client
     except ImportError:
@@ -45,11 +81,10 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
         logger.info("No events to upload.")
         return 0
 
-    # Prepare rows — map scraper output to actual table column names
+    # Prepare rows
     rows = []
     for ev in events:
         extras = ev.get("extras") or {}
-        # Extract announcement_time_local from extras if present
         announcement_time = extras.get("announcement_time_local") or extras.get("release_time_local")
         row = {
             "scraperID": ev["id"],
@@ -63,7 +98,6 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
             "url": ev.get("url", ""),
             "announcement_time_local": announcement_time,
             "extras": extras,
-            # v8 scraper fields
             "default_dashboard": ev.get("default_dashboard", False),
             "event_group_key": ev.get("event_group_key"),
             "event_group_title": ev.get("event_group_title"),
@@ -85,16 +119,23 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
         }
         rows.append(row)
 
-    # Upsert in batches of 200 to stay within Supabase limits
+    # ── Prune stale rows before upserting ─────────────────────────────────────
+    # When scraper fixes a timestamp (e.g. Eurostat UTC offset), the scraperID
+    # (SHA-1 of country|agency|title|date_time_utc) changes.  The old row stays
+    # in DB unless explicitly deleted.  Prune rows whose scraperID is not in the
+    # new batch within the same date window.
+    timestamps = [ev["date_time_utc"] for ev in events]
+    start_dt = min(timestamps)
+    end_dt = max(timestamps)
+    new_ids = [ev["id"] for ev in events]
+    prune_stale_events(client, new_ids, start_dt, end_dt)
+
+    # ── Upsert in batches ─────────────────────────────────────────────────────
     batch_size = 200
     total_upserted = 0
     for i in range(0, len(rows), batch_size):
         batch = rows[i : i + batch_size]
-        result = (
-            client.table("economic_events")
-            .upsert(batch, on_conflict="scraperID")
-            .execute()
-        )
+        client.table("economic_events").upsert(batch, on_conflict="scraperID").execute()
         total_upserted += len(batch)
         logger.info("Upserted batch %d-%d (%d rows)", i + 1, i + len(batch), len(batch))
 
@@ -103,11 +144,11 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Economic Calendar → Supabase upload")
-    parser.add_argument("--since", type=int, default=-1, help="Days from now to start (default: -1 to include today)")
-    parser.add_argument("--until", type=int, default=14, help="Days from now to end (default: 14)")
-    parser.add_argument("--central-banks", action="store_true", default=True, help="Include central bank events")
-    parser.add_argument("--global", dest="include_global", action="store_true", default=True, help="Include global sources")
-    parser.add_argument("--dry-run", action="store_true", help="Scrape but don't upload; print events as JSON")
+    parser.add_argument("--since", type=int, default=-1)
+    parser.add_argument("--until", type=int, default=14)
+    parser.add_argument("--central-banks", action="store_true", default=True)
+    parser.add_argument("--global", dest="include_global", action="store_true", default=True)
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     supabase_url = os.environ.get("SUPABASE_URL")
@@ -115,10 +156,10 @@ def main() -> None:
 
     if not args.dry_run:
         if not supabase_url:
-            logger.error("SUPABASE_URL environment variable is required")
+            logger.error("SUPABASE_URL required")
             sys.exit(1)
         if not service_role_key:
-            logger.error("SUPABASE_SERVICE_ROLE_KEY environment variable is required")
+            logger.error("SUPABASE_SERVICE_ROLE_KEY required")
             sys.exit(1)
 
     logger.info("Importing scraper…")
@@ -135,7 +176,7 @@ def main() -> None:
             until_days=args.until,
             include_global=args.include_global,
             include_central_banks=args.central_banks,
-            allow_persist=False,  # serverless — no disk writes
+            allow_persist=False,
         )
     except Exception as exc:
         logger.error("Scraper failed: %s", exc, exc_info=True)
