@@ -12,9 +12,18 @@ interface BullBearPanelProps {
   panel: Panel;
   onToggleLock: () => void;
   onRemove: () => void;
+  mobile?: boolean;
 }
 
-export function BullBearPanel({ panel, onToggleLock, onRemove }: BullBearPanelProps) {
+export function BullBearPanel({ panel, onToggleLock, onRemove, mobile }: BullBearPanelProps) {
+  if (mobile) {
+    return (
+      <div className="h-full overflow-hidden">
+        <BullBearSurface compact />
+      </div>
+    );
+  }
+
   return (
     <WidgetShell
       title="Bull vs Bear"

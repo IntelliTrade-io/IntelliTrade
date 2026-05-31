@@ -14,6 +14,16 @@ interface Post {
   image?: any; // <--- Add this line to the interface
 }
 
+function getVisiblePages(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "…")[] = [1];
+  if (current > 3) pages.push("…");
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
+  if (current < total - 2) pages.push("…");
+  pages.push(total);
+  return pages;
+}
+
 export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
@@ -32,9 +42,9 @@ export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] 
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-slate-100 pb-20">
-      <div className="relative z-10 w-full max-w-5xl px-6 pt-20">
-        <header className="mb-16 text-center">
+    <div className="relative bg-black text-slate-100 pb-12">
+      <div className="relative z-10 w-full pt-10">
+        <header className="mb-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -78,20 +88,24 @@ export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] 
                   Prev
                 </button>
                 
-                <div className="flex gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-                    <button
-                      key={num}
-                      onClick={() => paginate(num)}
-                      className={`h-10 w-10 rounded-xl border transition text-sm font-medium ${
-                        currentPage === num 
-                          ? "border-brand bg-brand/10 text-brandLight/80" 
-                          : "border-white/10 bg-white/5 hover:bg-white/10 text-slate-400"
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
+                <div className="flex gap-1.5 items-center">
+                  {getVisiblePages(currentPage, totalPages).map((num, i) =>
+                    num === "…" ? (
+                      <span key={`ellipsis-${i}`} className="h-10 w-8 flex items-center justify-center text-sm text-slate-500 select-none">…</span>
+                    ) : (
+                      <button
+                        key={num}
+                        onClick={() => paginate(num)}
+                        className={`h-10 w-10 rounded-xl border transition text-sm font-medium ${
+                          currentPage === num
+                            ? "border-brand bg-brand/10 text-brandLight/80"
+                            : "border-white/10 bg-white/5 hover:bg-white/10 text-slate-400"
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    )
+                  )}
                 </div>
 
                 <button

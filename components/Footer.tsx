@@ -6,7 +6,7 @@ import NewsletterForm from './NewsletterForm'
 
 export default function Footer() {
   return (
-<footer className="z-10 flex flex-col md:flex-row items-center justify-around relative text-white mt-[2vh] bg-white/5 backdrop-blur-sm border-t border-white/10 py-8">
+<footer className="z-10 flex flex-col md:flex-row items-center justify-around relative text-white mt-[2vh] bg-white/5 backdrop-blur-sm border-t border-white/10 pb-8 md:py-8">
       {siteMetadata.newsletter?.provider && (
         <div className="flex items-center justify-center">
           {/* <NewsletterForm />
@@ -30,14 +30,14 @@ export default function Footer() {
           <SocialIcon kind="threads" href={siteMetadata.threads} size={6} className='threadsButton'/>
           {/* <SocialIcon kind="medium" href={siteMetadata.medium} size={6} /> */}
         </div>
-        <div className="mb-2 flex space-x-2 text-sm">
+        <div className="mb-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-sm text-center px-4">
           <div>{siteMetadata.author}</div>
           <div>{` • `}</div>
           <div>{`© ${new Date().getFullYear()}`}</div>
           <div>{` • `}</div>
           <Link href="/">{siteMetadata.title}</Link>
         </div>
-        <div className="mb-2 flex space-x-2 text-sm">
+        <div className="mb-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-sm text-center px-4">
           <Link href="/privacyStatement">Privacy statement</Link>
           <div>{` • `}</div>
           <Link href="/cookieStatement">Cookie statement</Link>

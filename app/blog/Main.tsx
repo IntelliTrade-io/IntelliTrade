@@ -31,13 +31,13 @@ export default function Main({ posts, showAll = false }: HomeProps) {
   const displayPosts = showAll ? posts : posts.slice(0, MAX_DISPLAY)
 
   return (
-    <div className="py-12">
+    <div>
       {!showAll && (
-        <div className="flex flex-col md:flex-row justify-between mb-12 gap-6 items-center">
+        <div className="flex flex-col md:flex-row justify-between mb-[1vh] md:mb-12 gap-2 md:gap-6 items-center">
           <div className="max-w-2xl text-center md:text-left">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-brand mb-3">
+            <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-3">
               LATEST INSIGHTS
-            </p>
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
               {siteMetadata.description}
             </h2>

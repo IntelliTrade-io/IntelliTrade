@@ -234,7 +234,7 @@ export default function PrivacyStatementPage() {
         </aside>
 
         {/* Right: content */}
-        <main className="flex-1 space-y-16">
+        <main className="flex-1 space-y-6 lg:space-y-16">
           {sections.map((s, index) => (
             <section
               key={s.id}

@@ -96,23 +96,23 @@ export function WidgetShell({
       <div className="radial-backdrop" />
       <SoftLines />
       <ShellTexture brand={tone === "brand"} />
-      <div className="relative z-10 flex h-full min-h-0 flex-col p-5 sm:p-6">
-        <div className="flex flex-col gap-4 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="min-w-0">
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
+      <div className="relative z-10 flex h-full min-h-0 flex-col p-3 sm:p-5 lg:p-6">
+        <div className="flex flex-col gap-2 border-b border-white/8 pb-3 sm:gap-4 sm:pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="panel-title min-w-0">
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
               {title}
             </h2>
             {subtitle ? (
-              <p className="mt-1 text-sm text-white/40">{subtitle}</p>
+              <p className="mt-0.5 hidden sm:block text-sm text-white/40">{subtitle}</p>
             ) : null}
           </div>
           {headerRight ? (
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
               {headerRight}
             </div>
           ) : null}
         </div>
-        <div className={cn("mt-4 flex-1 min-h-0 @container", contentClassName)}>
+        <div className={cn("mt-3 sm:mt-4 flex-1 min-h-0 @container", contentClassName)}>
           {children}
         </div>
       </div>

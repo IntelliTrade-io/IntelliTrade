@@ -250,7 +250,7 @@ function MiniPriceWidget() {
       <div className="price-surface-content">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Brent Oil Price</p>
+            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">Brent Oil Price</p>
           
           </div>
           <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-violet-400 transition duration-300">1D</button>
@@ -288,7 +288,7 @@ export default function OilPriceTodayPage() {
   const activeLargeChartTab = LARGE_CHART_TABS.find((t) => t.value === selectedRange) ?? LARGE_CHART_TABS[0];
 
   return (
-    <div className="min-h-screen bg-[#020203] text-slate-100">
+    <div className="min-h-screen bg-[#020203] text-slate-100 overflow-x-hidden">
       <PricePageBrandStyles theme="oil" />
       <div className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-10 lg:px-8">
 
@@ -303,8 +303,8 @@ export default function OilPriceTodayPage() {
           <div className="price-surface-content grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
               <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Live Price · IntelliTrade</p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-50 md:text-6xl">Oil Price Today</h1>
-              <p className="mt-4 text-xl text-slate-300">Live Brent crude price with market insights</p>
+              <h1 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50 md:text-6xl">Oil Price Today</h1>
+              <p className="mt-3 text-base sm:text-xl text-slate-300">Live Brent crude price with market insights</p>
               <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90 md:max-w-xl">
                 <p>Stay informed with the latest Brent crude price. Below is the live Brent oil chart, along with market analysis and the main forces influencing oil today.</p>
               </div>
