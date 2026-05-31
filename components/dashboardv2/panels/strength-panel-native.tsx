@@ -58,51 +58,57 @@ function pairState(baseScore: number, quoteScore: number): "Bullish" | "Bearish"
   return "Neutral";
 }
 
+function getCanonicalPair(a: string, b: string): { base: string; quote: string } {
+  if (STANDARD_PAIRS.has(a + b)) return { base: a, quote: b };
+  if (STANDARD_PAIRS.has(b + a)) return { base: b, quote: a };
+  return a < b ? { base: a, quote: b } : { base: b, quote: a };
+}
+
 function computeExpressions(scores: Scores): Expression[] {
   const exprs: Expression[] = [];
   const list = CURRENCIES.filter((c) => c in scores);
 
+  // Unordered pairs only — each canonical pair appears once
   for (let i = 0; i < list.length; i++) {
-    for (let j = 0; j < list.length; j++) {
-      if (i === j) continue;
-      const base = list[i];
-      const quote = list[j];
+    for (let j = i + 1; j < list.length; j++) {
+      const a = list[i], b = list[j];
+      const sa = scores[a].score, sb = scores[b].score;
+
+      const oneStrongOneWeak = (sa > 15 && sb < -15) || (sb > 15 && sa < -15);
+      if (!oneStrongOneWeak) continue;
+
+      const { base, quote } = getCanonicalPair(a, b);
       const bs = scores[base].score;
       const qs = scores[quote].score;
+      const state: "Bullish" | "Bearish" = bs > qs ? "Bullish" : "Bearish";
 
-      // Only qualify if one is firmly strong and the other firmly weak
-      const baseStrong = bs > 15;
-      const quoteWeak  = qs < -15;
-      const baseWeak   = bs < -15;
-      const quoteStrong = qs > 15;
-
-      if (!((baseStrong && quoteWeak) || (baseWeak && quoteStrong))) continue;
-
-      const state: "Bullish" | "Bearish" = baseStrong ? "Bullish" : "Bearish";
-      const summary = baseStrong
-        ? `${base} strong vs ${quote} weak`
-        : `${base} weak vs ${quote} strong`;
-
-      const spread = Math.round((Math.abs(bs) + Math.abs(qs)) * 10) / 10;
-      const confidence = approxConf(bs, qs);
+      const strongCode = sa > sb ? a : b;
+      const weakCode = sa < sb ? a : b;
+      const spread = Math.round((Math.abs(sa) + Math.abs(sb)) * 10) / 10;
+      const confidence = approxConf(sa, sb);
       const opportunity = Math.round(spread * confidence / 100 * 10) / 10;
 
-      exprs.push({ symbol: `${base}/${quote}`, baseCode: base, quoteCode: quote, state, summary, confidence, spread, opportunity });
+      exprs.push({
+        symbol: `${base}/${quote}`,
+        baseCode: base, quoteCode: quote,
+        state,
+        summary: `${strongCode} strong vs ${weakCode} weak`,
+        confidence, spread, opportunity,
+      });
     }
   }
 
-  // Sort by opportunity desc, take top 6
   return exprs.sort((a, b) => b.opportunity - a.opportunity).slice(0, 6);
 }
 
 function computeMatrixCell(base: string, quote: string, scores: Scores): CellData {
-  const bs = scores[base]?.score ?? 0;
-  const qs = scores[quote]?.score ?? 0;
+  const { base: cb, quote: cq } = getCanonicalPair(base, quote);
+  const bs = scores[cb]?.score ?? 0;
+  const qs = scores[cq]?.score ?? 0;
   const state = pairState(bs, qs);
   const spread = Math.round((Math.abs(bs) + Math.abs(qs)) * 10) / 10;
   const confidence = approxConf(bs, qs);
-  const isInverse = !STANDARD_PAIRS.has(base + quote) && STANDARD_PAIRS.has(quote + base);
-  return { symbol: `${base}/${quote}`, state, confidence, spread, isInverse };
+  return { symbol: `${cb}/${cq}`, state, confidence, spread, isInverse: false };
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -126,33 +132,83 @@ function ConfidenceRing({ pct, small }: { pct: number; small?: boolean }) {
 function StrengthBar({ score }: { score: number }) {
   const pct = Math.min(Math.abs(score), 100);
   const isPos = score >= 0;
-  const isSolid = pct >= 95;
+  const halfWidth = pct / 2; // percent of total track width used by the fill
+
+  // Color at the tip depends on strength magnitude
+  // Positive: white at center → green at tip (brighter green for higher score)
+  // Negative: white at center → orange → red at tip (more red for lower score)
+  const tipColorPos = pct <= 30
+    ? "#a0ffb8" // light green for neutral-ish
+    : pct <= 60
+    ? "#6cff84"
+    : "#1af45e"; // vivid green for strong
+
+  const tipColorNeg = pct <= 30
+    ? "#ffcc88" // light orange for neutral-ish
+    : pct <= 60
+    ? "#ff9040"
+    : "#ff2222"; // red for strongly weak
+
+  const fillGradient = isPos
+    ? `linear-gradient(to right, rgba(255,255,255,0.55) 0%, rgba(180,255,200,0.6) 40%, ${tipColorPos} 100%)`
+    : `linear-gradient(to left, rgba(255,255,255,0.55) 0%, rgba(255,180,100,0.6) 40%, ${tipColorNeg} 100%)`;
+
+  const glowColor = isPos
+    ? `0 0 6px rgba(20,244,96,0.22), 0 0 14px rgba(20,244,96,0.10)`
+    : `0 0 6px rgba(255,50,50,0.22), 0 0 14px rgba(255,50,50,0.10)`;
+
+  const particleColor1 = isPos ? "rgba(255,255,255,0.65)" : "rgba(255,255,255,0.50)";
+  const particleColor2 = isPos ? "rgba(180,255,160,0.55)" : "rgba(255,180,100,0.45)";
 
   return (
-    <div className="relative flex h-3 w-full items-center overflow-hidden rounded-full"
-      style={{ background: "linear-gradient(#ffffff14,#ffffff05 34%,#0000002e),linear-gradient(90deg,#181a1fd1,#101216e6)", boxShadow: "inset 0 1px #ffffff24,inset 0 -4px 10px #00000047" }}>
-      {/* center line */}
-      <div className="absolute left-1/2 top-0 bottom-0 w-px bg-white/20 z-10" />
-      {/* fill */}
-      <div
-        className="absolute top-0 bottom-0 rounded-full"
-        style={{
-          width: `${pct / 2}%`,
-          left: isPos ? "50%" : undefined,
-          right: isPos ? undefined : "50%",
-          marginRight: isPos ? undefined : `${50 - pct / 2}%`,
-          background: isPos
-            ? isSolid
-              ? "linear-gradient(#ffffff2e,#ffffff08 42%,#0000001a),linear-gradient(90deg,#4cff72fa,#2afa67fc 44%,#1af45efc)"
-              : "linear-gradient(#ffffff2e,#ffffff08 42%,#0000001a),linear-gradient(90deg,#ffd36ef2,#c6ff6cf7 26%,#6cff84fa 60%,#14f460fc)"
-            : isSolid
-              ? "linear-gradient(#ffffff2e,#ffffff08 42%,#0000001a),linear-gradient(90deg,#ff3636fa,#ff2e2efc 44%,#ff2222fc)"
-              : "linear-gradient(#ffffff2e,#ffffff08 42%,#0000001a),linear-gradient(90deg,#ff1c1cfc,#ff5c5cfa 34%,#ffa24ef5 72%,#ffd36ef2)",
-          boxShadow: isPos
-            ? "inset 0 1px #ffffff24,0 0 8px #68ff801a,0 0 16px #2ef46214"
-            : "inset 0 1px #ffffff24,0 0 8px #ff4e4e1a,0 0 16px #ff363614",
-        }}
-      />
+    <div
+      className="relative h-3 w-full overflow-hidden rounded-full"
+      style={{
+        background: "linear-gradient(180deg,rgba(255,255,255,0.08) 0%,rgba(255,255,255,0.02) 40%,rgba(0,0,0,0.18) 100%), linear-gradient(90deg,#0e1014e8,#111318e6)",
+        boxShadow: "inset 0 1px rgba(255,255,255,0.18), inset 0 -3px 8px rgba(0,0,0,0.4)",
+      }}
+    >
+      {/* Center line */}
+      <div className="absolute left-1/2 top-0 bottom-0 z-20 w-px bg-white/25" />
+
+      {/* Fill bar */}
+      {pct > 0 && (
+        <div
+          className="strength-bar-fill absolute top-0 bottom-0 rounded-full overflow-hidden"
+          style={{
+            width: `${halfWidth}%`,
+            left: isPos ? "50%" : undefined,
+            right: isPos ? undefined : "50%",
+            background: fillGradient,
+            boxShadow: glowColor,
+          }}
+        >
+          {/* Lava lamp overlay */}
+          <div
+            className="strength-lava-drift absolute inset-[-20%_-10%]"
+            style={{
+              background: `radial-gradient(circle at 18% 52%, rgba(255,255,255,0.32), transparent 14%), radial-gradient(circle at 44% 44%, rgba(255,255,255,0.18), transparent 18%), radial-gradient(circle at 74% 56%, rgba(255,255,255,0.14), transparent 12%)`,
+              mixBlendMode: "screen",
+            }}
+          />
+          {/* Particles */}
+          <div
+            className="strength-particles absolute inset-0"
+            style={{
+              backgroundImage: `radial-gradient(circle, ${particleColor1} 0 1.3px, transparent 1.7px), radial-gradient(circle, ${particleColor2} 0 1.7px, transparent 2.1px), radial-gradient(circle, rgba(255,255,255,0.28) 0 0.9px, transparent 1.2px)`,
+              backgroundPosition: "0 42%, 28px 56%, 14px 50%",
+              backgroundSize: "44px 18px, 58px 22px, 32px 15px",
+              opacity: 0.7,
+              mixBlendMode: "screen",
+            }}
+          />
+          {/* Inner shine */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, transparent 40%, rgba(0,0,0,0.12) 100%)" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -226,11 +282,11 @@ function ExpressionCard({ expr }: { expr: Expression }) {
         <div className="pointer-events-none absolute inset-0 rounded-full"
           style={{ background: "radial-gradient(circle at 30% 18%,#ffffff10,transparent 18%),linear-gradient(#ffffff08,transparent 22%)" }} />
 
+        {/* Pair name — primary element inside orb */}
         <div className="relative z-10 text-center">
-          <div className="font-semibold tracking-tight text-white text-xs leading-tight">{expr.symbol}</div>
-          <div className="mt-0.5 text-[8px] text-white/40 leading-tight">{expr.summary}</div>
+          <div className="font-bold tracking-tight text-white text-sm leading-none">{expr.symbol}</div>
+          <div className="mt-1 text-[8px] text-white/36 leading-tight">{expr.summary}</div>
         </div>
-
         <BiasChip state={expr.state} />
         <ConfidenceRing pct={expr.confidence} small />
       </div>
@@ -394,6 +450,19 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
     : null;
 
   return (
+    <>
+    <style>{`
+      @keyframes strength-lava-drift {
+        0% { transform: translate(-8%) scale(1); }
+        100% { transform: translate(8%) scale(1.06); }
+      }
+      @keyframes strength-particles {
+        0% { background-position: 0 42%, 28px 56%, 14px 50%; }
+        100% { background-position: 88px 46%, 116px 52%, 70px 54%; }
+      }
+      .strength-lava-drift { animation: strength-lava-drift 5.5s ease-in-out infinite alternate; }
+      .strength-particles { animation: strength-particles 4.5s linear infinite; }
+    `}</style>
     <WidgetShell
       title={variant === "intraday" ? "Currency strength · intraday" : "Currency strength · daily"}
       className="h-full"
@@ -546,6 +615,7 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
         </div>
       )}
     </WidgetShell>
+    </>
   );
 }
 

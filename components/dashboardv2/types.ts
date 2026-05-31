@@ -96,6 +96,7 @@ export interface PanelDimension {
   h: number;
   minW: number;
   minH: number;
+  maxW?: number;
 }
 
 export interface WidgetCatalogEntry {

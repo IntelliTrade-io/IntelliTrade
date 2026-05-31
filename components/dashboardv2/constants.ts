@@ -55,7 +55,7 @@ export const WORKSPACE_PRESETS: Record<WorkspaceMode, WorkspacePreset> = {
 export const PANEL_DEFAULT_DIMENSIONS: Record<WidgetType, PanelDimension> = {
   chart: { w: 7, h: 11, minW: 2, minH: 4 },
   calendar: { w: 5, h: 5, minW: 1, minH: 4 },
-  calculator: { w: 6, h: 4, minW: 6, minH: 4 },
+  calculator: { w: 4, h: 5, minW: 3, minH: 4 },
   strength: { w: 5, h: 10, minW: 1, minH: 4 },
   strengthIntraday: { w: 6, h: 10, minW: 1, minH: 4 },
   conflict: { w: 7, h: 11, minW: 1, minH: 8 },
