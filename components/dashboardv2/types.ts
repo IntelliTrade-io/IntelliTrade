@@ -21,12 +21,12 @@ export interface EventExtras {
   source_url_standardized: string;
   event_description: string;
   pair_relevance: { primary_fx_pairs: string[]; related_assets: string[] };
-  // central bank speaker fields (present when category === "central_bank")
+  // central bank speaker fields
   speaker_event?: boolean;
   speaker_name?: string;
   speaker_role?: string;
   speaker_institution?: string;
-  speaker_priority?: number;
+  speaker_priority?: number | null;
   speech_topic?: string;
   policy_relevance?: string;
 }

@@ -31,20 +31,25 @@ function humanSourceReliability(val: string | null): string {
   const map: Record<string, string> = {
     official: "Official source",
     curated: "Curated official schedule",
+    fallback: "Rule-based / fallback schedule",
+    rules: "Rule-based schedule",
+    lkg: "Last known good",
     estimated: "Estimated",
     scraper: "Web scraper",
   };
-  return val ? (map[val] ?? val) : "—";
+  return val ? (map[val] ?? val) : "Unknown";
 }
 
 function humanTimeConfidence(val: string | null): string {
   const map: Record<string, string> = {
     exact: "Exact scheduled time",
     tentative: "Tentative scheduled time",
+    date_only: "Date known, time not confirmed",
+    assumed: "Assumed scheduled time",
     estimated: "Estimated time",
     unknown: "Time unknown",
   };
-  return val ? (map[val] ?? val) : "—";
+  return val ? (map[val] ?? val) : "Unknown";
 }
 
 function humanScheduleConfidence(val: string | null): string {
