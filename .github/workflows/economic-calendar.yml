@@ -23,7 +23,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests supabase
+        run: pip install requests supabase beautifulsoup4 lxml feedparser
 
       - name: Run scraper and upload to Supabase
         env:
