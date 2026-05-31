@@ -24,7 +24,30 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
 export default async function PostPage({ params }: { params: { slug: string } }) {
   const post = await client.fetch<SanityDocument>(POST_QUERY, { slug: params.slug }, options);
 
-  if (!post) return <div className="min-h-screen bg-black flex items-center justify-center">Post not found</div>;
+  if (!post) return (
+    <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03] px-10 py-12 max-w-md w-full backdrop-blur-xl">
+        <div className="radial-backdrop" />
+        <div className="relative z-10">
+          <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-6">
+            404
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Post not found</h1>
+          <p className="text-sm text-white/50 leading-relaxed mb-8">
+            This article may have been removed or the link is no longer valid.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/blog" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white transition-all hover:bg-white/10">
+              ← Latest insights
+            </Link>
+            <Link href="/blog/all" className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-brandLight px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand/35 transition-all hover:opacity-90">
+              All posts
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const postImageUrl = post.image ? urlFor(post.image)?.width(1200).height(675).url() : null;
 
