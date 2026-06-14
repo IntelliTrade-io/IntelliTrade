@@ -1,0 +1,44 @@
+import type { MetadataRoute } from "next";
+import { client } from "@/sanity/client";
+
+const BASE = "https://intellitrade.tech";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${BASE}/`, priority: 1.0, changeFrequency: "weekly" },
+    { url: `${BASE}/blog`, priority: 0.9, changeFrequency: "daily" },
+    { url: `${BASE}/blog/all`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/lotsizecalculator`, priority: 0.9, changeFrequency: "monthly" },
+    { url: `${BASE}/lotsizecalculator/faq`, priority: 0.7, changeFrequency: "monthly" },
+    { url: `${BASE}/gold-price-today`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/silver-price-today`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/oil-price-today`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/bitcoin-price-today`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/about`, priority: 0.6, changeFrequency: "monthly" },
+    { url: `${BASE}/upgrade`, priority: 0.5, changeFrequency: "monthly" },
+    { url: `${BASE}/privacyStatement`, priority: 0.3, changeFrequency: "yearly" },
+    { url: `${BASE}/cookieStatement`, priority: 0.3, changeFrequency: "yearly" },
+    { url: `${BASE}/termsOfService`, priority: 0.3, changeFrequency: "yearly" },
+  ];
+
+  let blogRoutes: MetadataRoute.Sitemap = [];
+
+  try {
+    const posts = await client.fetch<{ slug: string; publishedAt: string | null }[]>(
+      `*[_type == "post" && defined(slug.current)]{ "slug": slug.current, publishedAt }`,
+      {},
+      { next: { revalidate: 3600 } }
+    );
+
+    blogRoutes = posts.map((post) => ({
+      url: `${BASE}/blog/${post.slug}`,
+      lastModified: post.publishedAt ? new Date(post.publishedAt) : undefined,
+      priority: 0.7,
+      changeFrequency: "monthly" as const,
+    }));
+  } catch {
+    // Sanity unavailable — serve static routes only
+  }
+
+  return [...staticRoutes, ...blogRoutes];
+}

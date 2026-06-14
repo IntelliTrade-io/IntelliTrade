@@ -1,6 +1,22 @@
+import type { Metadata } from "next";
 import { client } from "@/sanity/client";
 import { type SanityDocument } from "next-sanity";
 import BlogClientPage from "./BlogClientPage";
+
+export const metadata: Metadata = {
+  title: "All Blog Posts · IntelliTrade Insights",
+  description:
+    "Browse all IntelliTrade macro and market analysis articles. Fundamental commentary on forex, gold, oil, crypto and global economic events.",
+  alternates: { canonical: "https://intellitrade.tech/blog/all" },
+  openGraph: {
+    title: "All Blog Posts · IntelliTrade Insights",
+    description:
+      "Browse all IntelliTrade macro and market analysis articles.",
+    url: "https://intellitrade.tech/blog/all",
+    siteName: "IntelliTrade",
+    type: "website",
+  },
+};
 
 export default async function AllBlogsPage() {
   // 1. Updated query to use "image" and "publishedAt"

@@ -354,7 +354,7 @@ CURATED_UMICH_OVERRIDES: Dict[tuple[int, int, str], Dict[str, Any]] = {}
 CURATED_ADP_OVERRIDES: Dict[tuple[int, int], Dict[str, Any]] = {}
 
 CURATED_FALLBACK_REVIEWED_AT: Dict[str, str] = {
-    "BLS": "2026-05-26",
+    "BLS": "2026-05-31",
     "DOL": "2026-05-26",
     "EIA": "2026-05-26",
     "FED": "2026-05-26",
@@ -1309,6 +1309,155 @@ OFFICIAL_SOURCE_DOMAINS = (
     "stats.govt.nz",
     "150.statcan.gc.ca",
 )
+
+CENTRAL_BANK_SPEAKER_PRIORITY: Dict[str, Dict[str, Any]] = {
+    "FED": {
+        "country": "US",
+        "label": "Fed",
+        "timezone": "America/New_York",
+        "assets": ("USD", "EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "US500", "NAS100", "US10Y"),
+        "names": {
+            "kevin warsh": "Chair",
+            "philip jefferson": "Vice Chair",
+            "michelle bowman": "Vice Chair for Supervision",
+        },
+    },
+    "ECB": {
+        "country": "EU",
+        "label": "ECB",
+        "timezone": "Europe/Berlin",
+        "assets": ("EUR", "EURUSD", "EURGBP", "EURJPY", "GER40", "EU50"),
+        "names": {"christine lagarde": "President"},
+    },
+    "BOE": {
+        "country": "GB",
+        "label": "BoE",
+        "timezone": "Europe/London",
+        "assets": ("GBP", "GBPUSD", "EURGBP", "GBPJPY", "UK100"),
+        "names": {
+            "andrew bailey": "Governor",
+            "sarah breeden": "Deputy Governor",
+            "huw pill": "Chief Economist",
+            "megan greene": "Policy Committee Member",
+            "catherine mann": "Policy Committee Member",
+            "swati dhingra": "Policy Committee Member",
+        },
+    },
+    "BOC": {
+        "country": "CA",
+        "label": "BoC",
+        "timezone": "America/Toronto",
+        "assets": ("CAD", "USDCAD", "CADJPY", "WTI"),
+        "names": {"tiff macklem": "Governor"},
+    },
+    "BOJ": {
+        "country": "JP",
+        "label": "BoJ",
+        "timezone": "Asia/Tokyo",
+        "assets": ("JPY", "USDJPY", "EURJPY", "Nikkei225", "JGB"),
+        "names": {"kazuo ueda": "Governor"},
+    },
+    "RBA": {
+        "country": "AU",
+        "label": "RBA",
+        "timezone": "Australia/Sydney",
+        "assets": ("AUD", "AUDUSD", "AUDJPY", "AUDNZD", "ASX200"),
+        "names": {"michele bullock": "Governor"},
+    },
+    "RBNZ": {
+        "country": "NZ",
+        "label": "RBNZ",
+        "timezone": "Pacific/Auckland",
+        "assets": ("NZD", "NZDUSD", "AUDNZD"),
+        "names": {},
+    },
+    "SNB": {
+        "country": "CH",
+        "label": "SNB",
+        "timezone": "Europe/Zurich",
+        "assets": ("CHF", "USDCHF", "EURCHF", "CHFJPY", "SMI"),
+        "names": {
+            "martin schlegel": "Chair",
+            "antoine martin": "Vice Chair",
+        },
+    },
+}
+
+CENTRAL_BANK_SPEAKER_ROLE_RULES: Tuple[Tuple[str, str, int], ...] = (
+    (r"\b(?:chairman|chair)\b", "Chair", 92),
+    (r"\b(?:federal reserve bank|fed) president\b", "Regional Fed President", 68),
+    (r"\bpresident\b", "President", 92),
+    (r"\bsenior deputy governor\b", "Senior Deputy Governor", 82),
+    (r"\bvice chair for supervision\b", "Vice Chair for Supervision", 80),
+    (r"\bvice chair\b", "Vice Chair", 85),
+    (r"\bdeputy governor\b", "Deputy Governor", 80),
+    (r"\bassistant governor\b", "Assistant Governor", 68),
+    (r"\bgovernor\b", "Governor", 90),
+    (r"\bchief economist\b", "Chief Economist", 82),
+    (r"\bexecutive board member\b", "Executive Board Member", 76),
+    (r"\b(?:mpc|fomc) member\b", "Policy Committee Member", 72),
+    (r"\bpolicy board member\b", "Policy Board Member", 72),
+    (r"\bgoverning council member\b", "Governing Council Member", 72),
+)
+
+CENTRAL_BANK_SPEAKER_POLICY_KEYWORDS = (
+    "monetary policy",
+    "inflation",
+    "interest rate",
+    "rates",
+    "financial stability",
+    "economy",
+    "economic outlook",
+    "labour market",
+    "labor market",
+    "growth",
+    "exchange rate",
+    "balance sheet",
+    "testimony",
+    "press conference",
+    "policy outlook",
+    "central bank independence",
+    " qt ",
+    " qe ",
+    " fx ",
+)
+
+CENTRAL_BANK_SPEAKER_TECHNICAL_KEYWORDS = (
+    "payments",
+    "technology",
+    "fintech",
+    "operations",
+    "banknotes",
+    "supervision-only",
+    "climate",
+    "research seminar",
+    "awards",
+    "education",
+    "internal event",
+)
+
+CENTRAL_BANK_SPEAKER_EVENT_KEYWORDS = (
+    "speech",
+    "speaks",
+    "remarks",
+    "testimony",
+    "oral evidence",
+    "panel",
+    "interview",
+    "fireside chat",
+    "appearance",
+    "presentation",
+    "press conference",
+    "lecture",
+    "beige book",
+)
+
+CENTRAL_BANK_SPEAKER_REQUEST_HEADERS = {
+    "User-Agent": "IntelliTrade Economic Calendar Bot/1.0 (+https://intellitrade.tech)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Connection": "keep-alive",
+}
 
 PAIR_RELEVANCE_BASE: Dict[str, Dict[str, Tuple[str, ...]]] = {
     "US": {
@@ -2372,6 +2521,9 @@ def _impact_from_score(score: int) -> str:
 
 
 def _default_dashboard_allowed(event: Event | dict, category: str, score: int, impact: str) -> bool:
+    speaker_extras = _eventish_extras(event)
+    if speaker_extras.get("speaker_event"):
+        return bool(speaker_extras.get("default_dashboard"))
     ecb_info = _ecb_event_classification(event)
     if ecb_info is not None:
         return bool(ecb_info["default_dashboard"])
@@ -2390,6 +2542,9 @@ def _default_dashboard_allowed(event: Event | dict, category: str, score: int, i
 
 
 def _trader_relevance_score(event: Event | dict, category: str, source_reliability: str) -> int:
+    speaker_extras = _eventish_extras(event)
+    if speaker_extras.get("speaker_event"):
+        return max(0, min(100, int(speaker_extras.get("trader_relevance_score") or 0)))
     ecb_info = _ecb_event_classification(event)
     if ecb_info is not None:
         return int(ecb_info["score"])
@@ -2436,6 +2591,9 @@ def _trader_relevance_score(event: Event | dict, category: str, source_reliabili
 
 def _enrich_event_metadata(event: Event | dict) -> Event | dict:
     category = _infer_event_category(event)
+    speaker_extras = _eventish_extras(event)
+    if speaker_extras.get("speaker_event"):
+        category = "central_bank"
     if _is_us_retail_sales_market_mover(event):
         category = "consumer"
     ecb_info = _ecb_event_classification(event)
@@ -2463,6 +2621,8 @@ def _enrich_event_metadata(event: Event | dict) -> Event | dict:
     source_reliability = _infer_source_reliability(event)
     curated_info = _event_curated_fallback_info(event) if source_reliability == "curated" else None
     asset_focus = _event_asset_focus(pair_relevance)
+    if speaker_extras.get("speaker_event"):
+        asset_focus = list(speaker_extras.get("asset_focus") or asset_focus)
     score = _trader_relevance_score(event, category, source_reliability)
     aligned_impact = _impact_from_score(score)
     if ecb_info is not None:
@@ -2542,6 +2702,544 @@ def _enrich_events_metadata(events: List[Event]) -> List[Event]:
     for ev in events:
         _enrich_event_metadata(ev)
     return events
+
+# ---------------------------------------------------------------------------
+# Official central-bank speaker and public-event collection
+
+def _central_bank_speaker_sources(start_utc: datetime, end_utc: datetime) -> List[Dict[str, str]]:
+    years = sorted({start_utc.year, end_utc.year})
+    sources: List[Dict[str, str]] = [
+        {"institution": "FED", "source_path": "fed_calendar", "url": "https://www.federalreserve.gov/newsevents/calendar.htm"},
+        {"institution": "ECB", "source_path": "ecb_weekly_schedule", "url": "https://www.ecb.europa.eu/press/calendars/weekly/html/index.en.html"},
+        {"institution": "BOE", "source_path": "boe_upcoming_events", "url": "https://www.bankofengland.co.uk/news/upcoming"},
+        {"institution": "BOE", "source_path": "boe_staff_events", "url": "https://www.bankofengland.co.uk/events/upcoming-events"},
+        {"institution": "BOC", "source_path": "boc_upcoming_events", "url": "https://www.bankofcanada.ca/press/upcoming-events/"},
+        {"institution": "RBA", "source_path": "rba_calendar", "url": "https://www.rba.gov.au/schedules-events/calendar/"},
+        {"institution": "RBA", "source_path": "rba_speeches", "url": "https://www.rba.gov.au/speeches/index.html"},
+        {"institution": "RBNZ", "source_path": "rbnz_events", "url": "https://www.rbnz.govt.nz/news-and-events/events"},
+        {"institution": "SNB", "source_path": "snb_media", "url": "https://www.snb.ch/en/media"},
+        {"institution": "SNB", "source_path": "snb_speeches", "url": "https://www.snb.ch/en/news-publications/speeches"},
+    ]
+    for year in years:
+        sources.extend(
+            [
+                {"institution": "FED", "source_path": f"fed_speeches_{year}", "url": f"https://www.federalreserve.gov/newsevents/{year}-speeches.htm"},
+                {"institution": "BOJ", "source_path": f"boj_speeches_{year}", "url": f"https://www.boj.or.jp/en/about/press/koen_{year}/index.htm"},
+            ]
+        )
+    return sources
+
+
+def _speaker_response_classification(content: bytes, content_type: str, status_code: int) -> str:
+    lowered = (content or b"").lower()
+    if not content:
+        return "empty"
+    if status_code in {401, 403, 429} or b"access denied" in lowered or b"forbidden" in lowered:
+        return "blocked"
+    if "html" in (content_type or "").lower() or b"<html" in lowered or b"<!doctype html" in lowered:
+        return "html"
+    return "text"
+
+
+def _request_central_bank_speaker_source(session: requests.Session, url: str) -> Optional[requests.Response]:
+    try:
+        request_kwargs, cache_manager = _prepare_request(
+            session,
+            url,
+            15,
+            {"allow_redirects": True, "headers": CENTRAL_BANK_SPEAKER_REQUEST_HEADERS},
+        )
+        response = session.get(url, **request_kwargs)
+        return _apply_cache_response(cache_manager, url, response)
+    except Exception:
+        logger.debug("Central-bank speaker source request failed: %s", url, exc_info=True)
+        return None
+
+
+def _speaker_role_score(institution: str, role: str, default_score: int) -> int:
+    if institution == "FED":
+        if role == "Governor":
+            return 75
+        if role in {"Regional Fed President", "President"}:
+            return 68
+    if role in {"Chair", "President", "Governor"}:
+        return 92
+    return default_score
+
+
+def _speaker_identity(institution: str, raw_text: str) -> Tuple[str, str, int]:
+    config = CENTRAL_BANK_SPEAKER_PRIORITY[institution]
+    lowered = raw_text.lower()
+    for name, role in config.get("names", {}).items():
+        if name in lowered:
+            base = next((score for pattern, candidate_role, score in CENTRAL_BANK_SPEAKER_ROLE_RULES if candidate_role == role), 72)
+            return name.title(), role, _speaker_role_score(institution, role, base)
+
+    if institution == "ECB":
+        board_member = re.search(
+            r"(?i:\bboard member:)\s*([A-Z][A-Za-z'.-]+(?:\s+[A-Z][A-Za-z'.-]+){0,3}?)(?=\s+Event:)",
+            raw_text,
+        )
+        if board_member:
+            return board_member.group(1).strip(), "Executive Board Member", 76
+
+    for pattern, role, score in CENTRAL_BANK_SPEAKER_ROLE_RULES:
+        match = re.search(pattern, lowered)
+        if not match:
+            continue
+        speaker_name = ""
+        tail = raw_text[match.end():].strip(" :-,\u2013\u2014")
+        stop = re.search(
+            r"\b(?:speaks?|speech|remarks?|testimony|oral evidence|panel|interview|fireside|appearance|presentation|lecture|at|on|about|before)\b",
+            tail,
+            flags=re.IGNORECASE,
+        )
+        if stop:
+            tail = tail[: stop.start()]
+        name_match = re.match(r"([A-Z][A-Za-z'.-]+(?:\s+[A-Z][A-Za-z'.-]+){0,3})", tail.strip())
+        if name_match:
+            speaker_name = name_match.group(1).strip()
+        if not speaker_name:
+            prefix = raw_text[: match.start()].rstrip(" :-,\u2013\u2014")
+            before_role = re.search(r"([A-Z][A-Za-z'.-]+(?:\s+[A-Z][A-Za-z'.-]+){1,3})\s*,?\s*$", prefix)
+            if before_role:
+                speaker_name = before_role.group(1).strip()
+        return speaker_name, role, _speaker_role_score(institution, role, score)
+    return "", "", 0
+
+
+def _speaker_event_type(raw_text: str) -> str:
+    lowered = raw_text.lower()
+    if "beige book" in lowered:
+        return "beige_book"
+    if "testimony" in lowered or "oral evidence" in lowered or "before the committee" in lowered:
+        return "testimony"
+    if "press conference" in lowered:
+        return "press_conference"
+    if "panel" in lowered or "fireside chat" in lowered:
+        return "panel"
+    if "interview" in lowered:
+        return "interview"
+    if "remarks" in lowered:
+        return "remarks"
+    return "speech"
+
+
+def _speaker_topic_relevance(raw_text: str) -> Tuple[str, bool, bool]:
+    padded = f" {raw_text.lower()} "
+    policy_relevant = any(keyword in padded for keyword in CENTRAL_BANK_SPEAKER_POLICY_KEYWORDS)
+    technical = any(keyword in padded for keyword in CENTRAL_BANK_SPEAKER_TECHNICAL_KEYWORDS)
+    return _normalize_metadata_text(raw_text), policy_relevant, technical
+
+
+def _speaker_score_and_visibility(institution: str, role_score: int, role: str, raw_text: str, time_confidence: str) -> Tuple[int, bool, str]:
+    _, policy_relevant, technical = _speaker_topic_relevance(raw_text)
+    score = role_score
+    if policy_relevant:
+        score += 5
+    if technical and not policy_relevant:
+        score -= 15
+    score = max(35, min(95, score))
+    top_tier = role in {"Chair", "President"} or (role == "Governor" and institution != "FED")
+    default_dashboard = top_tier or (policy_relevant and score >= 68)
+    if time_confidence == "date_only" and not top_tier:
+        default_dashboard = False
+    return score, default_dashboard, _impact_from_score(score)
+
+
+def _speaker_datetime_from_value(value: str, timezone_name: str) -> Tuple[Optional[datetime], str]:
+    cleaned = _normalize_metadata_text(value)
+    if not cleaned or not dateparser:
+        return None, ""
+    has_time = bool(
+        re.search(r"(?:T|\s)\d{1,2}:\d{2}", cleaned)
+        or re.search(r"\b\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)\b", cleaned, flags=re.IGNORECASE)
+    )
+    try:
+        parsed = dateparser.parse(
+            cleaned,
+            fuzzy=True,
+            tzinfos={
+                "BST": ZoneInfo("Europe/London"),
+                "GMT": UTC,
+                "CET": ZoneInfo("Europe/Berlin"),
+                "CEST": ZoneInfo("Europe/Berlin"),
+                "ET": ZoneInfo("America/Toronto"),
+                "AEST": ZoneInfo("Australia/Sydney"),
+                "AEDT": ZoneInfo("Australia/Sydney"),
+            },
+        )
+    except Exception:
+        return None, ""
+    if parsed is None:
+        return None, ""
+    local_tz = ZoneInfo(timezone_name)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=local_tz)
+    if not has_time:
+        parsed = parsed.replace(hour=12, minute=0, second=0, microsecond=0)
+    return parsed.astimezone(UTC), "exact" if has_time else "date_only"
+
+
+def _speaker_datetime_from_node(node: Any, timezone_name: str) -> Tuple[Optional[datetime], str]:
+    datetime_values: List[str] = []
+    if getattr(node, "attrs", None) and node.attrs.get("datetime"):
+        datetime_values.append(str(node.attrs["datetime"]))
+    for child in node.select("[datetime]"):
+        value = child.attrs.get("datetime")
+        if value:
+            datetime_values.append(str(value))
+    for value in datetime_values:
+        parsed, confidence = _speaker_datetime_from_value(value, timezone_name)
+        if parsed:
+            return parsed, confidence
+
+    text = _normalize_metadata_text(node.get_text(" ", strip=True))
+    date_context = text
+    previous = node.find_previous_sibling("dt") if hasattr(node, "find_previous_sibling") else None
+    if previous:
+        date_context = f"{_normalize_metadata_text(previous.get_text(' ', strip=True))} {text}"
+    local_time = re.search(r"\bTime:\s*(\d{1,2}:\d{2})", text, flags=re.IGNORECASE)
+    month_names = "|".join(MONTHS + [month[:3] for month in MONTHS])
+    patterns = (
+        rf"\b(?:{month_names})\s+\d{{1,2}},?\s+20\d{{2}}(?:\s+(?:at\s+)?\d{{1,2}}:\d{{2}}\s*(?:a\.?m\.?|p\.?m\.?)?)?",
+        rf"\b\d{{1,2}}\s+(?:{month_names})\s+20\d{{2}}(?:\s+(?:at\s+)?\d{{1,2}}:\d{{2}}\s*(?:a\.?m\.?|p\.?m\.?)?)?",
+        r"\b20\d{2}-\d{1,2}-\d{1,2}(?:[T ]\d{1,2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})?)?",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, date_context, flags=re.IGNORECASE)
+        if match:
+            value = match.group(0)
+            if local_time and not re.search(r"(?:T|\s)\d{1,2}:\d{2}", value):
+                value = f"{value} {local_time.group(1)}"
+            parsed, confidence = _speaker_datetime_from_value(value, timezone_name)
+            if parsed:
+                return parsed, confidence
+    return None, ""
+
+
+def _speaker_detail_url(node: Any, source_url: str) -> str:
+    anchors = [node] if getattr(node, "name", "") == "a" and node.get("href") else list(node.find_all("a", href=True))
+    for anchor in anchors:
+        candidate = urljoin(source_url, str(anchor["href"]))
+        if _url_is_official(candidate):
+            return candidate
+    return source_url
+
+
+def _speaker_title(institution: str, speaker_name: str, role: str, event_type: str) -> str:
+    if event_type == "beige_book":
+        return "Federal Reserve Beige Book"
+    label = str(CENTRAL_BANK_SPEAKER_PRIORITY[institution]["label"])
+    surname = speaker_name.split()[-1] if speaker_name else ""
+    identity = " ".join(part for part in (label, role, surname) if part).strip()
+    if event_type == "testimony":
+        return f"{identity} Testimony"
+    if event_type == "press_conference":
+        return f"{identity} Press Conference"
+    return f"{identity} Speaks"
+
+
+def _speaker_event_from_node(
+    institution: str,
+    node: Any,
+    source_url: str,
+    source_path: str,
+    start_utc: datetime,
+    end_utc: datetime,
+) -> Optional[Event]:
+    raw_text = _normalize_metadata_text(node.get_text(" ", strip=True))
+    if not raw_text or not any(keyword in raw_text.lower() for keyword in CENTRAL_BANK_SPEAKER_EVENT_KEYWORDS):
+        return None
+    config = CENTRAL_BANK_SPEAKER_PRIORITY[institution]
+    event_type = _speaker_event_type(raw_text)
+    speaker_name, speaker_role, role_score = _speaker_identity(institution, raw_text)
+    if event_type != "beige_book" and not speaker_role:
+        return None
+    dt_utc, time_confidence = _speaker_datetime_from_node(node, str(config["timezone"]))
+    if dt_utc is None or not _within(dt_utc, start_utc, end_utc):
+        return None
+    if event_type == "beige_book":
+        speaker_name, speaker_role, role_score = "", "", 78
+        score, default_dashboard, impact = 78, True, "Medium"
+    else:
+        score, default_dashboard, impact = _speaker_score_and_visibility(institution, role_score, speaker_role, raw_text, time_confidence)
+    detail_url = _speaker_detail_url(node, source_url)
+    title = _speaker_title(institution, speaker_name, speaker_role, event_type)
+    _, policy_relevance, _ = _speaker_topic_relevance(raw_text)
+    extras = {
+        "speaker_event": True,
+        "speaker_name": speaker_name,
+        "speaker_role": speaker_role,
+        "speaker_institution": institution,
+        "speaker_priority": score,
+        "speech_topic": raw_text,
+        "speech_location": "",
+        "event_type": event_type,
+        "policy_relevance": policy_relevance,
+        "source_path": source_path,
+        "source_title_raw": raw_text,
+        "text_release_expected": "speech" in raw_text.lower() or "remarks" in raw_text.lower(),
+        "livestream_expected": "live" in raw_text.lower() or "webcast" in raw_text.lower(),
+        "notes": "",
+        "category": "central_bank",
+        "asset_focus": list(config["assets"]),
+        "trader_relevance_score": score,
+        "source_reliability": "official",
+        "time_confidence": time_confidence,
+        "default_dashboard": default_dashboard,
+        "source_url_standardized": detail_url,
+        "source_candidates": [{"source_path": source_path, "source_url": detail_url}],
+    }
+    country = str(config["country"])
+    return Event(
+        id=make_id(country, institution, title, dt_utc),
+        source=f"{institution}_SPEAKERS",
+        agency=institution,
+        country=country,
+        title=title,
+        date_time_utc=dt_utc,
+        event_local_tz=str(config["timezone"]),
+        impact=impact,
+        url=detail_url,
+        extras=extras,
+    )
+
+
+def _parse_central_bank_speaker_html(
+    institution: str,
+    html: str,
+    source_url: str,
+    source_path: str,
+    start_utc: datetime,
+    end_utc: datetime,
+) -> List[Event]:
+    if not BeautifulSoup or institution not in CENTRAL_BANK_SPEAKER_PRIORITY:
+        return []
+    soup = BeautifulSoup(html or "", "html.parser")
+    nodes: List[Any] = []
+    seen_nodes: Set[int] = set()
+    selectors = ("article", "li", "tr", "dd", ".event", ".event-item", ".views-row", ".list-item", "a[href]")
+    for selector in selectors:
+        for node in soup.select(selector):
+            identity = id(node)
+            if identity in seen_nodes:
+                continue
+            seen_nodes.add(identity)
+            nodes.append(node)
+    events: List[Event] = []
+    for node in nodes:
+        event = _speaker_event_from_node(institution, node, source_url, source_path, start_utc, end_utc)
+        if event:
+            events.append(event)
+    if institution == "BOE" and source_path == "boe_staff_events":
+        events.extend(_parse_boe_staff_events_text(soup, source_url, source_path, start_utc, end_utc))
+    return _dedupe_central_bank_speaker_events(events)
+
+
+def _parse_boe_staff_events_text(
+    soup: Any,
+    source_url: str,
+    source_path: str,
+    start_utc: datetime,
+    end_utc: datetime,
+) -> List[Event]:
+    lines = [_normalize_metadata_text(line) for line in soup.get_text("\n", strip=True).splitlines()]
+    lines = [line for line in lines if line]
+    in_upcoming = False
+    current_date = ""
+    events: List[Event] = []
+    date_pattern = re.compile(
+        r"^(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)\s+\d{1,2}\s+(?:"
+        + "|".join(MONTHS)
+        + r")(?:\s+20\d{2})?$",
+        flags=re.IGNORECASE,
+    )
+    speaker_pattern = re.compile(r"^([A-Z][A-Za-z'.-]+(?:\s+[A-Z][A-Za-z'.-]+){1,3}):$")
+    for index, line in enumerate(lines):
+        if line.startswith("Upcoming events - "):
+            in_upcoming = True
+            continue
+        if in_upcoming and line == "Upcoming key publications":
+            break
+        if not in_upcoming:
+            continue
+        if date_pattern.match(line):
+            current_date = line if re.search(r"\b20\d{2}\b", line) else f"{line} {start_utc.year}"
+            continue
+        speaker_match = speaker_pattern.match(line)
+        if not speaker_match or not current_date:
+            continue
+        speaker_name = speaker_match.group(1)
+        if speaker_name.lower() not in CENTRAL_BANK_SPEAKER_PRIORITY["BOE"]["names"]:
+            continue
+        topic = lines[index + 1] if index + 1 < len(lines) else ""
+        time_text = lines[index + 2] if index + 2 < len(lines) else ""
+        time_match = re.search(r"\((\d{1,2}(?:(?:\.|:)\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)(?:\s+(?:BST|GMT))?)", time_text, flags=re.IGNORECASE)
+        time_value = time_match.group(1).replace(".", ":") if time_match else ""
+        dt_utc, confidence = _speaker_datetime_from_value(f"{current_date} {time_value}", "Europe/London")
+        if dt_utc is None or not _within(dt_utc, start_utc, end_utc):
+            continue
+        role = str(CENTRAL_BANK_SPEAKER_PRIORITY["BOE"]["names"][speaker_name.lower()])
+        node = BeautifulSoup("", "html.parser").new_tag("article")
+        time_node = BeautifulSoup("", "html.parser").new_tag("time")
+        time_node["datetime"] = dt_utc.astimezone(ZoneInfo("Europe/London")).isoformat() if confidence == "exact" else current_date
+        node.append(time_node)
+        node.append(f" {role} {speaker_name} appearance: {topic} {time_text}")
+        event = _speaker_event_from_node("BOE", node, source_url, source_path, start_utc, end_utc)
+        if event:
+            events.append(event)
+    return events
+
+
+def _speaker_dedupe_key(event: Event) -> Tuple[str, str, str, str]:
+    extras = event.extras or {}
+    dt = event.date_time_utc.astimezone(UTC)
+    dt_key = dt.date().isoformat() if extras.get("time_confidence") == "date_only" else dt.isoformat()
+    return (
+        str(extras.get("speaker_institution") or event.agency),
+        str(extras.get("speaker_name") or "").lower(),
+        str(extras.get("event_type") or "speech"),
+        dt_key,
+    )
+
+
+def _dedupe_central_bank_speaker_events(events: List[Event]) -> List[Event]:
+    deduped: Dict[Tuple[str, str, str, str], Event] = {}
+    for event in events:
+        key = _speaker_dedupe_key(event)
+        existing = deduped.get(key)
+        if existing is None:
+            deduped[key] = event
+            continue
+        candidates = list((existing.extras or {}).get("source_candidates") or [])
+        for candidate in (event.extras or {}).get("source_candidates") or []:
+            if candidate not in candidates:
+                candidates.append(candidate)
+        existing.extras["source_candidates"] = candidates
+        if event.url != existing.url and event.url.count("/") > existing.url.count("/"):
+            event.extras["source_candidates"] = candidates
+            deduped[key] = event
+    return sorted(deduped.values(), key=lambda event: event.date_time_utc)
+
+
+def _empty_central_bank_speakers_health() -> Dict[str, Any]:
+    return {
+        "status": "QUIET",
+        "sources_attempted": [],
+        "sources_succeeded": [],
+        "sources_failed": [],
+        "speaker_event_count": 0,
+        "default_dashboard_count": 0,
+        "by_institution": {
+            institution: {"count": 0, "status": "QUIET"}
+            for institution in sorted(CENTRAL_BANK_SPEAKER_PRIORITY)
+        },
+        "warnings": [],
+    }
+
+
+def collect_central_bank_speaker_events(session: requests.Session, start_utc: datetime, end_utc: datetime) -> List[Event]:
+    health = _empty_central_bank_speakers_health()
+    institution_attempts: Dict[str, int] = {key: 0 for key in CENTRAL_BANK_SPEAKER_PRIORITY}
+    institution_successes: Dict[str, int] = {key: 0 for key in CENTRAL_BANK_SPEAKER_PRIORITY}
+    events: List[Event] = []
+    for source in _central_bank_speaker_sources(start_utc, end_utc):
+        institution = source["institution"]
+        url = source["url"]
+        source_path = source["source_path"]
+        institution_attempts[institution] += 1
+        health["sources_attempted"].append(source_path)
+        response = _request_central_bank_speaker_source(session, url)
+        if response is None or not (200 <= int(getattr(response, "status_code", 0) or 0) < 300):
+            health["sources_failed"].append(source_path)
+            continue
+        institution_successes[institution] += 1
+        health["sources_succeeded"].append(source_path)
+        parsed = _parse_central_bank_speaker_html(institution, response.text or "", url, source_path, start_utc, end_utc)
+        events.extend(parsed)
+
+    events = _dedupe_central_bank_speaker_events(events)
+    for institution in sorted(CENTRAL_BANK_SPEAKER_PRIORITY):
+        count = sum(1 for event in events if event.agency == institution)
+        if institution_attempts[institution] and not institution_successes[institution]:
+            status = "DEGRADED"
+            health["warnings"].append(f"{institution} speaker live sources failed")
+        elif count:
+            status = "HEALTHY"
+        else:
+            status = "QUIET"
+        health["by_institution"][institution] = {"count": count, "status": status}
+    health["speaker_event_count"] = len(events)
+    health["default_dashboard_count"] = sum(1 for event in events if bool((event.extras or {}).get("default_dashboard")))
+    health["status"] = "DEGRADED" if health["warnings"] else ("HEALTHY" if events else "QUIET")
+    RUN_CONTEXT["central_bank_speakers_health"] = health
+    logger.info(
+        "CENTRAL_BANK_SPEAKERS: status=%s events=%d default_dashboard=%d",
+        health["status"],
+        health["speaker_event_count"],
+        health["default_dashboard_count"],
+    )
+    return events
+
+
+def run_central_bank_speaker_debug_diagnostics(
+    session: requests.Session,
+    start_utc: datetime,
+    end_utc: datetime,
+    *,
+    out_dir: Path = OUT_DIR,
+) -> Tuple[Path, Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    for source in _central_bank_speaker_sources(start_utc, end_utc):
+        response = _request_central_bank_speaker_source(session, source["url"])
+        status = int(getattr(response, "status_code", 0) or 0) if response is not None else 0
+        content = bytes(getattr(response, "content", b"") or b"") if response is not None else b""
+        content_type = str((getattr(response, "headers", {}) or {}).get("Content-Type") or "")
+        final_url = str(getattr(response, "url", "") or source["url"]) if response is not None else source["url"]
+        parser_error = ""
+        parsed: List[Event] = []
+        if response is not None and 200 <= status < 300:
+            try:
+                parsed = _parse_central_bank_speaker_html(
+                    source["institution"],
+                    response.text or "",
+                    final_url,
+                    source["source_path"],
+                    start_utc,
+                    end_utc,
+                )
+            except Exception as exc:
+                parser_error = str(exc)
+        row = {
+            **source,
+            "http_status": status,
+            "final_url": final_url,
+            "content_type": content_type,
+            "response_size_bytes": len(content),
+            "classification": _speaker_response_classification(content, content_type, status),
+            "parser_count": len(parsed),
+            "parsed_speaker_names": sorted({str((event.extras or {}).get("speaker_name") or "") for event in parsed if (event.extras or {}).get("speaker_name")}),
+            "parsed_event_dates": [event.date_time_utc.isoformat() for event in parsed],
+            "parser_error": parser_error,
+        }
+        rows.append(row)
+        print(
+            "SPEAKER_DEBUG: "
+            f"{row['institution']} path={row['source_path']} status={row['http_status']} "
+            f"classification={row['classification']} parser_count={row['parser_count']} url={row['url']}"
+        )
+    payload = {
+        "generated_at_utc": _now_utc().isoformat(),
+        "window": {"start_utc": start_utc.isoformat(), "end_utc": end_utc.isoformat()},
+        "sources": rows,
+    }
+    diagnostics_dir = Path(out_dir) / "diagnostics"
+    diagnostics_dir.mkdir(parents=True, exist_ok=True)
+    path = diagnostics_dir / f"speakers_debug_{_now_utc().strftime('%Y%m%d_%H%M%S')}.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"SPEAKER_DEBUG_WRITTEN: {path}")
+    return path, payload
 
 # ---------------------------------------------------------------------------
 
@@ -6364,6 +7062,47 @@ BLS_CANONICAL_SPECS: Dict[str, Dict[str, Any]] = {
     },
 }
 
+# Reviewed against the official BLS ICS feed on 2026-05-31. These replace
+# estimator dates only for the listed months; later months keep rule fallback.
+BLS_CURATED_OFFICIAL_DATE_OVERRIDES: Dict[str, Tuple[str, ...]] = {
+    "BLS_EMPLOYMENT_SITUATION": (
+        "2026-06-05T12:30:00+00:00",
+        "2026-07-02T12:30:00+00:00",
+        "2026-08-07T12:30:00+00:00",
+    ),
+    "BLS_CPI": (
+        "2026-06-10T12:30:00+00:00",
+        "2026-07-14T12:30:00+00:00",
+        "2026-08-12T12:30:00+00:00",
+    ),
+    "BLS_PPI": (
+        "2026-06-11T12:30:00+00:00",
+        "2026-07-15T12:30:00+00:00",
+        "2026-08-13T12:30:00+00:00",
+    ),
+    "BLS_JOLTS": (
+        "2026-06-02T14:00:00+00:00",
+        "2026-06-30T14:00:00+00:00",
+        "2026-07-22T14:00:00+00:00",
+        "2026-08-04T14:00:00+00:00",
+    ),
+    "BLS_IMPORT_EXPORT_PRICES": (
+        "2026-06-16T12:30:00+00:00",
+        "2026-07-17T12:30:00+00:00",
+        "2026-08-18T12:30:00+00:00",
+    ),
+    "BLS_ECI": ("2026-07-31T12:30:00+00:00",),
+    "BLS_PRODUCTIVITY_COSTS": (
+        "2026-06-04T12:30:00+00:00",
+        "2026-08-06T12:30:00+00:00",
+    ),
+    "BLS_REAL_EARNINGS": (
+        "2026-06-10T12:30:00+00:00",
+        "2026-07-14T12:30:00+00:00",
+        "2026-08-12T12:30:00+00:00",
+    ),
+}
+
 
 def _bls_canonical_key_from_text(text: str) -> Optional[str]:
     normalized = _normalize_metadata_text(text).lower()
@@ -6487,8 +7226,30 @@ def _bls_event_from_candidate(
 
 def _bls_curated_candidates(start_utc: datetime, end_utc: datetime) -> List[Dict[str, Any]]:
     candidates: List[Dict[str, Any]] = []
+    overridden_months: Set[Tuple[str, int, int]] = set()
+    for canonical_key, values in BLS_CURATED_OFFICIAL_DATE_OVERRIDES.items():
+        spec = BLS_CANONICAL_SPECS[canonical_key]
+        for value in values:
+            dt_utc = datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
+            if not _within(dt_utc, start_utc, end_utc):
+                continue
+            local_dt = dt_utc.astimezone(NEW_YORK_TZ)
+            overridden_months.add((canonical_key, local_dt.year, local_dt.month))
+            candidates.append(
+                _bls_candidate(
+                    canonical_key,
+                    dt_utc,
+                    source_path="curated",
+                    source_url=str(spec["url"]),
+                    release_title_raw=str(spec["title"]),
+                    confidence="tentative",
+                    source_reliability="curated",
+                )
+            )
     for cursor in _iter_local_month_starts(start_utc, end_utc, NEW_YORK_TZ):
         for canonical_key, spec in BLS_CANONICAL_SPECS.items():
+            if (canonical_key, cursor.year, cursor.month) in overridden_months:
+                continue
             date_rule = spec.get("rule")
             if not callable(date_rule):
                 continue
@@ -7038,6 +7799,42 @@ def _select_bls_official_candidate(candidates: List[Dict[str, Any]]) -> Tuple[Di
     return sorted(buckets[best_key], key=lambda c: str(c.get("source_path") or ""))[0], confidence
 
 
+def _group_bls_candidates_by_time(candidates: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+    buckets: Dict[str, List[Dict[str, Any]]] = {}
+    for candidate in candidates:
+        key = _bls_candidate_dt(candidate).isoformat(timespec="minutes")
+        buckets.setdefault(key, []).append(candidate)
+    return [buckets[key] for key in sorted(buckets)]
+
+
+def _match_bls_curated_occurrences(
+    official_selected: List[Dict[str, Any]],
+    curated: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, Any]]:
+    """Pair curated estimates to official occurrences without crossing release months blindly."""
+    available = list(curated)
+    matches: Dict[str, Dict[str, Any]] = {}
+
+    # Reserve exact matches before considering nearest estimates. This prevents
+    # an unusual late-month release from consuming the next month's exact match.
+    for selected in official_selected:
+        selected_key = _bls_candidate_dt(selected).isoformat(timespec="minutes")
+        exact = next((candidate for candidate in available if _same_bls_release_time(selected, candidate)), None)
+        if exact is not None:
+            matches[selected_key] = exact
+            available.remove(exact)
+
+    for selected in official_selected:
+        selected_key = _bls_candidate_dt(selected).isoformat(timespec="minutes")
+        if selected_key in matches or not available:
+            continue
+        closest = min(available, key=lambda candidate: abs(_bls_candidate_dt(candidate) - _bls_candidate_dt(selected)))
+        if abs(_bls_candidate_dt(closest) - _bls_candidate_dt(selected)) <= timedelta(days=14):
+            matches[selected_key] = closest
+            available.remove(closest)
+    return matches
+
+
 def verify_bls_release_published(
     canonical_key: str,
     release_time_utc: datetime,
@@ -7102,46 +7899,54 @@ def _reconcile_bls_candidates(
         official = [c for c in key_candidates if c.get("source_reliability") == "official"]
         curated = [c for c in key_candidates if c.get("source_reliability") == "curated"]
         lkg = [c for c in key_candidates if c.get("source_reliability") == "last_known_good"]
-        selected: Optional[Dict[str, Any]] = None
-        confidence = "failed"
+        selections: List[Tuple[Dict[str, Any], str, List[Dict[str, Any]]]] = []
         if official:
-            selected, confidence = _select_bls_official_candidate(official)
-            for curated_candidate in curated:
-                if not _same_bls_release_time(selected, curated_candidate):
-                    message = (
-                        f"{canonical_key} official {selected['date_time_utc'].isoformat()} "
-                        f"conflicts with curated {curated_candidate['date_time_utc'].isoformat()}"
-                    )
-                    conflicts.append(message)
-                    warnings.append("BLS official live source conflicts with curated fallback: " + message)
-                    break
+            official_groups = _group_bls_candidates_by_time(official)
+            official_selected = [_select_bls_official_candidate(group)[0] for group in official_groups]
+            curated_matches = _match_bls_curated_occurrences(official_selected, curated)
+            for group in official_groups:
+                selected, confidence = _select_bls_official_candidate(group)
+                occurrence_candidates = list(group)
+                curated_candidate = curated_matches.get(_bls_candidate_dt(selected).isoformat(timespec="minutes"))
+                if curated_candidate is not None:
+                    occurrence_candidates.append(curated_candidate)
+                    if not _same_bls_release_time(selected, curated_candidate):
+                        message = (
+                            f"{canonical_key} official {_bls_candidate_dt(selected).isoformat()} "
+                            f"conflicts with curated {_bls_candidate_dt(curated_candidate).isoformat()}"
+                        )
+                        conflicts.append(message)
+                        warnings.append("BLS official live source conflicts with curated fallback: " + message)
+                occurrence_candidates.extend(candidate for candidate in lkg if _same_bls_release_time(selected, candidate))
+                selections.append((selected, confidence, occurrence_candidates))
         elif curated:
             info = _curated_fallback_info("BLS", as_of)
             curated_fresh = bool(info and info.get("fresh"))
             curated_used = True
-            selected = sorted(curated, key=_bls_candidate_dt)[0]
-            confidence = "tentative"
             if not curated_fresh:
                 stale_required.append(canonical_key)
                 warnings.append(f"BLS stale curated fallback for required event: {canonical_key}")
+            for group in _group_bls_candidates_by_time(curated):
+                selections.append((sorted(group, key=_bls_candidate_dt)[0], "tentative", group))
         elif lkg:
-            selected = sorted(lkg, key=_bls_candidate_dt)[0]
-            confidence = "tentative"
             warnings.append(f"BLS using LKG schedule candidate for required event: {canonical_key}")
-        if selected is None:
+            for group in _group_bls_candidates_by_time(lkg):
+                selections.append((sorted(group, key=_bls_candidate_dt)[0], "tentative", group))
+        if not selections:
             required_present[canonical_key] = False
             missing_required.append(canonical_key)
             continue
         required_present[canonical_key] = True
-        post_release_status = verify_bls_release_published(canonical_key, _bls_candidate_dt(selected), as_of_utc=as_of)
-        selected_events.append(
-            _bls_event_from_candidate(
-                selected,
-                key_candidates,
-                schedule_confidence=confidence,
-                post_release_status=post_release_status,
+        for selected, confidence, occurrence_candidates in selections:
+            post_release_status = verify_bls_release_published(canonical_key, _bls_candidate_dt(selected), as_of_utc=as_of)
+            selected_events.append(
+                _bls_event_from_candidate(
+                    selected,
+                    occurrence_candidates,
+                    schedule_confidence=confidence,
+                    post_release_status=post_release_status,
+                )
             )
-        )
 
     selected_events.sort(key=lambda ev: ev.date_time_utc)
     next_event_payload: Dict[str, Any] = {}
@@ -8391,6 +9196,7 @@ def _failed_health_payload(reason: str, *, missing_packages: Optional[List[str]]
         "degraded_sources": [],
         "live_source_warnings": [],
         "curated_fallbacks": {},
+        "central_bank_speakers_health": _empty_central_bank_speakers_health(),
         "generated_at_utc": generated_at.isoformat(),
         **last_publish,
         "event_count_total": 0,
@@ -12918,6 +13724,9 @@ def _collect_events_core(
         cb_events = gather_central_bank_events(session, start_utc, end_utc)
         if cb_events:
             events.extend(cb_events)
+        speaker_events = collect_central_bank_speaker_events(session, start_utc, end_utc)
+        if speaker_events:
+            events.extend(speaker_events)
         health_status = RUN_CONTEXT.setdefault("health_status", {})
         events = _apply_health_guard(
             "RBNZ",
@@ -13023,6 +13832,12 @@ def _collect_events_core(
             warning = f"BLS alert severity: {severity}"
             if warning not in live_source_warnings and bls_health.get("status") != "failed":
                 live_source_warnings.append(warning)
+    speakers_health = RUN_CONTEXT.get("central_bank_speakers_health", _empty_central_bank_speakers_health())
+    if isinstance(speakers_health, dict):
+        for warning in speakers_health.get("warnings", []) or []:
+            warning_text = str(warning)
+            if warning_text not in live_source_warnings:
+                live_source_warnings.append(warning_text)
 
     health_status = _build_health_status_payload(
         sources_payload,
@@ -13122,6 +13937,7 @@ def _collect_events_core(
         "live_source_warnings": live_source_warnings,
         "curated_fallbacks": curated_fallbacks,
         "bls_health": bls_health if isinstance(bls_health, dict) else {},
+        "central_bank_speakers_health": speakers_health if isinstance(speakers_health, dict) else _empty_central_bank_speakers_health(),
         "generated_at_utc": report_now.isoformat(),
         **last_publish,
         "event_count_total": len(events),
@@ -13456,6 +14272,11 @@ def main() -> None:
         help="Run BLS-only transport/parser diagnostics and exit without scraping or publishing",
     )
     parser.add_argument(
+        "--debug-speakers",
+        action="store_true",
+        help="Run central-bank speaker source diagnostics and exit without scraping or publishing",
+    )
+    parser.add_argument(
         "--strict-zero",
         action="store_true",
         help="Fail (exit code 3) if critical sources like FED/ECB return zero events",
@@ -13491,6 +14312,21 @@ def main() -> None:
         end_utc = now_utc + timedelta(days=args.until)
         try:
             run_bls_debug_diagnostics(session, start_utc, end_utc, out_dir=OUT_DIR)
+        finally:
+            try:
+                session.close()
+            except Exception:
+                pass
+        return
+
+    if args.debug_speakers:
+        cache_manager = EnhancedCacheManager(args.cache_dir, args.snapshots_dir)
+        session = build_session(cache_manager)
+        now_utc = _now_utc()
+        start_utc = now_utc + timedelta(days=args.since)
+        end_utc = now_utc + timedelta(days=args.until)
+        try:
+            run_central_bank_speaker_debug_diagnostics(session, start_utc, end_utc, out_dir=OUT_DIR)
         finally:
             try:
                 session.close()

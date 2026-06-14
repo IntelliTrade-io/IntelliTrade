@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* TradingView web component — prevent internal iframe from expanding page width */
+tv-mini-chart {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+}
+
 /* ── Hamburger menu ── */
 .hamburger-bg {
   border-radius: 16px;

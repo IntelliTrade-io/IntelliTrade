@@ -1,11 +1,12 @@
+import type { Metadata } from "next";
 import { PortableText, type SanityDocument } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
 import Link from "next/link";
 import Image from "next/image";
-import ReadingProgressBar from "@/components/readingProgressBar"; // We'll create this next
-import { ArrowLeft } from "lucide-react"; // or use your preferred icon set
+import ReadingProgressBar from "@/components/readingProgressBar";
+import { ArrowLeft } from "lucide-react";
 
 
 const POST_QUERY = `*[_type == "post" && slug.current == $slug][0]`;
@@ -15,6 +16,42 @@ const urlFor = (source: SanityImageSource) =>
   projectId && dataset ? imageUrlBuilder({ projectId, dataset }).image(source) : null;
 
 const options = { next: { revalidate: 30 } };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug: params.slug }, options);
+  if (!post) return { title: "Post Not Found · IntelliTrade" };
+
+  const postImageUrl = post.image
+    ? urlFor(post.image)?.width(1200).height(675).url()
+    : null;
+
+  return {
+    title: `${post.title} · IntelliTrade`,
+    description:
+      post.summary ||
+      `${post.title} — educational macro and market analysis from IntelliTrade.`,
+    alternates: { canonical: `https://intellitrade.tech/blog/${params.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.summary || "",
+      url: `https://intellitrade.tech/blog/${params.slug}`,
+      type: "article",
+      publishedTime: post.publishedAt,
+      authors: post.author ? [post.author] : ["IntelliTrade Team"],
+      images: postImageUrl ? [{ url: postImageUrl, width: 1200, height: 675 }] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.summary || "",
+      images: postImageUrl ? [postImageUrl] : [],
+    },
+  };
+}
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const slugs: { slug: { current: string } }[] = await client.fetch(`*[_type == "post"]{ slug }`);
@@ -51,8 +88,37 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
   const postImageUrl = post.image ? urlFor(post.image)?.width(1200).height(675).url() : null;
 
+  const blogPostingSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.summary || "",
+    url: `https://intellitrade.tech/blog/${params.slug}`,
+    datePublished: post.publishedAt,
+    dateModified: post._updatedAt || post.publishedAt,
+    author: {
+      "@type": "Organization",
+      name: post.author || "IntelliTrade Team",
+      url: "https://intellitrade.tech/about",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "IntelliTrade",
+      url: "https://intellitrade.tech",
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://intellitrade.tech/blog/${params.slug}`,
+    },
+    ...(postImageUrl && { image: postImageUrl }),
+  };
+
   return (
     <div className="relative min-h-screen bg-black text-slate-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }}
+      />
       {/* Scroll Progress Bar (Client Component) */}
       <ReadingProgressBar />
 

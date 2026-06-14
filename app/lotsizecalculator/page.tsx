@@ -102,6 +102,15 @@ const faqSchemaData = {
   ],
 };
 
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://intellitrade.tech/" },
+    { "@type": "ListItem", position: 2, name: "Lot Size Calculator", item: "https://intellitrade.tech/lotsizecalculator" },
+  ],
+};
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function Page() {
@@ -115,6 +124,10 @@ export default function Page() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchemaData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       <div className="mx-auto max-w-4xl px-4 pb-28 pt-10 sm:px-8">
