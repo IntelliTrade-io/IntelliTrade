@@ -34,9 +34,9 @@ const defaultUrl = process.env.VERCEL_URL
   : 'http://localhost:3000';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(defaultUrl),
+  metadataBase: new URL('https://intellitrade.tech'),
   title: 'IntelliTrade',
-  description: 'IntelliTrade - Where smarter trading starts.',
+  description: 'Professional-grade trading tools, macro analysis and market context for disciplined traders.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

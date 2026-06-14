@@ -129,6 +129,7 @@ export function PricePageBrandStyles({ theme = "gold" }: { theme?: PriceTheme })
         border: 1px solid rgba(255, 255, 255, 0.07);
         overflow: hidden;
         max-width: 100%;
+        contain: paint;
       }
       .price-chart-shell-hover {
         transition: border-color 200ms;

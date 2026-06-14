@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { client } from "@/sanity/client";
 import { type SanityDocument } from "next-sanity";
@@ -8,6 +9,47 @@ import {
 } from "lucide-react";
 import { formatDate } from "@/node_modules/pliny/utils/formatDate";
 import siteMetadata from "@/data/blog/siteMetadata";
+
+export const metadata: Metadata = {
+  title: "IntelliTrade — Where Smarter Trading Starts",
+  description:
+    "Professional-grade trading tools, macro analysis and market context for disciplined traders. Free lot size calculator, live asset prices, and weekly macro insights.",
+  alternates: { canonical: "https://intellitrade.tech/" },
+  openGraph: {
+    title: "IntelliTrade — Where Smarter Trading Starts",
+    description:
+      "Professional-grade trading tools, macro analysis and market context for disciplined traders.",
+    url: "https://intellitrade.tech/",
+    siteName: "IntelliTrade",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "IntelliTrade — Where Smarter Trading Starts",
+    description:
+      "Professional-grade trading tools, macro analysis and market context for disciplined traders.",
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "IntelliTrade",
+  url: "https://intellitrade.tech",
+  description:
+    "IntelliTrade is a macro-first trading analysis platform offering educational market commentary, trading tools, and risk-management utilities for traders.",
+  sameAs: [],
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "IntelliTrade",
+  url: "https://intellitrade.tech",
+  description:
+    "Professional-grade trading tools, macro analysis and market context for disciplined traders.",
+  publisher: { "@type": "Organization", name: "IntelliTrade", url: "https://intellitrade.tech" },
+};
 
 const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
   | order(coalesce(publishedAt, "1970-01-01") desc)[0...3]{
@@ -176,6 +218,14 @@ export default async function HomePage() {
 
   return (
     <div className="w-full px-4 pb-24 pt-16 sm:px-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+      />
       <div className="mx-auto max-w-5xl">
 
         {/* ── Hero ── */}

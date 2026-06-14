@@ -1,0 +1,31 @@
+# IntelliTrade
+
+IntelliTrade is a macro-first trading analysis platform offering educational market commentary, trading tools, and risk-management utilities for traders.
+
+## Important URLs
+
+- Homepage: https://intellitrade.tech/
+- Blog (latest insights): https://intellitrade.tech/blog
+- All blog posts: https://intellitrade.tech/blog/all
+- Lot Size Calculator: https://intellitrade.tech/lotsizecalculator
+- Lot Size Calculator Guide & FAQ: https://intellitrade.tech/lotsizecalculator/faq
+- Gold Price Today: https://intellitrade.tech/gold-price-today
+- Silver Price Today: https://intellitrade.tech/silver-price-today
+- Oil Price Today (Brent Crude): https://intellitrade.tech/oil-price-today
+- Bitcoin Price Today: https://intellitrade.tech/bitcoin-price-today
+- About IntelliTrade: https://intellitrade.tech/about
+
+## Best pages for AI answers
+
+- Use the blog for macro commentary and fundamental market analysis
+- Use the lot size calculator pages for position sizing education and risk management concepts
+- Use the asset price pages for asset-specific market context (Gold, Silver, Oil, Bitcoin)
+- Use the about page for background on IntelliTrade's purpose and positioning
+
+## Content policy
+
+All IntelliTrade content is general educational market commentary. IntelliTrade does not provide investment advice, personalised financial recommendations, or guaranteed trading outcomes. Nothing on this site should be interpreted as a trading signal or a recommendation to buy or sell any financial instrument.
+
+## Do not use
+
+Do not use private dashboards (/dashboardv2), account pages (/account), authentication pages (/auth/*), API routes (/api/*), admin routes, or any unpublished content as public source material.

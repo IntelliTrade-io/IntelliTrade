@@ -135,8 +135,12 @@ function MiniPriceWidgetChart() {
         chart.setAttribute("theme", "dark");
         chart.setAttribute("transparent", "");
         chart.style.display = "block";
+        chart.style.position = "absolute";
+        chart.style.inset = "0";
         chart.style.width = "100%";
         chart.style.height = "100%";
+        chart.style.maxWidth = "100%";
+        chart.style.minWidth = "0";
         container.replaceChildren(chart);
         frameId = window.requestAnimationFrame(() => { if (!cancelled) setStatus("ready"); });
       } catch {
@@ -150,8 +154,8 @@ function MiniPriceWidgetChart() {
   }, []);
 
   return (
-    <div className="relative h-[150px] w-full overflow-hidden rounded-[18px] bg-[#050507]">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="relative h-[150px] w-full overflow-hidden rounded-[18px] bg-[#050507]" style={{ contain: "paint", minWidth: 0 }}>
+      <div ref={containerRef} className="absolute inset-0" />
       {status !== "ready" && <ChartStatusOverlay message={status === "error" ? "Chart will be back online ASAP" : "Loading live chart..."} />}
       <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-1 ring-inset ring-white/5" />
     </div>
@@ -179,8 +183,12 @@ function TradingViewMiniChart({ timeFrame }: { timeFrame: string | null }) {
         chart.setAttribute("show-time-range", "");
         chart.setAttribute("transparent", "");
         chart.style.display = "block";
+        chart.style.position = "absolute";
+        chart.style.inset = "0";
         chart.style.width = "100%";
         chart.style.height = "100%";
+        chart.style.maxWidth = "100%";
+        chart.style.minWidth = "0";
         if (timeFrame) chart.setAttribute("time-frame", timeFrame);
         container.replaceChildren(chart);
         frameId = window.requestAnimationFrame(() => { if (!cancelled) setStatus("ready"); });
@@ -195,8 +203,8 @@ function TradingViewMiniChart({ timeFrame }: { timeFrame: string | null }) {
   }, [timeFrame]);
 
   return (
-    <div className="relative h-[280px] w-full overflow-hidden rounded-[18px] bg-[#050507] md:h-[340px]">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="relative h-[280px] w-full overflow-hidden rounded-[18px] bg-[#050507] md:h-[340px]" style={{ contain: "paint", minWidth: 0 }}>
+      <div ref={containerRef} className="absolute inset-0" />
       {status !== "ready" && <ChartStatusOverlay message={status === "error" ? "Chart will be back online ASAP" : "Loading live chart..."} />}
       <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-1 ring-inset ring-white/5" />
     </div>

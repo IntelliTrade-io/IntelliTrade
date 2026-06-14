@@ -26,11 +26,13 @@ export default function robots(): MetadataRoute.Robots {
           "/api/",
           "/auth/",
           "/protected",
+          "/dashboard",
           "/dashboardv2",
+          "/account",
           "/data/",
         ],
       },
     ],
-    sitemap: "https://intellitrade.tech/blog/sitemap.xml",
+    sitemap: "https://intellitrade.tech/sitemap.xml",
   };
 }
