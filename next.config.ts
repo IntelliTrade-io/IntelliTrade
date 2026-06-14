@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ["recharts"],
   images: {
     domains: ["cdn.sanity.io"], // add Sanity CDN here
   },

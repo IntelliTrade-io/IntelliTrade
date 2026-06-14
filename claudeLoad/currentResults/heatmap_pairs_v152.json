@@ -1,0 +1,322 @@
+{
+  "run_info": {
+    "ts_utc": "2026-06-14T18:58:23.372901Z",
+    "scanner": "d1h4_scanner",
+    "feed": "metaquotes_demo",
+    "version": "1.5.2-vps",
+    "tf1": "1day",
+    "tf2": "4hour",
+    "symbols_ok": 28,
+    "symbols_fail": 0
+  },
+  "pairs": {
+    "EURUSD": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 21.0,
+      "last_bos_d1": 1.15763,
+      "last_bos_d1_time": "2026-05-21 00:00:00+00:00",
+      "last_bos_h4": 1.1573,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "GBPUSD": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 1.33673,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 1.3423,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "AUDUSD": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.70973,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 0.70551,
+      "last_bos_h4_time": "2026-06-11 20:00:00+00:00",
+      "error": ""
+    },
+    "NZDUSD": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.58147,
+      "last_bos_d1_time": "2026-05-20 00:00:00+00:00",
+      "last_bos_h4": 0.58325,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "USDJPY": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 157.932,
+      "last_bos_d1_time": "2026-05-06 00:00:00+00:00",
+      "last_bos_h4": 160.239,
+      "last_bos_h4_time": "2026-06-10 04:00:00+00:00",
+      "error": ""
+    },
+    "USDCHF": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.7899,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 0.79471,
+      "last_bos_h4_time": "2026-06-08 16:00:00+00:00",
+      "error": ""
+    },
+    "USDCAD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 30.0,
+      "last_bos_d1": 1.38699,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 1.39692,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "EURGBP": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.87233,
+      "last_bos_d1_time": "2026-04-17 00:00:00+00:00",
+      "last_bos_h4": 0.86197,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "EURJPY": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 21.0,
+      "last_bos_d1": 184.892,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 184.955,
+      "last_bos_h4_time": "2026-06-10 04:00:00+00:00",
+      "error": ""
+    },
+    "EURAUD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 42.0,
+      "last_bos_d1": 1.63334,
+      "last_bos_d1_time": "2026-05-27 00:00:00+00:00",
+      "last_bos_h4": 1.64593,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "EURNZD": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 1.99337,
+      "last_bos_d1_time": "2026-05-26 00:00:00+00:00",
+      "last_bos_h4": 1.9801199999999999,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "EURCHF": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 42.0,
+      "last_bos_d1": 0.91693,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 0.9205,
+      "last_bos_h4_time": "2026-06-08 16:00:00+00:00",
+      "error": ""
+    },
+    "EURCAD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 28.000000000000004,
+      "last_bos_d1": 1.61773,
+      "last_bos_d1_time": "2026-06-04 00:00:00+00:00",
+      "last_bos_h4": 1.61385,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "GBPJPY": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 21.0,
+      "last_bos_d1": 213.325,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 214.265,
+      "last_bos_h4_time": "2026-06-10 00:00:00+00:00",
+      "error": ""
+    },
+    "GBPAUD": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 1.89101,
+      "last_bos_d1_time": "2026-05-19 00:00:00+00:00",
+      "last_bos_h4": 1.90606,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "GBPNZD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 50.0,
+      "last_bos_d1": 2.30688,
+      "last_bos_d1_time": "2026-05-26 00:00:00+00:00",
+      "last_bos_h4": 2.30302,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "GBPCHF": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 60.0,
+      "last_bos_d1": 1.05961,
+      "last_bos_d1_time": "2026-05-20 00:00:00+00:00",
+      "last_bos_h4": 1.06335,
+      "last_bos_h4_time": "2026-06-03 20:00:00+00:00",
+      "error": ""
+    },
+    "GBPCAD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 52.5,
+      "last_bos_d1": 1.8703699999999999,
+      "last_bos_d1_time": "2026-06-05 00:00:00+00:00",
+      "last_bos_h4": 1.87035,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "AUDJPY": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 112.634,
+      "last_bos_d1_time": "2026-05-19 00:00:00+00:00",
+      "last_bos_h4": 112.839,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "AUDNZD": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 60.0,
+      "last_bos_d1": 1.2135,
+      "last_bos_d1_time": "2026-05-21 00:00:00+00:00",
+      "last_bos_h4": 1.21282,
+      "last_bos_h4_time": "2026-06-08 00:00:00+00:00",
+      "error": ""
+    },
+    "AUDCHF": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.55847,
+      "last_bos_d1_time": "2026-06-01 00:00:00+00:00",
+      "last_bos_h4": 0.5608,
+      "last_bos_h4_time": "2026-06-11 20:00:00+00:00",
+      "error": ""
+    },
+    "AUDCAD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 42.0,
+      "last_bos_d1": 0.98335,
+      "last_bos_d1_time": "2026-04-29 00:00:00+00:00",
+      "last_bos_h4": 0.98492,
+      "last_bos_h4_time": "2026-06-09 08:00:00+00:00",
+      "error": ""
+    },
+    "NZDJPY": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 31.5,
+      "last_bos_d1": 92.909,
+      "last_bos_d1_time": "2026-05-27 00:00:00+00:00",
+      "last_bos_h4": 92.995,
+      "last_bos_h4_time": "2026-06-10 00:00:00+00:00",
+      "error": ""
+    },
+    "NZDCHF": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 42.0,
+      "last_bos_d1": 0.46278,
+      "last_bos_d1_time": "2026-05-21 00:00:00+00:00",
+      "last_bos_h4": 0.46429,
+      "last_bos_h4_time": "2026-06-11 20:00:00+00:00",
+      "error": ""
+    },
+    "NZDCAD": {
+      "d1": "bullish",
+      "h4": "bullish",
+      "pair": "bullish",
+      "confidence": 42.0,
+      "last_bos_d1": 0.81744,
+      "last_bos_d1_time": "2026-05-08 00:00:00+00:00",
+      "last_bos_h4": 0.8146,
+      "last_bos_h4_time": "2026-06-09 08:00:00+00:00",
+      "error": ""
+    },
+    "CHFJPY": {
+      "d1": "bearish",
+      "h4": "bullish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 201.843,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 201.303,
+      "last_bos_h4_time": "2026-06-10 16:00:00+00:00",
+      "error": ""
+    },
+    "CADJPY": {
+      "d1": "bearish",
+      "h4": "bearish",
+      "pair": "bearish",
+      "confidence": 46.66666666666667,
+      "last_bos_d1": 114.821,
+      "last_bos_d1_time": "2026-05-25 00:00:00+00:00",
+      "last_bos_h4": 114.745,
+      "last_bos_h4_time": "2026-06-09 16:00:00+00:00",
+      "error": ""
+    },
+    "CADCHF": {
+      "d1": "bullish",
+      "h4": "bearish",
+      "pair": "neutral",
+      "confidence": 0.0,
+      "last_bos_d1": 0.56986,
+      "last_bos_d1_time": "2026-05-28 00:00:00+00:00",
+      "last_bos_h4": 0.57041,
+      "last_bos_h4_time": "2026-06-08 16:00:00+00:00",
+      "error": ""
+    }
+  }
+}

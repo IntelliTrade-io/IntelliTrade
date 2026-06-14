@@ -1,12 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase/admin';
 import { NextResponse } from 'next/server';
 
 // Always render fresh — never serve a cached/stale response from Vercel edge or Next.js ISR
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 /**
  * Dedup safety net: after the prune-before-upsert fix in the upload script,
@@ -29,12 +26,10 @@ function deduplicateEvents(events: Record<string, unknown>[]): Record<string, un
 
 export async function GET() {
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     const startOfToday = new Date();
     startOfToday.setUTCHours(0, 0, 0, 0);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('economic_events')
       .select('*')
       .gte('date_time_utc', startOfToday.toISOString())

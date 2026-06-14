@@ -1,0 +1,134 @@
+{
+  "currencies_raw": {
+    "USD": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 1.0,
+      "weak_w": 0.0,
+      "considered_w": 1.0,
+      "avg_conf": 42.0
+    },
+    "EUR": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 2.0,
+      "considered_w": 2.0,
+      "avg_conf": 51.0
+    },
+    "GBP": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 2.0,
+      "considered_w": 2.0,
+      "avg_conf": 51.0
+    },
+    "JPY": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 1.0,
+      "weak_w": 0.0,
+      "considered_w": 1.0,
+      "avg_conf": 42.0
+    },
+    "AUD": {
+      "bias": "Strong",
+      "score": 60.0,
+      "strong_w": 4.0,
+      "weak_w": 1.0,
+      "considered_w": 5.0,
+      "avg_conf": 56.8
+    },
+    "NZD": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 4.0,
+      "weak_w": 0.0,
+      "considered_w": 4.0,
+      "avg_conf": 53.5
+    },
+    "CAD": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 2.0,
+      "considered_w": 2.0,
+      "avg_conf": 42.0
+    },
+    "CHF": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 3.0,
+      "considered_w": 3.0,
+      "avg_conf": 51.3
+    }
+  },
+  "currencies_weighted": {
+    "USD": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 0.42,
+      "weak_w": 0.0,
+      "considered_w": 0.42,
+      "avg_conf": 42.0
+    },
+    "EUR": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 1.02,
+      "considered_w": 1.02,
+      "avg_conf": 51.0
+    },
+    "GBP": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 1.02,
+      "considered_w": 1.02,
+      "avg_conf": 51.0
+    },
+    "JPY": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 0.42,
+      "weak_w": 0.0,
+      "considered_w": 0.42,
+      "avg_conf": 42.0
+    },
+    "AUD": {
+      "bias": "Strong",
+      "score": 50.7,
+      "strong_w": 2.14,
+      "weak_w": 0.7,
+      "considered_w": 2.84,
+      "avg_conf": 56.8
+    },
+    "NZD": {
+      "bias": "Strong",
+      "score": 100.0,
+      "strong_w": 2.14,
+      "weak_w": 0.0,
+      "considered_w": 2.14,
+      "avg_conf": 53.5
+    },
+    "CAD": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 0.84,
+      "considered_w": 0.84,
+      "avg_conf": 42.0
+    },
+    "CHF": {
+      "bias": "Weak",
+      "score": -100.0,
+      "strong_w": 0.0,
+      "weak_w": 1.54,
+      "considered_w": 1.54,
+      "avg_conf": 51.3
+    }
+  }
+}
