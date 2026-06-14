@@ -29,9 +29,6 @@ const space_grotesk = Space_Grotesk({
   variable: '--font-space-grotesk',
 });
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : 'http://localhost:3000';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://intellitrade.tech'),
