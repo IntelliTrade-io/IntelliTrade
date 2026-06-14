@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { RefreshCw } from "lucide-react";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
+} from "recharts";
 import { WidgetShell } from "../ui/widget-shell";
 import { IconAction, PanelActions } from "../ui/panel-actions";
 import type { Panel } from "../types";
@@ -9,6 +12,17 @@ import type { Panel } from "../types";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
+
+const CURRENCY_COLORS: Record<string, string> = {
+  USD: "#60a5fa", // blue-400
+  EUR: "#a78bfa", // violet-400
+  GBP: "#f472b6", // pink-400
+  JPY: "#fbbf24", // amber-400
+  AUD: "#34d399", // emerald-400
+  NZD: "#2dd4bf", // teal-400
+  CAD: "#fb923c", // orange-400
+  CHF: "#94a3b8", // slate-400
+};
 
 // Standard market-convention pairs (base first). Used to detect "Inv" in the matrix.
 const STANDARD_PAIRS = new Set([
@@ -368,15 +382,113 @@ function SummaryGrid({ scores, expressions }: { scores: Scores; expressions: Exp
   );
 }
 
-function ChartPlaceholder() {
-  return (
-    <div className="flex h-28 items-center justify-center rounded-[18px] border border-white/8 bg-white/[0.02] text-center px-4">
-      <div>
-        <div className="text-xs font-medium text-white/30">Strength chart</div>
-        <div className="mt-1 text-[10px] text-white/20 leading-relaxed">
-          Requires time-series snapshots — see dev handoff
-        </div>
+type HistoryPoint = { ts: string } & Record<string, number>;
+
+function useStrengthHistory(type: "daily" | "intraday", hours = 24) {
+  const [points, setPoints] = useState<HistoryPoint[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(() => {
+    setLoading(true);
+    fetch(`/api/currency-strength-history?type=${type}&hours=${hours}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json) => { setPoints(json.points ?? []); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [type, hours]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return { points, loading, reload: load };
+}
+
+function formatChartTime(ts: string): string {
+  const d = new Date(ts);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function StrengthChart({ type }: { type: "daily" | "intraday" }) {
+  const hours = type === "intraday" ? 24 : 7 * 24;
+  const { points, loading } = useStrengthHistory(type, hours);
+
+  if (loading) {
+    return (
+      <div className="flex h-36 items-center justify-center rounded-[18px] border border-white/8 bg-white/[0.02]">
+        <span className="text-xs text-white/30">Loading chart…</span>
       </div>
+    );
+  }
+
+  if (points.length === 0) {
+    return (
+      <div className="flex h-36 items-center justify-center rounded-[18px] border border-white/8 bg-white/[0.02]">
+        <span className="text-xs text-white/25">No history yet — check back after a few scanner runs</span>
+      </div>
+    );
+  }
+
+  // Thin down to ~80 pts for perf
+  const step = Math.max(1, Math.floor(points.length / 80));
+  const thinned = points.filter((_, i) => i % step === 0 || i === points.length - 1);
+
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
+      <div className="mb-1 px-1 text-[9px] uppercase tracking-[0.18em] text-white/30">
+        Strength · {type === "intraday" ? "last 24h" : "last 7d"}
+      </div>
+      {/* Legend */}
+      <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 px-1">
+        {CURRENCIES.map((c) => (
+          <span key={c} className="flex items-center gap-1 text-[9px] text-white/50">
+            <span className="inline-block h-1.5 w-3 rounded-full" style={{ backgroundColor: CURRENCY_COLORS[c] }} />
+            {c}
+          </span>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={120}>
+        <LineChart data={thinned} margin={{ top: 2, right: 4, left: -24, bottom: 0 }}>
+          <XAxis
+            dataKey="ts"
+            tickFormatter={formatChartTime}
+            tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }}
+            axisLine={false}
+            tickLine={false}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            domain={[-100, 100]}
+            ticks={[-100, -50, 0, 50, 100]}
+            tick={{ fill: "rgba(255,255,255,0.20)", fontSize: 9 }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="3 3" />
+          <Tooltip
+            contentStyle={{
+              background: "rgba(9,10,13,0.95)",
+              border: "1px solid rgba(255,255,255,0.10)",
+              borderRadius: 10,
+              padding: "6px 10px",
+              fontSize: 10,
+            }}
+            labelFormatter={(ts: unknown) => formatChartTime(String(ts))}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(value: any, name: any) => [`${value > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
+            itemStyle={{ color: "rgba(255,255,255,0.7)", padding: "1px 0" }}
+            labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 4 }}
+          />
+          {CURRENCIES.map((c) => (
+            <Line
+              key={c}
+              type="monotone"
+              dataKey={c}
+              stroke={CURRENCY_COLORS[c]}
+              strokeWidth={1.5}
+              dot={false}
+              activeDot={{ r: 3, strokeWidth: 0 }}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -489,8 +601,8 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
           {/* ── Summary bar ── */}
           <SummaryGrid scores={scores} expressions={expressions} />
 
-          {/* ── Chart placeholder ── */}
-          <ChartPlaceholder />
+          {/* ── Strength chart ── */}
+          <StrengthChart type="intraday" />
 
           {/* ── Top 3 expressions ── */}
           {expressions.length > 0 && (
