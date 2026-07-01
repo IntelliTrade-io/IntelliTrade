@@ -94,6 +94,14 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
         />
         <DetailItem label="Session quality" value={details.sessionQuality} />
         <DetailItem label="Approach quality" value={details.approachQuality} />
+        <DetailItem
+          label="Close reclaim"
+          value={
+            details.closeReclaim
+              ? `Confirmed${details.reclaimConfirmedAt ? ` · ${formatTimestamp(details.reclaimConfirmedAt)} UTC` : ""}`
+              : "Not currently confirmed"
+          }
+        />
         <DetailItem label="Research buffer / first-reaction context" value={`${details.stopBufferAtr.toFixed(2)} ATR stop buffer / ~${details.firstReactionTargetR.toFixed(2)}R first reaction`} />
         <DetailItem label="Last updated" value={`${formatTimestamp(details.lastUpdated)} UTC`} />
       </div>

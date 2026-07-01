@@ -64,6 +64,8 @@ type OppRow = {
   session_quality: string | null;
   approach_quality: string | null;
   current_session: string | null;
+  close_reclaim: boolean | null;
+  reclaim_confirmed_at: string | null;
   model_version: string;
   calculated_at: string;
   notes: string | null;
@@ -100,6 +102,8 @@ function mapZone(row: OppRow): SupportResistanceZone {
     firstReactionTargetR: row.target_r_context ?? 0.5,
     lastUpdated: row.calculated_at,
     modelVersion: row.model_version,
+    closeReclaim: Boolean(row.close_reclaim),
+    reclaimConfirmedAt: row.reclaim_confirmed_at ?? null,
     notes: row.notes ?? undefined,
     educationalSummary: `${strengthLabel} static shelf graded ${gradeLabel} on the ${
       row.current_session ?? "current"
@@ -115,8 +119,9 @@ export async function GET() {
       .select(
         "id, zone_id, symbol, timeframe, zone_side, static_strength, dynamic_grade, status, score, " +
           "research_reaction_low, research_reaction_high, typical_minimum_r, target_r_context, " +
-          "stop_buffer_atr, session_quality, approach_quality, current_session, model_version, " +
-          "calculated_at, notes, sr_zones!inner(zone_low, zone_high, zone_mid, is_active, touch_count)",
+          "stop_buffer_atr, session_quality, approach_quality, current_session, close_reclaim, " +
+          "reclaim_confirmed_at, model_version, calculated_at, notes, " +
+          "sr_zones!inner(zone_low, zone_high, zone_mid, is_active, touch_count)",
       )
       .eq("symbol", SYMBOL)
       .eq("sr_zones.is_active", true)

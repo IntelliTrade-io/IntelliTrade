@@ -54,6 +54,8 @@ export interface SupportResistanceZone {
   modelVersion: string;
   providerAlias: string;
   featured?: boolean;
+  closeReclaim?: boolean;
+  reclaimConfirmedAt?: string | null;
   notes?: string;
   educationalSummary: string;
   previewSpan?: {

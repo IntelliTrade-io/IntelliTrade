@@ -73,3 +73,18 @@ def test_row_includes_educational_and_research_fields():
 def test_sharp_bearish_flagged_in_approach_quality():
     opp = build_opportunity(_strong_zone(), _ctx("asia", m15_return_12_atr=-2.0))
     assert opp["approach_quality"] == "Sharp bearish approach"
+
+
+def test_active_reclaim_sets_flag_and_timestamp():
+    reclaim = {"reclaimed": True, "active": True, "confirm_time": "2026-07-01T15:15:00+00:00"}
+    opp = build_opportunity(_strong_zone(), _ctx("asia"), reclaim=reclaim)
+    assert opp["close_reclaim"] is True
+    assert opp["reclaim_confirmed_at"] == "2026-07-01T15:15:00+00:00"
+
+
+def test_stale_reclaim_is_false_with_no_timestamp():
+    # reclaimed long ago but not active -> false, and no leaked timestamp
+    reclaim = {"reclaimed": True, "active": False, "confirm_time": "2026-06-26T03:00:00+00:00"}
+    opp = build_opportunity(_strong_zone(), _ctx("asia"), reclaim=reclaim)
+    assert opp["close_reclaim"] is False
+    assert opp["reclaim_confirmed_at"] is None

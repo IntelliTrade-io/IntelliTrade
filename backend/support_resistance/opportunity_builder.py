@@ -116,7 +116,9 @@ def build_opportunity(zone: SupportZone, ctx: MarketContext,
 
     reclaim = reclaim or {}
     close_reclaim = bool(reclaim.get("reclaimed") and reclaim.get("active"))
-    confirm_time = reclaim.get("confirm_time")
+    # Only surface a confirm time for the CURRENTLY-ACTIVE reclaim — a stale
+    # (inactive) historical reclaim should not leave a timestamp on a false row.
+    confirm_time = reclaim.get("confirm_time") if close_reclaim else None
     reclaim_confirmed_at = (
         confirm_time.isoformat() if hasattr(confirm_time, "isoformat")
         else (confirm_time if confirm_time else None)
