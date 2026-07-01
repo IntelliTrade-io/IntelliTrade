@@ -17,12 +17,13 @@ hardened later without touching the others:
   2. cluster_support_zones  — merge nearby lows into zones + count touches
   3. label (static_strength) — weak/medium/strong from touch_count
   4. zone_proximity         — is current price near / approaching a zone
-  5. close_reclaim_state    — SIMPLIFIED close-reclaim qualifier  [TODO]
+  5. close_reclaim_state    — full close-reclaim qualifier (touch -> confirm -> hold)
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Sequence
 
+from . import config
 from .static_strength import label_static_strength, StaticStrength
 
 # Detection tunables. These are engine defaults for the skeleton, not locked
@@ -264,28 +265,68 @@ def zone_proximity(zone: SupportZone, close: float, atr_value: Optional[float],
     }
 
 
-def close_reclaim_state(seqs: dict, zone: SupportZone, lookback: int = 8) -> dict:
-    """SIMPLIFIED close-reclaim qualifier.  [TODO: full research modelling]
+def close_reclaim_state(seqs: dict, zone: SupportZone) -> dict:
+    """Close-reclaim qualifier — full mechanics from the locked model.
 
-    Research definition (locked): confirmation_type = close_reclaim within
-    max_confirm_wait_bars = 8 after a touch. Here we approximate: within the last
-    `lookback` M15 bars price dipped into/below the zone and the CURRENT bar
-    closed back above zone_high. This is a placeholder to unblock the pipeline —
-    it is NOT the exact research reclaim logic and must be hardened before this
-    is used as anything other than context.
+    Locked definition (base_engine): confirmation_type = close_reclaim, with
+        max_touch_wait_bars  (how far back a qualifying touch may sit)
+        max_confirm_wait_bars (bars after the touch in which a close must reclaim)
+        max_hold_bars         (how long after confirmation the reclaim stays "active")
+
+    Algorithm:
+      1. A TOUCH is a bar whose range overlaps [zone_low, zone_high].
+      2. Scanning the most recent touches first, a reclaim is CONFIRMED when a bar
+         within the next `max_confirm_wait_bars` CLOSES strictly above zone_high.
+      3. The reclaim is ACTIVE now if that confirmation happened within the last
+         `max_hold_bars` bars.
+
+    Returns touch/confirm times, bars since confirmation, and active/reclaimed
+    flags. This models the described research trigger (it is the live analogue of
+    the backtest entry) but note: only the dynamic SCORE is golden-fixture
+    validated — there is no reclaim-timing fixture, so this is validated by unit
+    tests of the mechanics, not against the research branch's per-trade timings.
     """
-    closes = seqs["close"]
     lows = seqs["low"]
-    if not closes:
-        return {"reclaimed": False, "simplified": True}
+    highs = seqs["high"]
+    closes = seqs["close"]
+    times = seqs["time"]
     n = len(closes)
-    start = max(0, n - lookback)
-    dipped = any(lows[i] <= zone.zone_high for i in range(start, n))
-    reclaimed_now = closes[-1] > zone.zone_high
-    return {
-        "reclaimed": bool(dipped and reclaimed_now),
-        "dipped_recently": bool(dipped),
-        "closed_above": bool(reclaimed_now),
-        "lookback_bars": lookback,
-        "simplified": True,  # honesty flag surfaced by opportunity_builder / README
+
+    empty = {
+        "reclaimed": False,
+        "active": False,
+        "touch_time": None,
+        "confirm_time": None,
+        "bars_since_confirm": None,
     }
+    if n == 0:
+        return empty
+
+    be = config.base_engine()
+    max_confirm = int(be.get("max_confirm_wait_bars", 8))
+    max_touch_wait = int(be.get("max_touch_wait_bars", 384))
+    max_hold = int(be.get("max_hold_bars", 48))
+
+    window_start = max(0, n - max_touch_wait)
+    touches = [
+        i for i in range(window_start, n)
+        if lows[i] <= zone.zone_high and highs[i] >= zone.zone_low
+    ]
+    if not touches:
+        return empty
+
+    # Most recent touch with a valid reclaim close wins.
+    for t in reversed(touches):
+        for j in range(t + 1, min(n, t + 1 + max_confirm)):
+            if closes[j] > zone.zone_high:
+                bars_since = (n - 1) - j
+                return {
+                    "reclaimed": True,
+                    "active": bars_since <= max_hold,
+                    "touch_time": times[t],
+                    "confirm_time": times[j],
+                    "bars_since_confirm": bars_since,
+                }
+
+    # Touched but never reclaimed within the confirm window.
+    return {**empty, "touch_time": times[touches[-1]]}

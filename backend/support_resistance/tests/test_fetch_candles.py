@@ -34,3 +34,10 @@ def test_shift_to_utc_brings_last_bar_near_now():
     shifted = fetch_candles._shift_to_utc(df)
     last = pd.Timestamp(shifted["time"].iloc[-1]).to_pydatetime()
     assert abs((last - now).total_seconds()) < 60  # within a minute of true UTC now
+
+
+def test_load_symbol_map_none_when_supabase_unconfigured(monkeypatch):
+    # No Supabase env -> returns None so feed_adapter uses its default 1:1 map.
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    assert fetch_candles.load_symbol_map() is None

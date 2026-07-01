@@ -83,11 +83,11 @@ def _approach_quality(ctx: MarketContext) -> str:
 
 def build_opportunity(zone: SupportZone, ctx: MarketContext,
                       symbol: str = None, timeframe: str = "M15",
-                      model_version: str = None) -> dict:
+                      model_version: str = None, reclaim: dict = None) -> dict:
     """Build an sr_opportunities row dict for one zone in the current context.
 
     zone_id is left unset here — supabase_writer fills it after the parent zone
-    is upserted.
+    is upserted. `reclaim` is the dict from zone_detector.close_reclaim_state.
     """
     symbol = symbol or config.symbol()
     model_version = model_version or config.MODEL_VERSION
@@ -114,6 +114,14 @@ def build_opportunity(zone: SupportZone, ctx: MarketContext,
     reaction = RESEARCH_REACTION.get(grade_key, RESEARCH_REACTION["blocked"])
     is_positive = grade_key in POSITIVE_GRADES
 
+    reclaim = reclaim or {}
+    close_reclaim = bool(reclaim.get("reclaimed") and reclaim.get("active"))
+    confirm_time = reclaim.get("confirm_time")
+    reclaim_confirmed_at = (
+        confirm_time.isoformat() if hasattr(confirm_time, "isoformat")
+        else (confirm_time if confirm_time else None)
+    )
+
     return {
         "symbol": symbol,
         "timeframe": timeframe,
@@ -134,6 +142,8 @@ def build_opportunity(zone: SupportZone, ctx: MarketContext,
         "m15_return_12_atr": round(float(ctx.m15_return_12_atr), 6),
         "h1_trend_basic": bool(h1_trend_basic(features)),
         "h4_trend_basic": bool(h4_trend_basic(features)),
+        "close_reclaim": close_reclaim,
+        "reclaim_confirmed_at": reclaim_confirmed_at,
         "notes": DISCLAIMER,
         "model_version": model_version,
         "calculated_at": ctx.calculated_at,

@@ -100,8 +100,14 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
     if max_zones:
         zones = zones[:max_zones]
 
-    # 5/6. opportunities
-    opportunities = [build_opportunity(z, ctx, symbol=symbol, model_version=model_version) for z in zones]
+    # 5/6. opportunities (with per-zone close-reclaim state)
+    opportunities = [
+        build_opportunity(
+            z, ctx, symbol=symbol, model_version=model_version,
+            reclaim=zone_detector.close_reclaim_state(m15_seq, z),
+        )
+        for z in zones
+    ]
 
     # 7. persist
     written = 0
@@ -134,6 +140,7 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
         "zones_detected": len(zones),
         "active_support_zones": sum(1 for z in zones if z.static_strength in ("medium", "strong")),
         "opportunities_built": len(opportunities),
+        "active_reclaims": sum(1 for o in opportunities if o.get("close_reclaim")),
         "opportunities_written": written,
         "persisted": persisted,
         "current_session": ctx.session,
@@ -152,6 +159,7 @@ def _print_summary(s: dict) -> None:
     print(f"zones detected        : {s['zones_detected']}")
     print(f"active support zones  : {s['active_support_zones']}")
     print(f"opportunities built   : {s['opportunities_built']}")
+    print(f"active reclaims       : {s['active_reclaims']}")
     print(f"opportunities written : {s['opportunities_written']} (persisted={s['persisted']})")
     print(f"current session       : {s['current_session']}")
     print(f"m15_return_12_atr     : {s['m15_return_12_atr']}")

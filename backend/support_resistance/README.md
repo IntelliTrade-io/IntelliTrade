@@ -17,7 +17,7 @@ are educational decision support, not advice. See the disclaimer at the bottom.
 | EURUSD only | Other pairs, XAUUSD |
 | Support zones only | Resistance zones |
 | M15 execution context | — |
-| Close-reclaim opportunity model (simplified qualifier — see TODO) | Broker execution / live trading |
+| Close-reclaim opportunity model (touch → close-above confirmation) | Broker execution / live trading |
 | Short-term first reaction, ~0.50R target, 0.30 ATR stop buffer | Alerts, full scanner, production optimisation |
 | Session filter: exclude late | Frontend-side scoring |
 
@@ -135,18 +135,23 @@ with the existing `fromSupabaseRow` helper. Field alignment:
 
 ## What is mocked / TODO
 
-- **Close-reclaim qualifier is SIMPLIFIED** (`zone_detector.close_reclaim_state`).
-  It approximates "dipped into the zone in the last N bars and current bar closed
-  back above zone_high". This is **not** the exact research reclaim logic
-  (confirmation within `max_confirm_wait_bars` after a touch). Flagged in code and
-  surfaced as `simplified: true`. **TODO: implement full research reclaim.**
-- **Zone geometry is an engineering reconstruction**, not golden-validated. Only
-  the *dynamic score* is validated against the research branch. Pivot detection,
-  clustering, and touch counting are reasonable defaults (`PIVOT_STRENGTH`,
-  `ZONE_BAND_ATR_FRAC`) pending a zone-level fixture. **TODO: zone golden fixture.**
-- **MT5 feed**: `fetch_candles.fetch_from_mt5` reuses `scripts/vps/feed_adapter.py`.
-  **TODO: wire symbol_map / active feed from the `broker_feeds` table like the
-  strength scanners do.**
+- **Close-reclaim qualifier is implemented** (`zone_detector.close_reclaim_state`):
+  a touch (bar overlapping the zone) followed by a bar that CLOSES above
+  `zone_high` within `max_confirm_wait_bars`, "active" within `max_hold_bars`.
+  Surfaced on `sr_opportunities` as `close_reclaim` + `reclaim_confirmed_at`
+  (migration 004). Validated by unit tests of the mechanics — note there is **no
+  reclaim-timing golden fixture**, so it is not validated against the research
+  branch's per-trade timings (only the dynamic *score* is golden-validated).
+- **Zone geometry** is an engineering reconstruction, not research ground truth.
+  Only the *dynamic score* is validated against the research branch. Detection is
+  locked against regressions by `tests/test_zone_detector.py`
+  (`test_zone_detection_regression_three_shelves`) — a behaviour lock, not a
+  research fixture. Tunables: `PIVOT_STRENGTH`, `ZONE_MERGE_ATR_FRAC`,
+  `ZONE_BAND_ATR_FRAC`.
+- **MT5 symbol_map is wired**: `fetch_candles.load_symbol_map()` reads the active
+  feed's `symbol_mapping` rows (env `ACTIVE_FEED_NAME`) and passes the canonical→
+  broker map to `feed_adapter.fetch_df`. Falls back to the adapter's 1:1 default
+  if Supabase is unconfigured/unreadable.
 - **H1/H4 context** is derived by resampling M15 (research-permitted) rather than
   from dedicated feeds.
 
@@ -168,7 +173,7 @@ backend/support_resistance/
   indicators.py             # ATR14, EMA, m15_return_12_atr, EMA200 slope, UTC sessions (pure Python)
   static_strength.py        # touch_count -> weak/medium/strong
   dynamic_score.py          # locked Phase 36 score + grade mapping  ← golden-validated
-  zone_detector.py          # pivot lows -> clusters -> labelled support zones (+ proximity, simplified reclaim)
+  zone_detector.py          # pivot lows -> clusters -> labelled support zones (+ proximity, close-reclaim)
   candle_store.py           # clean/resample M15->H1/H4, sequences, market_candles rows
   fetch_candles.py          # MT5 (reuses VPS adapter) / CSV / deterministic mock
   opportunity_builder.py    # zone + market context -> sr_opportunities row (enforces exclude_late)
@@ -189,6 +194,7 @@ backend/support_resistance/
     test_opportunity_builder.py
 
 supabase/migrations/003_sr_alpha_tables.sql   # market_candles, sr_zones, sr_opportunities
+supabase/migrations/004_sr_close_reclaim.sql  # + close_reclaim / reclaim_confirmed_at
 ```
 
 ### Run the Alpha backend locally
@@ -220,10 +226,10 @@ Frontend reads latest `sr_opportunities` (joined to `sr_zones`) filtered by
 - Grade at score exactly 2.00 = Watch; below 2.00 = Blocked (per grade rules).
 
 ### Exact TODOs remaining
-1. Implement the full research close-reclaim qualifier (replace the simplified one).
-2. Add a zone-level golden fixture and validate zone geometry / touch counts.
-3. Wire MT5 symbol_map / active feed from `broker_feeds` (currently defaults).
-4. Confirm dashboard query/join against these tables end-to-end in Vercel.
+1. Obtain research-branch reclaim/zone ground truth to validate zone geometry and
+   reclaim timing against (current coverage is regression + mechanics tests only).
+2. Surface `close_reclaim` in the dashboard UI (stored + queryable now; not yet shown).
+3. Merge to `main` so the Vercel dashboard picks up the module.
 
 ---
 

@@ -84,10 +84,41 @@ def _normalize(df: pd.DataFrame) -> pd.DataFrame:
 
 # ── Source 1: MT5 (production) ────────────────────────────────────────────────
 
+def load_symbol_map() -> Optional[dict]:
+    """Build canonical->broker symbol map from Supabase symbol_mapping for the
+    active feed (ACTIVE_FEED_NAME), mirroring the currency-strength scanners.
+
+    Returns None if Supabase isn't configured or the table is empty/unreadable —
+    feed_adapter then falls back to its 1:1 default map.
+    """
+    feed = os.environ.get("ACTIVE_FEED_NAME", "metaquotes_demo")
+    try:
+        from . import supabase_writer
+        if not supabase_writer.is_configured():
+            return None
+        sb = supabase_writer.get_client()
+        res = (
+            sb.table("symbol_mapping")
+            .select("canonical_symbol, broker_symbol")
+            .eq("feed_name", feed)
+            .execute()
+        )
+        rows = res.data or []
+        mapping = {r["canonical_symbol"]: r["broker_symbol"] for r in rows if r.get("canonical_symbol")}
+        if mapping:
+            log.info(f"symbol_map: loaded {len(mapping)} entries for feed '{feed}'")
+            return mapping
+    except Exception as exc:  # noqa: BLE001 - never fail the run over a mapping lookup
+        log.warning(f"symbol_map lookup failed ({exc}); using feed_adapter default map")
+    return None
+
+
 def fetch_from_mt5(symbol: str = "EURUSD", bars: int = 1500,
                    timeframe_key: str = "15min") -> pd.DataFrame:
     """Fetch M15 candles from MT5 via the existing VPS feed adapter.
 
+    Uses the broker_feeds/symbol_mapping table (active feed) to resolve the
+    canonical symbol to the broker symbol, so switching feeds is config-only.
     Raises RuntimeError if MT5 / the adapter is unavailable — callers should
     fall back to CSV/mock for local dev.
     """
@@ -104,7 +135,8 @@ def fetch_from_mt5(symbol: str = "EURUSD", bars: int = 1500,
     mt5_login = int(mt5_login_str) if mt5_login_str else None
 
     feed_adapter.initialize(server=mt5_server, login=mt5_login, password=mt5_password)
-    df = feed_adapter.fetch_df(symbol, timeframe_key, bars)
+    symbol_map = load_symbol_map()  # None -> feed_adapter uses its 1:1 default
+    df = feed_adapter.fetch_df(symbol, timeframe_key, bars, symbol_map=symbol_map)
     # MT5 bar times are broker-server time mislabelled as UTC -> correct to true UTC
     # so session bucketing and calculated_at are accurate.
     return _shift_to_utc(_normalize(df))
