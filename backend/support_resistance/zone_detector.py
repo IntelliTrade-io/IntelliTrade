@@ -1,0 +1,291 @@
+# coding: utf-8
+"""
+Static support zone detection (M15).
+
+Scope note / honesty flag
+--------------------------
+Only the DYNAMIC SCORE is golden-fixture validated against the QuantConnect
+research branch. Zone geometry (pivot detection, clustering, touch counting) is
+a reasonable engineering reconstruction of the `m10_s20` support model, NOT a
+bit-exact reproduction of the research zone engine. Treat zone boundaries as
+approximate until a zone-level golden fixture exists.
+
+The pipeline is intentionally split into independent stages so each can be
+hardened later without touching the others:
+
+  1. detect_pivot_lows      — raw swing lows
+  2. cluster_support_zones  — merge nearby lows into zones + count touches
+  3. label (static_strength) — weak/medium/strong from touch_count
+  4. zone_proximity         — is current price near / approaching a zone
+  5. close_reclaim_state    — SIMPLIFIED close-reclaim qualifier  [TODO]
+"""
+
+from dataclasses import dataclass, field
+from typing import List, Optional, Sequence
+
+from .static_strength import label_static_strength, StaticStrength
+
+# Detection tunables. These are engine defaults for the skeleton, not locked
+# research constants — see the honesty flag above.
+PIVOT_STRENGTH = 3           # bars on each side that must be higher (pivot low)
+ZONE_MERGE_ATR_FRAC = 0.75   # merge pivots within 0.75 * ATR of the cluster mean
+ZONE_BAND_ATR_FRAC = 0.35    # half-band padding around the pivot spread (~stop buffer)
+PROXIMITY_ATR_FRAC = 1.00    # "near" a zone if within 1.0 ATR of the band
+
+
+@dataclass
+class SupportZone:
+    zone_low: float
+    zone_high: float
+    zone_mid: float
+    touch_count: int
+    static_strength: StaticStrength
+    zone_created_time: object          # tz-aware datetime
+    first_touch_time: object
+    last_touch_time: object
+    atr_at_creation: Optional[float]
+    zone_side: str = "support"
+    pivot_prices: List[float] = field(default_factory=list)
+
+    def as_supabase_zone_row(self, symbol: str, model_version: str) -> dict:
+        """Shape for the sr_zones table."""
+        def _iso(t):
+            return t.isoformat() if hasattr(t, "isoformat") else (str(t) if t is not None else None)
+        return {
+            "symbol": symbol,
+            "zone_side": self.zone_side,
+            "zone_low": float(self.zone_low),
+            "zone_high": float(self.zone_high),
+            "zone_mid": float(self.zone_mid),
+            "static_strength": self.static_strength,
+            "touch_count": int(self.touch_count),
+            "zone_created_time": _iso(self.zone_created_time),
+            "first_touch_time": _iso(self.first_touch_time),
+            "last_touch_time": _iso(self.last_touch_time),
+            "atr_at_creation": float(self.atr_at_creation) if self.atr_at_creation else None,
+            "model_version": model_version,
+            "is_active": True,
+        }
+
+
+def detect_pivot_lows(lows: Sequence[float], strength: int = PIVOT_STRENGTH) -> List[int]:
+    """Return indices of swing lows: a low strictly <= its `strength` neighbours
+    on each side (and strictly < at least one side to avoid flat runs)."""
+    n = len(lows)
+    pivots: List[int] = []
+    for i in range(strength, n - strength):
+        window_left = lows[i - strength:i]
+        window_right = lows[i + 1:i + 1 + strength]
+        if all(lows[i] <= x for x in window_left) and all(lows[i] <= x for x in window_right):
+            if any(lows[i] < x for x in window_left + list(window_right)):
+                pivots.append(i)
+    return pivots
+
+
+def _recent_atr(atr_series: Sequence[Optional[float]]) -> Optional[float]:
+    """Last available (non-None, >0) ATR — fallback when a bar's ATR is missing."""
+    for v in reversed(atr_series):
+        if v:
+            return v
+    return None
+
+
+def count_touches(seqs: dict, zone_low: float, zone_high: float) -> dict:
+    """Count DISTINCT price re-entries into [zone_low, zone_high] across history.
+
+    A "touch" is a rising edge: a bar whose range overlaps the zone band when the
+    previous bar did not. Consecutive bars inside the band count as ONE touch.
+    Returns touch count plus the first/last touch bar indices.
+    """
+    lows = seqs["low"]
+    highs = seqs["high"]
+    touches = 0
+    first_idx = None
+    last_idx = None
+    inside_prev = False
+    for i in range(len(lows)):
+        # bar range [low, high] overlaps zone band [zone_low, zone_high]
+        overlaps = lows[i] <= zone_high and highs[i] >= zone_low
+        if overlaps and not inside_prev:
+            touches += 1
+            if first_idx is None:
+                first_idx = i
+            last_idx = i
+        elif overlaps:
+            last_idx = i
+        inside_prev = overlaps
+    return {"touch_count": touches, "first_idx": first_idx, "last_idx": last_idx}
+
+
+def cluster_support_zones(seqs: dict, atr_series: Sequence[Optional[float]],
+                          pivot_indices: Sequence[int],
+                          merge_atr_frac: float = ZONE_MERGE_ATR_FRAC,
+                          band_atr_frac: float = ZONE_BAND_ATR_FRAC) -> List[SupportZone]:
+    """Merge pivot lows into support zones, then count real touches.
+
+    Clustering: pivots are grouped by proximity to the RUNNING cluster mean
+    (tolerance = merge_atr_frac * ATR), so a drifting shelf still merges.
+    touch_count is then the number of distinct re-entries into the final band
+    (count_touches) — NOT just the pivot count — so a genuinely well-defended
+    shelf earns a medium/strong label.
+    """
+    lows = seqs["low"]
+    times = seqs["time"]
+    if not pivot_indices:
+        return []
+
+    atr_ref_global = _recent_atr(atr_series) or 0.0
+
+    # Group by price proximity to the running cluster mean.
+    ordered = sorted(pivot_indices, key=lambda i: lows[i])
+    clusters: List[List[int]] = []
+    current: List[int] = [ordered[0]]
+    for i in ordered[1:]:
+        mean_price = sum(lows[j] for j in current) / len(current)
+        atr_ref = atr_series[i] if i < len(atr_series) and atr_series[i] else atr_ref_global
+        tol = (atr_ref or 0.0) * merge_atr_frac
+        if tol <= 0:
+            tol = abs(lows[i]) * 0.0005  # ~5 pip fallback for FX
+        if abs(lows[i] - mean_price) <= tol:
+            current.append(i)
+        else:
+            clusters.append(current)
+            current = [i]
+    clusters.append(current)
+
+    zones: List[SupportZone] = []
+    for cl in clusters:
+        prices = [lows[j] for j in cl]
+        chrono = sorted(cl)
+        created_idx = chrono[0]
+        atr_at_creation = atr_series[created_idx] if (created_idx < len(atr_series)
+                                                      and atr_series[created_idx]) else atr_ref_global
+        half = (atr_at_creation or 0.0) * band_atr_frac
+        if half <= 0:
+            half = max((max(prices) - min(prices)) / 2.0, abs(prices[0]) * 0.0003)
+        zone_low = min(prices) - half
+        zone_high = max(prices) + half
+        zone_mid = (zone_low + zone_high) / 2.0
+
+        touch = count_touches(seqs, zone_low, zone_high)
+        tc = touch["touch_count"]
+        first_idx = touch["first_idx"] if touch["first_idx"] is not None else created_idx
+        last_idx = touch["last_idx"] if touch["last_idx"] is not None else chrono[-1]
+
+        zones.append(SupportZone(
+            zone_low=zone_low,
+            zone_high=zone_high,
+            zone_mid=zone_mid,
+            touch_count=tc,
+            static_strength=label_static_strength(tc),
+            zone_created_time=times[created_idx],
+            first_touch_time=times[first_idx],
+            last_touch_time=times[last_idx],
+            atr_at_creation=atr_at_creation,
+            pivot_prices=prices,
+        ))
+
+    zones = _merge_overlapping(zones, seqs)
+    # strongest + most recent first
+    zones.sort(key=lambda z: (z.touch_count, z.last_touch_time), reverse=True)
+    return zones
+
+
+def _merge_overlapping(zones: List[SupportZone], seqs: dict) -> List[SupportZone]:
+    """Collapse zones whose bands overlap into one, recounting touches. Kills the
+    near-duplicate shelves that made every zone look weak."""
+    if len(zones) <= 1:
+        return zones
+    times = seqs["time"]
+    by_low = sorted(zones, key=lambda z: z.zone_low)
+    merged: List[SupportZone] = []
+    cur = by_low[0]
+    for z in by_low[1:]:
+        if z.zone_low <= cur.zone_high:  # overlap
+            zone_low = min(cur.zone_low, z.zone_low)
+            zone_high = max(cur.zone_high, z.zone_high)
+            touch = count_touches(seqs, zone_low, zone_high)
+            created_idx = touch["first_idx"] if touch["first_idx"] is not None else 0
+            last_idx = touch["last_idx"] if touch["last_idx"] is not None else -1
+            cur = SupportZone(
+                zone_low=zone_low,
+                zone_high=zone_high,
+                zone_mid=(zone_low + zone_high) / 2.0,
+                touch_count=touch["touch_count"],
+                static_strength=label_static_strength(touch["touch_count"]),
+                zone_created_time=times[created_idx],
+                first_touch_time=times[created_idx],
+                last_touch_time=times[last_idx],
+                atr_at_creation=cur.atr_at_creation or z.atr_at_creation,
+                pivot_prices=cur.pivot_prices + z.pivot_prices,
+            )
+        else:
+            merged.append(cur)
+            cur = z
+    merged.append(cur)
+    return merged
+
+
+def detect_support_zones(seqs: dict, atr_series: Sequence[Optional[float]],
+                         pivot_strength: int = PIVOT_STRENGTH,
+                         merge_atr_frac: float = ZONE_MERGE_ATR_FRAC,
+                         band_atr_frac: float = ZONE_BAND_ATR_FRAC) -> List[SupportZone]:
+    """Full detection: pivot lows -> clusters -> touch-counted, labelled support zones."""
+    pivots = detect_pivot_lows(seqs["low"], strength=pivot_strength)
+    return cluster_support_zones(seqs, atr_series, pivots,
+                                 merge_atr_frac=merge_atr_frac, band_atr_frac=band_atr_frac)
+
+
+def zone_proximity(zone: SupportZone, close: float, atr_value: Optional[float],
+                   near_atr_frac: float = PROXIMITY_ATR_FRAC) -> dict:
+    """Where is price relative to the zone right now?
+
+    Returns {'inside', 'near', 'above', 'below', 'distance_atr'}.
+    """
+    tol = (atr_value or 0.0) * near_atr_frac
+    inside = zone.zone_low <= close <= zone.zone_high
+    above = close > zone.zone_high
+    below = close < zone.zone_low
+    if atr_value:
+        distance = 0.0 if inside else (
+            (close - zone.zone_high) / atr_value if above
+            else (zone.zone_low - close) / atr_value
+        )
+    else:
+        distance = None
+    near = inside or (distance is not None and abs(distance) <= near_atr_frac)
+    return {
+        "inside": inside,
+        "near": near,
+        "above": above,
+        "below": below,
+        "distance_atr": distance,
+        "tol": tol,
+    }
+
+
+def close_reclaim_state(seqs: dict, zone: SupportZone, lookback: int = 8) -> dict:
+    """SIMPLIFIED close-reclaim qualifier.  [TODO: full research modelling]
+
+    Research definition (locked): confirmation_type = close_reclaim within
+    max_confirm_wait_bars = 8 after a touch. Here we approximate: within the last
+    `lookback` M15 bars price dipped into/below the zone and the CURRENT bar
+    closed back above zone_high. This is a placeholder to unblock the pipeline —
+    it is NOT the exact research reclaim logic and must be hardened before this
+    is used as anything other than context.
+    """
+    closes = seqs["close"]
+    lows = seqs["low"]
+    if not closes:
+        return {"reclaimed": False, "simplified": True}
+    n = len(closes)
+    start = max(0, n - lookback)
+    dipped = any(lows[i] <= zone.zone_high for i in range(start, n))
+    reclaimed_now = closes[-1] > zone.zone_high
+    return {
+        "reclaimed": bool(dipped and reclaimed_now),
+        "dipped_recently": bool(dipped),
+        "closed_above": bool(reclaimed_now),
+        "lookback_bars": lookback,
+        "simplified": True,  # honesty flag surfaced by opportunity_builder / README
+    }

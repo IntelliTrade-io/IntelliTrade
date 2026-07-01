@@ -1,0 +1,51 @@
+entry_time,zone_created_time,label,session,m15_return_12_atr,h1_above_ema200,h1_ema200_slope_nonnegative,h4_above_ema200,h4_ema200_slope_nonnegative,m15_above_ema200,dynamic_opportunity_score,dynamic_grade,entry_result,realized_r_after_cost
+2021-01-07 06:00:00,2021-01-04 17:00:00,weak,asia,-3.4383172256961934,False,True,True,True,False,0.25,Blocked,hit_target,0.45
+2021-01-07 10:30:00,2021-01-07 07:15:00,weak,london_open,-0.4655679811655001,False,False,True,True,False,1.2999999999999998,Blocked,hit_target,0.45
+2021-01-15 08:30:00,2021-01-15 04:30:00,weak,london_open,-0.9465977605513004,False,False,False,False,False,0.7999999999999999,Blocked,stopped,-1.05
+2021-01-19 10:45:00,2021-01-19 09:30:00,weak,london_open,0.1892691170257041,False,False,False,False,True,0.7999999999999999,Blocked,hit_target,0.45
+2021-01-26 01:15:00,2021-01-25 11:30:00,weak,asia,-3.784883720930614,False,False,False,False,False,-0.25,Blocked,hit_target,0.45
+2021-02-01 06:00:00,2021-01-27 11:15:00,weak,asia,-4.3826496301277205,False,False,False,False,False,-0.25,Blocked,hit_target,0.45
+2021-02-01 08:15:00,2021-02-01 07:00:00,weak,london_open,-0.4399057344856816,False,False,False,False,False,0.7999999999999999,Blocked,unresolved,-0.05
+2021-02-02 16:00:00,2021-02-02 14:00:00,weak,ny_open,3.1680837148463623,False,False,False,False,False,0.7999999999999999,Blocked,unresolved,-0.05
+2021-02-08 08:45:00,2021-02-08 06:30:00,medium,london_open,1.1125827814567997,False,False,False,False,True,1.7999999999999998,Blocked,hit_target,0.45
+2021-02-09 08:15:00,2021-02-09 07:45:00,weak,london_open,-1.1565217391305378,True,True,True,False,True,-0.95,Blocked,hit_target,0.45
+2021-02-17 11:30:00,2021-02-17 10:15:00,weak,london_midday,-0.6335078534033446,False,False,False,False,False,2.25,Watch,hit_target,0.45
+2021-03-24 13:15:00,2021-03-24 11:00:00,weak,london_midday,0.7587890624998247,False,False,False,False,False,2.25,Watch,stopped,-1.05
+2021-05-18 09:45:00,2021-05-18 09:00:00,weak,london_open,0.7189542483657889,True,True,True,True,True,2.3,Watch,unresolved,-0.05
+2021-05-21 13:15:00,2021-05-19 16:30:00,strong,london_midday,-1.1830122591945256,True,True,True,True,False,2.75,Watch,hit_target,0.45
+2021-05-25 09:00:00,2021-05-25 08:30:00,weak,london_open,-0.2767950052030998,True,True,True,True,True,2.3,Watch,unresolved,-0.05
+2021-06-02 09:30:00,2021-06-02 09:00:00,strong,london_open,3.1050583657584805,False,False,True,True,False,2.45,Watch,hit_target,0.45
+2021-07-06 15:00:00,2021-07-06 13:45:00,medium,ny_open,1.927927927928032,False,False,False,False,False,2.65,Watch,unresolved,-0.05
+2021-10-05 04:00:00,2021-10-05 03:00:00,weak,asia,0.6836734693877158,False,False,False,False,False,2.5,Watch,hit_target,0.45
+2021-10-07 00:00:00,2021-10-06 22:45:00,weak,asia,1.033898305084642,False,False,False,False,False,2.5,Watch,hit_target,0.45
+2021-10-18 05:45:00,2021-10-18 04:15:00,weak,asia,1.0596330275227943,False,False,False,False,False,2.5,Watch,hit_target,0.45
+2021-01-12 06:15:00,2021-01-12 01:15:00,weak,asia,-0.8417856058305802,False,False,True,True,False,3.0,Green,hit_target,0.45
+2021-05-06 09:00:00,2021-05-06 08:30:00,medium,london_open,0.7465681098204632,True,True,True,True,True,3.3,Green,unresolved,-0.05
+2021-05-10 03:15:00,2021-05-07 14:15:00,strong,asia,-1.7454780361758315,True,True,True,True,True,3.25,Green,hit_target,0.45
+2021-06-14 10:30:00,2021-06-14 09:45:00,strong,london_open,1.4255444379047797,False,False,False,False,False,2.8,Green,unresolved,-0.05
+2021-06-25 08:00:00,2021-06-25 07:30:00,strong,london_open,1.2005157962602284,False,False,False,False,True,2.8,Green,hit_target,0.45
+2021-06-28 10:00:00,2021-06-28 09:30:00,strong,london_open,-0.8155864197531473,False,False,False,False,False,2.8,Green,unresolved,-0.05
+2021-09-20 02:30:00,2021-09-20 01:15:00,medium,asia,1.5929203539815815,False,False,False,False,False,3.5,Green,hit_target,0.45
+2021-09-23 06:30:00,2021-09-23 05:00:00,medium,asia,0.8439504061563913,False,False,False,False,True,3.5,Green,hit_target,0.45
+2021-11-26 11:00:00,2021-11-26 08:45:00,medium,london_midday,2.763829082477736,True,True,False,False,True,3.4,Green,unresolved,-0.05
+2021-12-06 11:15:00,2021-12-03 12:00:00,medium,london_midday,-0.8093415007657717,False,False,False,False,False,3.25,Green,unresolved,-0.05
+2021-01-07 03:30:00,2021-01-06 16:15:00,weak,asia,-0.475471698113178,True,True,True,True,True,4.0,Elite Green,stopped,-1.05
+2021-01-29 10:00:00,2021-01-29 09:30:00,strong,london_open,0.8865435356198975,True,True,False,False,True,3.8,Elite Green,unresolved,-0.05
+2021-02-12 06:45:00,2021-02-12 05:45:00,weak,asia,0.3564463705308438,True,True,True,True,False,3.75,Elite Green,hit_target,0.45
+2021-06-03 15:00:00,2021-06-03 14:00:00,strong,ny_open,0.0584551148225045,False,False,False,True,False,3.65,Elite Green,unresolved,-0.05
+2021-06-17 15:45:00,2021-06-17 13:45:00,strong,ny_open,0.6809090909089813,False,False,False,False,False,3.65,Elite Green,hit_target,0.45
+2021-09-23 14:15:00,2021-09-23 13:30:00,strong,ny_open,1.5324324324322824,False,False,False,False,True,3.65,Elite Green,unresolved,-0.05
+2022-01-11 10:00:00,2022-01-10 10:45:00,strong,london_open,-0.0305944055943345,True,True,True,True,True,4.300000000000001,Elite Green,hit_target,0.45
+2022-01-13 11:15:00,2022-01-13 08:30:00,weak,london_midday,0.3268845897265507,True,True,True,True,True,3.75,Elite Green,hit_target,0.45
+2022-02-11 16:45:00,2022-02-11 16:15:00,strong,ny_open,-0.3033797216699872,False,False,True,True,False,4.15,Elite Green,unresolved,-0.05
+2022-05-17 12:30:00,2022-05-17 11:15:00,medium,london_midday,0.91417031302582,True,True,False,False,True,4.25,Elite Green,hit_target,0.45
+2021-02-19 12:45:00,2021-02-19 11:00:00,strong,london_midday,0.1665765278526406,True,True,True,True,True,5.75,A+,unresolved,-0.05
+2021-02-22 11:30:00,2021-02-22 11:00:00,strong,london_midday,0.2189020152883147,True,True,True,True,True,5.75,A+,hit_target,0.45
+2021-03-18 02:15:00,2021-03-18 01:45:00,medium,asia,0.4760582928522615,True,True,False,False,True,4.5,A+,hit_target,0.45
+2021-04-19 12:30:00,2021-04-19 11:45:00,medium,london_midday,0.9557302441040996,True,True,True,True,True,4.75,A+,hit_target,0.45
+2021-04-29 12:00:00,2021-04-29 11:30:00,medium,london_midday,-0.6617808721143174,True,True,True,True,True,4.75,A+,hit_target,0.45
+2021-05-16 17:00:00,2021-05-14 15:15:00,strong,ny_open,1.29471544715404,True,True,True,True,True,5.15,A+,unresolved,-0.05
+2021-05-24 11:00:00,2021-05-24 10:30:00,medium,london_midday,0.7017543859648329,True,True,True,True,True,4.75,A+,unresolved,-0.05
+2021-06-10 05:30:00,2021-06-10 05:00:00,strong,asia,-0.824929178470347,False,False,True,True,False,5.0,A+,hit_target,0.45
+2021-07-26 04:30:00,2021-07-25 22:15:00,strong,asia,-0.4106498194944785,False,False,False,False,True,4.5,A+,hit_target,0.45
+2021-08-30 11:00:00,2021-08-30 10:30:00,strong,london_midday,-0.3280653950954706,True,True,True,True,True,5.75,A+,unresolved,-0.05

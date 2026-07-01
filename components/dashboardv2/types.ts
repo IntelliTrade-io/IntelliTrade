@@ -11,7 +11,8 @@ export type WidgetType =
   | "conflict"
   | "journal"
   | "game"
-  | "macro";
+  | "macro"
+  | "supportResistance";
 
 export interface EventExtras {
   release_time_local: string;
