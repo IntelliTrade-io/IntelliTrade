@@ -54,6 +54,7 @@ export interface SupportResistanceZone {
   modelVersion: string;
   providerAlias: string;
   featured?: boolean;
+  createdTime?: string | null;
   closeReclaim?: boolean;
   reclaimConfirmedAt?: string | null;
   notes?: string;

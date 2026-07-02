@@ -77,10 +77,12 @@ export function SupportResistanceAlphaLive({ compact = false, refreshMs = 60_000
     );
   }
 
+  // Always pass the REAL candles (never fall back to mock ~1.08 prices, which
+  // would sit far from real EURUSD ~1.1x zones and render the bands off-screen).
   return (
     <SupportResistanceAlphaModule
       zones={zones}
-      candles={data?.candles && data.candles.length ? data.candles : undefined}
+      candles={data?.candles ?? []}
       compact={compact}
     />
   );

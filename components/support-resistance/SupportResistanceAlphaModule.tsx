@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Clock3, Radar, Shield, Target } from "lucide-react";
 import { supportResistanceCopy } from "./copy";
-import { buildScannerRows, formatReactionRange, selectFeaturedZone } from "./model";
+import { buildScannerRows, compareZonesByPriority, formatReactionRange, selectFeaturedZone } from "./model";
 import { supportResistanceAlphaScope, supportResistanceMockCandles, supportResistanceMockZones, supportResistanceResearchProfiles } from "./mockData";
 import EducationalTooltip from "./EducationalTooltip";
 import ResearchProfileCard from "./ResearchProfileCard";
@@ -40,6 +40,30 @@ export function SupportResistanceAlphaModule({
   const defaultZone = selectFeaturedZone(zones);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(defaultZone?.id ?? null);
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? defaultZone ?? null;
+  // ── CHART ZONE SELECTION RULE (approved) ──────────────────────────────────
+  // Draw only the support shelves worth watching, grounded in the research
+  // engine's own quality label (NOT invented heuristics):
+  //   (a) medium or strong static_strength — the research scores most zones
+  //       "weak" (thin / over-tested); those are noise, kept off the chart.
+  //   (b) genuinely touched in view — a candle LOW dipped into the band (support
+  //       tested from above), so bands hug real price, not float over dead space.
+  //   (c) top CHART_ZONE_LIMIT by priority; scanner + details still list ALL zones.
+  // TO REVERT to "draw all zones": set chartZones = zones (and remove this block).
+  const CHART_ZONE_LIMIT = 5;
+  const chartZones = (() => {
+    const genuinelyTouched = (zone: (typeof zones)[number]) =>
+      candles.some((c) => c.low <= zone.zoneHigh && c.low >= zone.zoneLow);
+    const notable = zones.filter(
+      (zone) =>
+        genuinelyTouched(zone) &&
+        (zone.staticStrength === "strong" || zone.staticStrength === "medium"),
+    );
+    const ranked = [...notable].sort(compareZonesByPriority).slice(0, CHART_ZONE_LIMIT);
+    if (selectedZone && !ranked.some((z) => z.id === selectedZone.id) && notable.includes(selectedZone)) {
+      ranked.push(selectedZone);
+    }
+    return ranked;
+  })();
   const scannerRows = buildScannerRows(zones);
   const selectedScannerRow = scannerRows.find((row) => row.id === selectedZoneId) ?? null;
   const baseScannerRows = scannerRows.slice(0, 4);
@@ -79,13 +103,19 @@ export function SupportResistanceAlphaModule({
           </div>
         ) : null}
 
-        <SupportResistanceLightweightChart
-          candles={candles}
-          zones={zones}
-          selectedZoneId={selectedZoneId}
-          onSelectZone={setSelectedZoneId}
-          compact
-        />
+        {/* shrink-0 (no fixed height): the compact column is a flex/overflow-auto
+            stack; the chart section's min-h-0 otherwise lets flexbox squeeze it to
+            zero. shrink-0 keeps the section at its natural height (header + canvas)
+            so it neither collapses nor overflows onto the scanner below. */}
+        <div className="shrink-0">
+          <SupportResistanceLightweightChart
+            candles={candles}
+            zones={chartZones}
+            selectedZoneId={selectedZoneId}
+            onSelectZone={setSelectedZoneId}
+            compact
+          />
+        </div>
 
         <SupportResistanceScanner rows={visibleScannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} compact />
 
@@ -133,7 +163,7 @@ export function SupportResistanceAlphaModule({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.7fr)]">
         <SupportResistanceLightweightChart
           candles={candles}
-          zones={zones}
+          zones={chartZones}
           selectedZoneId={selectedZoneId}
           onSelectZone={setSelectedZoneId}
         />

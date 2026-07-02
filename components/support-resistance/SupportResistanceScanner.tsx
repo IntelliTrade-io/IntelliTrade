@@ -1,6 +1,6 @@
 import React from "react";
 import { supportResistanceCopy } from "./copy";
-import { formatReactionRange, isGreenTierGrade } from "./model";
+import { formatReactionRange, formatTypicalR, isGreenTierGrade } from "./model";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
 import StaticStrengthMeter from "./StaticStrengthMeter";
 import type { ScannerRow } from "./types";
@@ -182,7 +182,7 @@ export function SupportResistanceScanner({
                 </td>
                 <td className="px-4 py-4 text-sm text-white/78">{formatReactionRange(row.reactionRange)}</td>
                 <td className="px-4 py-4 text-sm text-white/78">
-                  {row.typicalMaximumR ? `${row.typicalMinimumR.toFixed(2)}R-${row.typicalMaximumR.toFixed(2)}R` : `${row.typicalMinimumR.toFixed(2)}R`}
+                  {formatTypicalR(row.typicalMinimumR, row.typicalMaximumR)}
                 </td>
                 <td className="px-4 py-4">
                   <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em]", getStatusPillTone(row.dynamicGrade)].join(" ")}>
@@ -215,7 +215,7 @@ export function SupportResistanceScanner({
               <StaticStrengthMeter strength={row.staticStrength} />
               <div className="text-sm text-white/70">{formatReactionRange(row.reactionRange)}</div>
               <div className="text-sm text-white/70">
-                Typical {row.typicalMaximumR ? `${row.typicalMinimumR.toFixed(2)}R-${row.typicalMaximumR.toFixed(2)}R` : `${row.typicalMinimumR.toFixed(2)}R`}
+                Typical {formatTypicalR(row.typicalMinimumR, row.typicalMaximumR)}
               </div>
               <div>
                 <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em]", getStatusPillTone(row.dynamicGrade)].join(" ")}>

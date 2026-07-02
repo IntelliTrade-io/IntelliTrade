@@ -26,7 +26,18 @@ export function isEliteTierGrade(grade: DynamicOpportunityGrade): boolean {
 }
 
 export function formatReactionRange(range: ReactionRange): string {
+  // Watch / Blocked zones are not research-qualified — no reaction range.
+  if (!range || range.max <= 0) {
+    return "Not research-qualified";
+  }
   return `${range.min.toFixed(0)}-${range.max.toFixed(0)}%`;
+}
+
+export function formatTypicalR(min: number, max?: number): string {
+  if (!min || min <= 0) {
+    return "—";
+  }
+  return max ? `${min.toFixed(2)}R-${max.toFixed(2)}R` : `${min.toFixed(2)}R`;
 }
 
 export function compareZonesByPriority(left: SupportResistanceZone, right: SupportResistanceZone): number {

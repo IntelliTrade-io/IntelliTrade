@@ -32,15 +32,34 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 function getZoneTimeRange(zone: SupportResistanceZone, candles: CandleData[]) {
-  const span = zone.previewSpan ?? { start: 0, end: 1 };
   const lastIndex = Math.max(0, candles.length - 1);
+
+  // Anchor the band's left edge to the FIRST candle whose low actually touched
+  // the band, and extend to now. This makes the band hug the real interaction
+  // instead of stretching full-width across empty space.
+  if (candles.length) {
+    const touchIndex = candles.findIndex(
+      (c) => c.low <= zone.zoneHigh && c.low >= zone.zoneLow,
+    );
+    if (touchIndex >= 0) {
+      return { start: candles[touchIndex]?.time, end: candles[lastIndex]?.time };
+    }
+  }
+
+  // Fallback: anchor to zone creation time (established level), else full width.
+  if (zone.createdTime && candles.length) {
+    const createdSec = Math.floor(new Date(zone.createdTime).getTime() / 1000);
+    if (Number.isFinite(createdSec)) {
+      let startIndex = candles.findIndex((c) => (c.time as number) >= createdSec);
+      if (startIndex < 0) startIndex = lastIndex;
+      return { start: candles[clamp(startIndex, 0, lastIndex)]?.time, end: candles[lastIndex]?.time };
+    }
+  }
+
+  const span = zone.previewSpan ?? { start: 0, end: 1 };
   const startIndex = clamp(Math.floor(lastIndex * span.start), 0, lastIndex);
   const endIndex = clamp(Math.ceil(lastIndex * span.end), startIndex, lastIndex);
-
-  return {
-    start: candles[startIndex]?.time,
-    end: candles[endIndex]?.time,
-  };
+  return { start: candles[startIndex]?.time, end: candles[endIndex]?.time };
 }
 
 export function SupportResistanceLightweightChart({
@@ -57,6 +76,7 @@ export function SupportResistanceLightweightChart({
   const updateOverlaysRef = useRef<(() => void) | null>(null);
   const [overlays, setOverlays] = useState<ZoneOverlay[]>([]);
   const [hoveredZoneId, setHoveredZoneId] = useState<string | null>(null);
+  const [chartError, setChartError] = useState<string | null>(null);
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? zones[0] ?? null;
   const latestCandle = candles[candles.length - 1] ?? null;
   const chartMinHeight = getSupportResistanceChartMinHeight(compact);
@@ -75,6 +95,7 @@ export function SupportResistanceLightweightChart({
   const visibleLogicalRange = useMemo(() => buildSupportResistanceVisibleLogicalRange(chartData.length), [chartData.length]);
 
   useEffect(() => {
+    setChartError(null);
     let disposed = false;
     let resizeObserver: ResizeObserver | null = null;
     let unsubscribeVisibleRange: (() => void) | null = null;
@@ -208,18 +229,18 @@ export function SupportResistanceLightweightChart({
           const bottom = clamp(rawBottom, 0, viewportHeight);
           const width = Math.max(12, right - left);
           const height = Math.max(10, bottom - top);
-
-          if (left + width > viewportWidth || top + height > viewportHeight) {
-            return [];
-          }
+          // Keep the box inside the viewport instead of dropping it when the
+          // min-size bump would push it past an edge (thin / edge-of-chart zones).
+          const boxLeft = clamp(left, 0, Math.max(0, viewportWidth - width));
+          const boxTop = clamp(top, 0, Math.max(0, viewportHeight - height));
 
           return [
             {
               id: zone.id,
               label: zone.zoneLabel,
               grade: zone.dynamicGrade,
-              left,
-              top,
+              left: boxLeft,
+              top: boxTop,
               width,
               height,
             },
@@ -252,7 +273,9 @@ export function SupportResistanceLightweightChart({
       resizeObserver.observe(host);
     }
 
-    mountChart();
+    mountChart().catch((err) => {
+      if (!disposed) setChartError(err instanceof Error ? err.message : String(err));
+    });
 
     return () => {
       disposed = true;
@@ -303,6 +326,16 @@ export function SupportResistanceLightweightChart({
 
       <div ref={hostRef} className="relative isolate min-h-0 w-full flex-1 overflow-hidden" style={{ minHeight: `${chartMinHeight}px` }}>
         <div ref={chartLayerRef} className="absolute inset-0" />
+
+        {chartError ? (
+          <div className="absolute inset-0 z-30 flex items-center justify-center px-6 text-center text-sm text-rose-100/80">
+            Chart failed to render: {chartError}
+          </div>
+        ) : !chartData.length ? (
+          <div className="absolute inset-0 z-30 flex items-center justify-center px-6 text-center text-sm text-white/50">
+            Waiting for EURUSD candle data…
+          </div>
+        ) : null}
 
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
           {overlays.map((overlay) => {

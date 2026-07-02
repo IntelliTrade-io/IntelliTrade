@@ -63,7 +63,7 @@ export const PANEL_DEFAULT_DIMENSIONS: Record<WidgetType, PanelDimension> = {
   journal: { w: 7, h: 10, minW: 1, minH: 8 },
   game: { w: 6, h: 7, minW: 1, minH: 4 },
   macro: { w: 6, h: 6, minW: 1, minH: 4 },
-  supportResistance: { w: 6, h: 11, minW: 2, minH: 6 },
+  supportResistance: { w: 7, h: 17, minW: 3, minH: 10 },
 };
 
 export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {

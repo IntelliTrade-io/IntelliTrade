@@ -1,7 +1,7 @@
 import React from "react";
 import { Clock3, Waves } from "lucide-react";
 import { supportResistanceCopy } from "./copy";
-import { buildZoneDetails, formatReactionRange } from "./model";
+import { buildZoneDetails, formatReactionRange, formatTypicalR } from "./model";
 import EducationalTooltip from "./EducationalTooltip";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
 import StaticStrengthMeter from "./StaticStrengthMeter";
@@ -86,11 +86,7 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
         <DetailItem label="Research reaction range" value={formatReactionRange(details.reactionRange)} />
         <DetailItem
           label="Typical minimum reaction"
-          value={
-            details.typicalMaximumR
-              ? `${details.typicalMinimumR.toFixed(2)}R to ${details.typicalMaximumR.toFixed(2)}R`
-              : `${details.typicalMinimumR.toFixed(2)}R`
-          }
+          value={formatTypicalR(details.typicalMinimumR, details.typicalMaximumR)}
         />
         <DetailItem label="Session quality" value={details.sessionQuality} />
         <DetailItem label="Approach quality" value={details.approachQuality} />
