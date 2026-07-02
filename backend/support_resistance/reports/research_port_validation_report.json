@@ -1,0 +1,53 @@
+{
+  "validation": "research zone-engine port fidelity",
+  "research_code": "claudeLoad/SnRTool/researchCode/zone_research_io.py",
+  "research_functions": [
+    "prepare_ohlc",
+    "find_confirmed_swings",
+    "generate_zone_events"
+  ],
+  "backend_port": "backend/support_resistance/research_zone_engine.py",
+  "backend_function": "generate_zone_events (used by zone_detector.detect_support_zones via generate_zones)",
+  "candle_file": "claudeLoad/validation/eurusd_m15_2021_2025_quantconnect_oanda_mid.csv/eurusd_m15_2021_2025_quantconnect_oanda_mid.csv",
+  "candle_sha256": "534e4e522d2d33aba293d8d70c921e902996bff3827e383b2c197987f41efb8d",
+  "candle_rows": 124092,
+  "candle_range": [
+    "2021-01-03 17:00:00+00:00",
+    "2025-12-31 00:00:00+00:00"
+  ],
+  "params": {
+    "swing_lookback": 4,
+    "atr_period": 14,
+    "zone_width_atr": 0.35,
+    "merge_tolerance_atr": 0.3,
+    "min_touches": 3
+  },
+  "fields_checked": [
+    "zone_type",
+    "low",
+    "high",
+    "created_index",
+    "created_time",
+    "touches",
+    "label",
+    "score"
+  ],
+  "research_event_count": 18486,
+  "port_event_count": 18486,
+  "identical": true,
+  "first_divergence": null,
+  "generate_zones_check": {
+    "research_count": 40,
+    "port_count": 40,
+    "identical": true,
+    "fields": [
+      "zone_type",
+      "low",
+      "high",
+      "touches",
+      "label",
+      "score"
+    ],
+    "note": "generate_zones is the current-view function used live by zone_detector.detect_support_zones"
+  }
+}

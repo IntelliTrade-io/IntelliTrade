@@ -23,6 +23,7 @@ import argparse
 import logging
 import os
 import sys
+import uuid
 from collections import Counter
 from datetime import datetime, timezone
 
@@ -91,6 +92,16 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
     frames = candle_store.build_context(df)
     candles_processed = len(frames["m15"])
 
+    # 1b. accumulate real candles into a rolling local CSV archive (deduped by
+    # time) for weekly QuantConnect cross-checks. Skip mock data.
+    candles_archived = 0
+    archive_path = os.environ.get("SR_ALPHA_CANDLE_ARCHIVE", r"C:\IntelliTrade\out\eurusd_m15_archive.csv")
+    if source != "mock":
+        try:
+            candles_archived = candle_store.append_candles_archive(frames["m15"], archive_path, symbol=symbol)
+        except Exception as exc:  # noqa: BLE001 - archiving must never break the run
+            log.warning(f"candle archive append failed: {exc}")
+
     # 2/3. context + indicators
     ctx, m15_atr = _latest_context(frames)
     m15_seq = candle_store.to_sequences(frames["m15"])
@@ -112,6 +123,7 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
     # 7. persist
     written = 0
     persisted = False
+    stale = {"opps_deleted": 0, "zones_deactivated": 0}
     if not dry_run and supabase_writer.is_configured():
         candle_rows = candle_store.supabase_candle_rows(frames["m15"], symbol=symbol)
         supabase_writer.upsert_candles(candle_rows)
@@ -123,47 +135,64 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
                 active_zone_ids.append(zone_id)
             written += 1
         # drop opportunities/zones not in this run (timestamp-independent)
-        supabase_writer.prune_stale(symbol, model_version, active_zone_ids)
+        stale = supabase_writer.prune_stale(symbol, model_version, active_zone_ids) or stale
         persisted = True
     elif not dry_run and not supabase_writer.is_configured():
         log.warning("Supabase not configured (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY). "
                     "Skipping writes — run with --dry-run to silence this.")
 
+    # canonical grade order for a stable, complete distribution readout
     grade_counts = Counter(o["dynamic_grade"] for o in opportunities)
+    grade_dist = {g: grade_counts.get(g, 0)
+                  for g in ("a_plus", "elite_green", "green", "watch", "blue", "blocked")}
+    strength_dist = {s: sum(1 for z in zones if z.static_strength == s)
+                     for s in ("strong", "medium", "weak")}
 
     summary = {
+        "run_id": uuid.uuid4().hex,
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "calculated_at": ctx.calculated_at,
         "model_version": model_version,
         "symbol": symbol,
         "source": source,
         "candles_processed": candles_processed,
+        "candles_archived": candles_archived,
+        "archive_path": archive_path if source != "mock" else None,
         "zones_detected": len(zones),
         "active_support_zones": sum(1 for z in zones if z.static_strength in ("medium", "strong")),
+        "strength_dist": strength_dist,
         "opportunities_built": len(opportunities),
         "active_reclaims": sum(1 for o in opportunities if o.get("close_reclaim")),
+        "grade_dist": grade_dist,
         "opportunities_written": written,
+        "stale_opps_deleted": stale.get("opps_deleted", 0),
+        "stale_zones_deactivated": stale.get("zones_deactivated", 0),
         "persisted": persisted,
         "current_session": ctx.session,
         "m15_return_12_atr": round(ctx.m15_return_12_atr, 4),
-        "grade_counts": dict(grade_counts),
     }
     return summary
 
 
 def _print_summary(s: dict) -> None:
     print("== SR Alpha run summary ==")
+    print(f"run_id                : {s['run_id']}")
     print(f"timestamp_utc         : {s['timestamp_utc']}")
+    print(f"calculated_at         : {s['calculated_at']}")
     print(f"model_version         : {s['model_version']}")
     print(f"symbol / source       : {s['symbol']} / {s['source']}")
     print(f"candles processed     : {s['candles_processed']}")
+    print(f"candles archived      : {s['candles_archived']} -> {s['archive_path']}")
     print(f"zones detected        : {s['zones_detected']}")
     print(f"active support zones  : {s['active_support_zones']}")
+    print(f"strength distribution : {s['strength_dist']}")
     print(f"opportunities built   : {s['opportunities_built']}")
     print(f"active reclaims       : {s['active_reclaims']}")
+    print(f"grade distribution    : {s['grade_dist']}")
     print(f"opportunities written : {s['opportunities_written']} (persisted={s['persisted']})")
+    print(f"stale cleaned         : {s['stale_opps_deleted']} opps deleted, {s['stale_zones_deactivated']} zones deactivated")
     print(f"current session       : {s['current_session']}")
     print(f"m15_return_12_atr     : {s['m15_return_12_atr']}")
-    print(f"latest grade counts   : {s['grade_counts']}")
 
 
 def main(argv=None) -> int:

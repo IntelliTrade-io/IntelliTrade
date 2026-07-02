@@ -10,8 +10,12 @@ world (indicators.py):
                   are derived by resampling M15 when separate feeds aren't used)
   * to_sequences — extract aligned open/high/low/close/volume/time lists
   * supabase_candle_rows — shape rows for the market_candles table
+  * append_candles_archive — accumulate M15 candles into a local CSV (dedup by
+                             time) for weekly QuantConnect cross-checks
 """
 
+import csv
+import os
 from typing import Dict, List
 
 import pandas as pd
@@ -92,3 +96,42 @@ def supabase_candle_rows(df_m15: pd.DataFrame, symbol: str = None,
             "source": source,
         })
     return rows
+
+
+ARCHIVE_COLUMNS = ["symbol", "timeframe", "time", "open", "high", "low", "close", "volume", "source"]
+
+
+def append_candles_archive(df_m15: pd.DataFrame, path: str, symbol: str = None,
+                           timeframe: str = "M15", source: str = "mt5") -> int:
+    """Append this run's M15 candles to a rolling local CSV, deduped by `time`.
+
+    Each run pulls ~1500 overlapping bars; only bars whose timestamp isn't already
+    in the archive are appended, so the file grows by the handful of NEW bars per
+    run and never duplicates. Append-only (no full rewrite). Columns match the
+    market_candles schema so it's self-describing; QC cross-checks use time+OHLC.
+
+    Returns the number of new rows appended.
+    """
+    rows = supabase_candle_rows(df_m15, symbol=symbol, timeframe=timeframe, source=source)
+    if not rows:
+        return 0
+
+    existing_times = set()
+    file_exists = os.path.exists(path)
+    if file_exists:
+        with open(path, "r", encoding="utf-8", newline="") as fh:
+            for r in csv.DictReader(fh):
+                existing_times.add(r.get("time"))
+
+    new_rows = [r for r in rows if r["time"] not in existing_times]
+    if not new_rows:
+        return 0
+
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    with open(path, "a", encoding="utf-8", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=ARCHIVE_COLUMNS)
+        if not file_exists:
+            w.writeheader()
+        for r in new_rows:
+            w.writerow({k: r.get(k) for k in ARCHIVE_COLUMNS})
+    return len(new_rows)

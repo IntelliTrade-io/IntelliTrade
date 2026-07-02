@@ -1,7 +1,10 @@
 # coding: utf-8
 from datetime import datetime, timezone, timedelta
 
+import math
+
 from support_resistance import zone_detector
+from support_resistance import research_zone_engine as rze
 from support_resistance.zone_detector import SupportZone
 
 
@@ -40,29 +43,45 @@ def test_count_touches_none_when_never_entered():
     assert res["first_idx"] is None
 
 
-def test_detect_produces_strong_zone_on_repeated_shelf():
-    # 25 distinct dips to ~1.1000 separated by rallies -> strong shelf
-    bars = []
-    for _ in range(25):
-        bars.append((1.1000, 1.1005))   # touch the shelf
-        bars.append((1.1080, 1.1090))   # rally away
-    seqs = _seqs(bars)
-    atr = [0.0010] * len(bars)
-    zones = zone_detector.detect_support_zones(seqs, atr)
-    assert zones, "expected at least one zone"
-    top = zones[0]
-    assert top.touch_count >= 20
-    assert top.static_strength == "strong"
+# ── research zone engine (faithful port, verified 1:1 vs zone_research_io) ─────
+
+def test_research_swing_confirmed_after_lookback():
+    # global low at index 3; confirmed as a support swing `lookback` bars later
+    lows = [5, 4, 3, 2, 3, 4, 5, 6, 7, 8, 9]
+    df = {"low": lows, "high": [x + 1 for x in lows], "time": list(range(len(lows)))}
+    swings = rze.find_confirmed_swings(df, lookback=2)
+    sup = [s for s in swings if s["zone_type"] == "support"]
+    assert any(s["pivot_index"] == 3 and s["created_index"] == 5 for s in sup)
 
 
-def test_overlapping_zones_merged():
-    # two pivot groups whose bands overlap should collapse to one zone
-    bars = [(1.1000, 1.1005), (1.1080, 1.1090)] * 5 + [(1.1002, 1.1007), (1.1080, 1.1090)] * 5
-    seqs = _seqs(bars)
-    atr = [0.0010] * len(bars)
-    zones = zone_detector.detect_support_zones(seqs, atr)
-    # bands ~1.0965..1.104 overlap -> single merged shelf, not two
-    assert len(zones) == 1
+def test_research_atr_is_sma_of_true_range():
+    # flat identical bars -> TR = high-low = 1.0 every bar -> SMA ATR == 1.0
+    highs = [1.5] * 20
+    lows = [0.5] * 20
+    closes = [1.0] * 20
+    atr = rze.atr_sma(highs, lows, closes, period=14)
+    assert atr[12] is None and atr[13] is not None
+    assert abs(atr[-1] - 1.0) < 1e-9
+
+
+def test_detect_support_zones_runs_and_labels_valid():
+    # synthetic series with repeated dips -> detector returns support zones with
+    # research labels (weak/medium/strong). Loose: the 1:1 match test is the
+    # real validation; this just guards the live wiring.
+    from datetime import datetime, timezone, timedelta
+    t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    lows, highs, opens, closes, times = [], [], [], [], []
+    for i in range(400):
+        base = 1.1050 + math.sin(i / 7.0) * 0.0030   # oscillation -> repeated swing lows
+        lo, hi = base - 0.0006, base + 0.0006
+        lows.append(lo); highs.append(hi)
+        opens.append(base); closes.append(base + math.sin(i / 3.0) * 0.0002)
+        times.append(t0 + timedelta(minutes=15 * i))
+    seqs = {"time": times, "open": opens, "high": highs, "low": lows, "close": closes}
+    zones = zone_detector.detect_support_zones(seqs)
+    assert all(z.static_strength in ("weak", "medium", "strong") for z in zones)
+    assert all(z.zone_high > z.zone_low for z in zones)
+    assert all(z.touch_count >= zone_detector.RESEARCH_MIN_TOUCHES for z in zones)
 
 
 # ── close-reclaim mechanics ───────────────────────────────────────────────────
@@ -133,27 +152,5 @@ def test_reclaim_beyond_confirm_window_not_counted():
     assert res["reclaimed"] is False
 
 
-# ── zone-detection regression lock ────────────────────────────────────────────
-# Not research ground truth — locks CURRENT detector behaviour against regressions.
-
-def test_zone_detection_regression_three_shelves():
-    # Three well-separated shelves visited a fixed number of times.
-    bars = []
-    bars += [(1.1000, 1.1005)] * 1
-    for _ in range(25):                          # ~strong shelf at 1.1000
-        bars += [(1.1000, 1.1006), (1.1090, 1.1100)]
-    for _ in range(15):                          # ~medium shelf at 1.0950
-        bars += [(1.0950, 1.0956), (1.1040, 1.1050)]
-    for _ in range(8):                           # ~weak shelf at 1.0900
-        bars += [(1.0900, 1.0906), (1.0990, 1.1000)]
-    seqs = _seqs(bars)
-    atr = [0.0010] * len(bars)
-    zones = zone_detector.detect_support_zones(seqs, atr)
-
-    strengths = sorted(z.static_strength for z in zones)
-    # exactly three shelves, one of each strength
-    assert len(zones) == 3
-    assert strengths == ["medium", "strong", "weak"]
-    # strongest-first ordering
-    assert zones[0].static_strength == "strong"
-    assert zones[0].touch_count >= 20
+# (The old touch-threshold regression test was removed — labels are now the
+# research score-based weak/medium/strong, validated 1:1 against zone_research_io.)

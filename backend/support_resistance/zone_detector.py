@@ -2,32 +2,38 @@
 """
 Static support zone detection (M15).
 
-Scope note / honesty flag
---------------------------
-Only the DYNAMIC SCORE is golden-fixture validated against the QuantConnect
-research branch. Zone geometry (pivot detection, clustering, touch counting) is
-a reasonable engineering reconstruction of the `m10_s20` support model, NOT a
-bit-exact reproduction of the research zone engine. Treat zone boundaries as
-approximate until a zone-level golden fixture exists.
+Zone detection
+--------------
+detect_support_zones() now uses the FAITHFUL port of the locked research zone
+engine (research_zone_engine.generate_zones), verified to reproduce
+zone_research_io.generate_zones 1:1 on identical candles (18486/18486 events
+identical, labels included). Locked research params: swing_lookback=4,
+min_touches=3, merge_tolerance_atr=0.30, zone_width_atr=0.35.
 
-The pipeline is intentionally split into independent stages so each can be
-hardened later without touching the others:
+The earlier reconstruction functions (detect_pivot_lows / cluster_support_zones /
+count_touches / _merge_overlapping) are retained below as LEGACY helpers but are
+no longer used by detect_support_zones.
 
-  1. detect_pivot_lows      — raw swing lows
-  2. cluster_support_zones  — merge nearby lows into zones + count touches
-  3. label (static_strength) — weak/medium/strong from touch_count
-  4. zone_proximity         — is current price near / approaching a zone
-  5. close_reclaim_state    — full close-reclaim qualifier (touch -> confirm -> hold)
+Other stages:
+  * zone_proximity      — is current price near / approaching a zone
+  * close_reclaim_state — full close-reclaim qualifier (touch -> confirm -> hold)
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Sequence
 
 from . import config
+from . import research_zone_engine as _rze
 from .static_strength import label_static_strength, StaticStrength
 
-# Detection tunables. These are engine defaults for the skeleton, not locked
-# research constants — see the honesty flag above.
+# Locked research zone params (research.ipynb) — verified to reproduce the
+# research engine exactly. NOT the same as the old reconstruction tunables below.
+RESEARCH_SWING_LOOKBACK = 4
+RESEARCH_MIN_TOUCHES = 3
+RESEARCH_MERGE_TOL_ATR = 0.30
+RESEARCH_ZONE_WIDTH_ATR = 0.35
+
+# Legacy reconstruction tunables (kept for the retained helper functions only).
 PIVOT_STRENGTH = 3           # bars on each side that must be higher (pivot low)
 ZONE_MERGE_ATR_FRAC = 0.75   # merge pivots within 0.75 * ATR of the cluster mean
 ZONE_BAND_ATR_FRAC = 0.35    # half-band padding around the pivot spread (~stop buffer)
@@ -227,14 +233,42 @@ def _merge_overlapping(zones: List[SupportZone], seqs: dict) -> List[SupportZone
     return merged
 
 
-def detect_support_zones(seqs: dict, atr_series: Sequence[Optional[float]],
-                         pivot_strength: int = PIVOT_STRENGTH,
-                         merge_atr_frac: float = ZONE_MERGE_ATR_FRAC,
-                         band_atr_frac: float = ZONE_BAND_ATR_FRAC) -> List[SupportZone]:
-    """Full detection: pivot lows -> clusters -> touch-counted, labelled support zones."""
-    pivots = detect_pivot_lows(seqs["low"], strength=pivot_strength)
-    return cluster_support_zones(seqs, atr_series, pivots,
-                                 merge_atr_frac=merge_atr_frac, band_atr_frac=band_atr_frac)
+def detect_support_zones(seqs: dict, atr_series: Sequence[Optional[float]] = None,
+                         **_legacy_kwargs) -> List[SupportZone]:
+    """Detect current support zones via the faithful research engine port.
+
+    Uses research_zone_engine.generate_zones with the locked research params
+    (verified 1:1 against zone_research_io). `atr_series` is accepted for
+    backward compatibility but IGNORED — the research engine computes its own
+    SMA ATR internally. Returns SupportZone objects (support side only).
+    """
+    zones = _rze.generate_zones(
+        seqs["time"], seqs["open"], seqs["high"], seqs["low"], seqs["close"],
+        symbol=config.symbol(), timeframe="M15",
+        swing_lookback=RESEARCH_SWING_LOOKBACK,
+        min_touches=RESEARCH_MIN_TOUCHES,
+        merge_tolerance_atr=RESEARCH_MERGE_TOL_ATR,
+        zone_width_atr=RESEARCH_ZONE_WIDTH_ATR,
+    )
+    out: List[SupportZone] = []
+    for z in zones:
+        if z["zone_type"] != "support":
+            continue
+        out.append(SupportZone(
+            zone_low=z["low"],
+            zone_high=z["high"],
+            zone_mid=z["zone_mid"],
+            touch_count=z["touches"],
+            static_strength=z["label"],
+            zone_created_time=z["created_time"],
+            first_touch_time=z["created_time"],
+            last_touch_time=z["last_touch_time"],
+            atr_at_creation=z["atr_at_creation"],
+        ))
+    # strongest (by research score proxy: strength then recency) first
+    order = {"strong": 3, "medium": 2, "weak": 1}
+    out.sort(key=lambda z: (order.get(z.static_strength, 0), z.last_touch_time), reverse=True)
+    return out
 
 
 def zone_proximity(zone: SupportZone, close: float, atr_value: Optional[float],

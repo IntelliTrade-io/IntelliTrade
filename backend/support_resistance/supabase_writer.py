@@ -98,29 +98,36 @@ def prune_stale(symbol: str, model_version: str, active_zone_ids: List[str]) -> 
     orphans regardless of any clock/timezone drift in older rows.
 
     If no zones were detected this run, we do NOT mass-delete (safety valve).
+    Returns {"opps_deleted": int, "zones_deactivated": int}.
     """
+    counts = {"opps_deleted": 0, "zones_deactivated": 0}
     if not active_zone_ids:
         log.warning("prune_stale: no active zones this run — skipping delete (safety)")
-        return
+        return counts
     sb = get_client()
     try:
-        (sb.table("sr_opportunities")
-           .delete()
-           .eq("symbol", symbol)
-           .eq("model_version", model_version)
-           .not_.in_("zone_id", active_zone_ids)
-           .execute())
-        log.info(f"sr_opportunities: pruned rows not in current run ({len(active_zone_ids)} kept)")
+        res = (sb.table("sr_opportunities")
+               .delete()
+               .eq("symbol", symbol)
+               .eq("model_version", model_version)
+               .not_.in_("zone_id", active_zone_ids)
+               .execute())
+        counts["opps_deleted"] = len(res.data or [])
+        log.info(f"sr_opportunities: pruned {counts['opps_deleted']} rows not in current run "
+                 f"({len(active_zone_ids)} kept)")
     except Exception as e:  # noqa: BLE001
         log.warning(f"sr_opportunities prune failed: {e}")
 
     try:
-        (sb.table("sr_zones")
-           .update({"is_active": False})
-           .eq("symbol", symbol)
-           .eq("model_version", model_version)
-           .not_.in_("id", active_zone_ids)
-           .execute())
-        log.info(f"sr_zones: deactivated zones not in current run ({len(active_zone_ids)} kept active)")
+        res = (sb.table("sr_zones")
+               .update({"is_active": False})
+               .eq("symbol", symbol)
+               .eq("model_version", model_version)
+               .not_.in_("id", active_zone_ids)
+               .execute())
+        counts["zones_deactivated"] = len(res.data or [])
+        log.info(f"sr_zones: deactivated {counts['zones_deactivated']} zones not in current run "
+                 f"({len(active_zone_ids)} kept active)")
     except Exception as e:  # noqa: BLE001
         log.warning(f"sr_zones deactivate failed: {e}")
+    return counts
