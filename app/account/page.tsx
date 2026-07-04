@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
-import AccountClient from "./AccountClient";
+import AccountClient from "./_components/AccountClient";
 
 export const metadata = { title: "Account · IntelliTrade" };
 

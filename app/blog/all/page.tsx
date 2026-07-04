@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
 import { type SanityDocument } from "next-sanity";
-import BlogClientPage from "./BlogClientPage";
+import BlogClientPage from "./_components/BlogClientPage";
 
 export const metadata: Metadata = {
   title: "All Blog Posts · IntelliTrade Insights",

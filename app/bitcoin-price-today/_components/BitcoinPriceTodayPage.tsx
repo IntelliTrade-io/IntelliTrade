@@ -6,7 +6,7 @@ import {
   PricePageBrandStyles,
   RadialBackdrop,
   getChartTabClassName,
-} from "../gold-price-today/lib/pricePageBrand";
+} from "@/components/price-pages/PricePageBrand";
 import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 

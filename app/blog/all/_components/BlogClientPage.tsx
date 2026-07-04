@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import Main from "@/app/blog/Main";
+import Main from "@/app/blog/_components/Main";
 
 interface Post {
   slug: string;

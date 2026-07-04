@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import SilverPriceTodayPage from "./SilverPriceTodayPage";
+import SilverPriceTodayPage from "./_components/SilverPriceTodayPage";
 
 export const metadata: Metadata = {
   title: "Silver Price Today (XAG/USD) · IntelliTrade",

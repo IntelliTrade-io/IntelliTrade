@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
-import Main from "@/app/blog/Main";
+import Main from "@/app/blog/_components/Main";
 import { type SanityDocument } from "next-sanity";
 
 export const metadata: Metadata = {
