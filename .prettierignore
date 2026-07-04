@@ -1,0 +1,12 @@
+# Separate nested app — has its own .prettierrc/.prettierignore
+IntelliConflict-Map/
+
+# Staging / generated / vendored
+claudeLoad/
+.contentlayer/
+.next/
+.cache/
+node_modules/
+public/currency-strength-meter/assets/
+public/currency-strength-meter-intraday/assets/
+backend/support_resistance/reports/

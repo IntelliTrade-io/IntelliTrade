@@ -164,15 +164,15 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 > Rationale: it's staying, but it must stop bleeding into the root project.
 
 **3.1 — Contain it**
-- [ ] Confirm root `tsconfig.json` and `vitest.config.ts` exclude `IntelliConflict-Map/` (they currently do — verify after gitignore changes).
-- [ ] Ensure its `node_modules` is gitignored (covered by 2.1) and not tracked.
-- [ ] Add a short `IntelliConflict-Map/README.md` noting its status: separate app, not part of root build, revisit date. Point back to this plan.
-- [ ] Verify root ESLint/prettier don't try to lint into it.
-- Note:
+- [x] Confirm root `tsconfig.json` and `vitest.config.ts` exclude `IntelliConflict-Map/` (they currently do — verify after gitignore changes).
+- [x] Ensure its `node_modules` is gitignored (covered by 2.1) and not tracked.
+- [x] Add a short `IntelliConflict-Map/README.md` noting its status: separate app, not part of root build, revisit date. Point back to this plan.
+- [x] Verify root ESLint/prettier don't try to lint into it.
+- Note (2026-07-04, session 3): tsconfig ✓ / vitest ✓ / node_modules 0 tracked ✓ (60 app files tracked, doubly-nested `IntelliConflict-Map/IntelliConflict-Map/`). ESLint/prettier were NOT excluding it — added `ignores` block to `eslint.config.mjs` (also claudeLoad, .next, public) and created root `.prettierignore`. README added. Lint = same 5 pre-existing root warnings only; build + 61 tests green.
 
 **3.2 — Note the duplication (do NOT resolve yet)**
-- [ ] Document in backlog §8 that its logic overlaps root `lib/conflicts/*` and its tests duplicate `__tests__/conflicts-route.test.ts` + `scoring.test.ts`. Decision on reconciliation deferred.
-- Note:
+- [x] Document in backlog §8 that its logic overlaps root `lib/conflicts/*` and its tests duplicate `__tests__/conflicts-route.test.ts` + `scoring.test.ts`. Decision on reconciliation deferred.
+- Note (2026-07-04, session 3): already in §8 (first bullet); also restated in the new nested README so nobody "fixes" the duplication ad hoc. **✅ Phase 3 complete 2026-07-04.**
 
 ---
 
@@ -387,3 +387,4 @@ Capture at start of each phase to show progress:
 - **2026-07-04 (session 2, close)** — **Phase 1 complete.** Owner ran 005 in Supabase; RLS verified via anon REST (all 8 tables `42501`) — C1 closed. `CURRENCYFREAKS_API_KEY` set in Vercel (rotation still pending). 1.6 rate limiting descoped with rationale; `/api/rates` hardened to a closed 13-symbol whitelist instead. Register: 13/14 closed, H7 half-open (rotation). Next session → Phase 2 (git hygiene).
 - **2026-07-04 (session 3, branch `refactor/phase1-security` cont.)** — Phase 2 mostly done (recovered from a crashed session that had staged but not committed the work). 2.1 + 2.2 committed in two commits (logic vs tracking, per §3.2): sitemap repointed contentlayer→Sanity (`refactor:`), then `.contentlayer/`, `.cache/`, `scraper.log`, `events.json`, `reports/*` untracked + `.gitignore` broadened (`chore(git):`). Vite meter bundles investigated: no in-repo source → keep tracked, improvement logged. 2.4 done (misnamed folder already gone; `alejoScraper.py` flagged for 6.2). 2.3 mapped, decision pending owner (recommendation in note). Build + 61 tests green. **Remaining Phase 2: 2.3 owner call only.** Loose ends on disk, untouched deliberately: unstaged deletions of 3 tracked `claudeLoad/` files (incl. one scraper duplicate — Phase 6 evidence, don't commit blind) + untracked `scripts/vps/` and `claudeLoad/` working dirs. Next → Phase 3 (isolate nested app), then Phase 4.
 - **2026-07-04 (session 3, close)** — **Phase 2 complete.** Owner: fixtures stay in-repo, no LFS (2.3 closed). New owner facts: VPS has no git, holds only relevant files, deploys were manual copy-paste → 6.7 rewritten as git-based sparse-checkout deploy plan (clone + pull + bootstrap; reconcile VPS drift first, VPS possibly newer than repo). Next → Phase 3.
+- **2026-07-04 (session 3, cont.)** — **Phase 3 complete.** Nested app contained: eslint `ignores` block + root `.prettierignore` added (tsconfig/vitest/node_modules were already clean), status README dropped in `IntelliConflict-Map/`. Duplication documented, not resolved (§8). Lint/build/61 tests green. Also added `OWNER_TODO.md` convention (§0.5). Next → Phase 4 (dead blog stack, verification-gated).
