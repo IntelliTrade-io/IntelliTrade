@@ -1,4 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { requireSubscription } from '@/lib/auth/requireSubscription';
 import { NextResponse } from 'next/server';
 
 // Always render fresh — never serve a cached/stale response from Vercel edge or Next.js ISR
@@ -25,6 +26,8 @@ function deduplicateEvents(events: Record<string, unknown>[]): Record<string, un
 }
 
 export async function GET() {
+  const denied = await requireSubscription();
+  if (denied) return denied;
   try {
     const startOfToday = new Date();
     startOfToday.setUTCHours(0, 0, 0, 0);

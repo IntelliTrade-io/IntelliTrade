@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +109,9 @@ function writeCache(payload: StrengthPayload): void {
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const type = new URL(request.url).searchParams.get("type") === "intraday" ? "intraday" : "daily";
 
   const cache    = await readCache();

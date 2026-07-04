@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 
 // Maps each filename the meter fetches → which Supabase row to query
 type RouteConfig = { type: "daily" | "intraday"; shape: "pairs" | "currencies" };
@@ -21,6 +22,11 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  // Same-origin iframe requests carry the session cookies, so the subscription
+  // gate works here even though the meter itself is a static bundle.
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const { slug } = await params;
   const filename = slug.join("/");
   const config = ROUTE_MAP[filename];

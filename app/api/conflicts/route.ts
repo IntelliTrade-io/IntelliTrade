@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 import { fetchGdeltConflicts, filterBySeverity } from "@/lib/conflicts/gdelt";
 import {
   conflictFeatureCollectionSchema,
@@ -64,6 +65,9 @@ function writeCache(
 }
 
 export async function GET(request: Request) {
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const url = new URL(request.url);
   const parsed = queryParamsSchema.safeParse({
     window:   url.searchParams.get("window")   ?? undefined,

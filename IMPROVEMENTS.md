@@ -22,6 +22,19 @@ Format: what · why · rough approach. Date each entry.
 - **Price pages poll client-side per visitor** *(2026-07-04)*
   Each visitor's browser polls `/api/rates` on an interval (gold/silver/bitcoin pages). Server proxy now caches 60s upstream, which caps quota burn, but a nicer shape is a single server-fetched quote (route handler or RSC with `revalidate`) shared by all visitors + client refresh via one lightweight endpoint.
 
+## Free-module ideas (traffic drivers)
+
+Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator + prices-today; wants more free modules/functions that attract traffic. Candidates (all cheap on data, SEO-friendly, natural upsell into premium):
+
+- **Pip value calculator** — sibling of the lot size calc, reuses `/api/rates`. High search volume ("pip value EURUSD"). Near-zero build cost.
+- **Margin / leverage calculator** — same shell, no external data at all.
+- **Compounding / growth calculator** — "grow $1k at 2%/week" tables; pure client math, very shareable.
+- **Forex market hours / session clock** — "is the London session open" queries; static timezone logic, pairs well with existing session logic in the S&R engine.
+- **Economic calendar teaser** — today-only, delayed, no filters; upsell to the full premium calendar. Reuses `economic_events` behind a limited public endpoint.
+- **Currency strength teaser** — yesterday's daily snapshot only (delayed data), static daily render; upsell to live meter.
+- **Currency correlation matrix** — 30-day pair correlations from candles already in Supabase; classic evergreen tool page.
+- **Spread/swap glossary + per-pair "what is" pages** — programmatic SEO pages fed from Sanity, feeds the blog cluster.
+
 ## Ops
 
 - **No repo-linked migration flow** *(2026-07-04)*

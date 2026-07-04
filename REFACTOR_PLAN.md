@@ -94,10 +94,10 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 > ⚠️ **This is the linchpin.** With RLS off, the anon key (shipped to every browser) can read/write all tables directly, bypassing every Next.js route. Gating the API routes (1.2) is cosmetic until this lands. Do 1.1 before 1.2.
 
 **1.2 — [HIGH] Gate premium API routes with auth + subscription check**
-- [ ] Build one reusable server helper (e.g. `lib/auth/requireSubscription.ts`) that resolves the Supabase session and checks active subscription. Reuse across routes.
-- [ ] Apply to: `app/api/sr-alpha/route.ts`, `app/api/conflicts/route.ts`, `app/api/currency-strength/route.ts`, `app/api/currency-strength-history/route.ts`, `app/api/currency-strength-heatmap/route.ts`, `app/api/economic-events/route.ts`, `app/data/current/[...slug]/route.ts`.
-- [ ] Decide per-route: fully gated (paid) vs. intentionally public (marketing teaser). Document the decision inline.
-- Note:
+- [x] Build one reusable server helper (e.g. `lib/auth/requireSubscription.ts`) that resolves the Supabase session and checks active subscription. Reuse across routes.
+- [x] Apply to: `app/api/sr-alpha/route.ts`, `app/api/conflicts/route.ts`, `app/api/currency-strength/route.ts`, `app/api/currency-strength-history/route.ts`, `app/api/currency-strength-heatmap/route.ts`, `app/api/economic-events/route.ts`, `app/data/current/[...slug]/route.ts`.
+- [x] Decide per-route: fully gated (paid) vs. intentionally public (marketing teaser). Document the decision inline.
+- Note (2026-07-04): Owner locked the tier model — **free = blog + lot size calculator + prices-today pages; everything else premium (subscription)**. All 7 routes now call `requireSubscription()` (401 no session / 403 no active sub; reads `subscriptions` via cookie-scoped client, compatible with the 001 RLS policy). Middleware rewritten to match: premium page shells (`/dashboardv2`, `/support-resistance`, `/conflict-map`, `/currency-strength-meter*`, legacy `/dashboard` until 4.3b removes it) redirect to `/upgrade`; free-tier paths remain excluded from the matcher. Closes H2–H6. Free-module ideas logged in IMPROVEMENTS.md.
 
 **1.3 — [HIGH] Stop shipping the paid API key to the browser**
 - [x] `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` is extractable from any visitor's network tab. Used in `app/{gold,silver,bitcoin}-price-today/*Page.tsx`, `components/lot-size-calculator-2.tsx`, and server route `app/api/dxy/route.ts`.
@@ -190,6 +190,10 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 **4.3 — Verify then handle `data/blog/` MDX + pliny**
 - [ ] `data/blog/*.mdx` (starter posts like `the-time-machine.mdx`), `data/authors/`, `data/siteMetadata.js`, `scripts/blog/rss.mjs`, `pliny` dep, `types/pliny.d.ts`.
 - [ ] Owner decided verify-first; if content is worth keeping, migrate to Sanity, else remove. Confirm nothing live reads `data/blog`.
+- Note:
+
+**4.3b — Remove legacy `/dashboard` (owner decision 2026-07-04)**
+- [ ] Old `/dashboard` is legacy — superseded by `/dashboardv2`. Remove `app/dashboard/page.tsx` (320 lines) and redirect `/dashboard` → `/dashboardv2` (or to `/upgrade` for non-subscribers). Update any nav links pointing at it. Its economic-events consumption is moot once removed (API now subscription-gated anyway).
 - Note:
 
 **4.4 — Remove other verified starter leftovers**
@@ -323,11 +327,11 @@ Full detail lives in Phase 1. Register for tracking:
 | ID | Sev | Finding | Status |
 |----|-----|---------|--------|
 | C1 | CRITICAL | RLS off on all tables except `subscriptions`; public anon key → full direct DB read/write | ◐ migration 005 written — **must be run in Supabase + verified** |
-| H2 | HIGH | `/api/sr-alpha` no auth | ☐ open |
-| H3 | HIGH | `/api/conflicts` no auth | ☐ open |
-| H4 | HIGH | currency-strength + `data/current` endpoints no auth | ☐ open |
-| H5 | HIGH | `/api/economic-events` no auth | ☐ open |
-| H6 | HIGH | middleware matcher excludes `/api` entirely | ☐ open |
+| H2 | HIGH | `/api/sr-alpha` no auth | ✅ fixed 2026-07-04 (subscription) |
+| H3 | HIGH | `/api/conflicts` no auth | ✅ fixed 2026-07-04 (subscription) |
+| H4 | HIGH | currency-strength + `data/current` endpoints no auth | ✅ fixed 2026-07-04 (subscription) |
+| H5 | HIGH | `/api/economic-events` no auth | ✅ fixed 2026-07-04 (subscription) |
+| H6 | HIGH | middleware matcher excludes `/api` entirely | ✅ fixed 2026-07-04 (APIs self-gate via `requireSubscription`; matcher now only excludes free tier + assets) |
 | H7 | HIGH | `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` exposed to browser | ◐ code fixed (proxy) — Vercel env rename + key rotation pending |
 | M8 | MED | No rate limiting anywhere | ☐ open |
 | M9 | MED | Wildcard CORS on `data/current` | ✅ fixed 2026-07-04 |
@@ -373,3 +377,4 @@ Capture at start of each phase to show progress:
 
 - **2026-07-04** — Initial plan created from a 4-scout parallel audit (structure, frontend, security, python). Owner decisions locked (§2). No code changed this session.
 - **2026-07-04 (session 2, branch `refactor/phase1-security`)** — Phase 1 largely done: 005 RLS migration written (⚠️ run it in Supabase); `api/conflicts` + `data/current` switched anon→service-role; `/api/rates` proxy added, CurrencyFreaks key off the browser (⚠️ Vercel env rename + rotation pending); open redirect fixed; `/api/scrape` gated + argv validated (route found dead — `scraper/cli.py` missing); CORS wildcard removed; Supabase deps pinned. Build + 61 tests green. Remaining Phase 1: **1.2 route gating (needs owner paid-vs-public call), 1.6 rate limiting**. Added `IMPROVEMENTS.md` (product-idea backlog, separate from this plan).
+- **2026-07-04 (session 2, cont.)** — 1.2 done. Owner locked tier model: free = blog + lot calc + prices-today; all else subscription. New `lib/auth/requireSubscription.ts`; 7 premium data routes gated; middleware gates all premium shells (incl. static meter/conflict-map bundles + legacy `/dashboard` pending 4.3b removal). Closes H2–H6. Build + 61 tests green.

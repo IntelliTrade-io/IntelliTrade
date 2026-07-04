@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +85,9 @@ async function readCache(): Promise<StrengthPayload | null> {
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function GET(request: Request) {
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const url    = new URL(request.url);
   const type   = url.searchParams.get("type") === "intraday" ? "intraday" : "daily";
 

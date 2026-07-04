@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 import type { CandleData, SupportResistanceZone } from "@/components/support-resistance/types";
 
 export const dynamic = "force-dynamic";
@@ -127,6 +128,8 @@ function mapZone(row: OppRow): SupportResistanceZone {
 }
 
 export async function GET() {
+  const denied = await requireSubscription();
+  if (denied) return denied;
   try {
     // Active zones only — the worker's prune guarantees active == the latest run.
     const { data: oppData, error: oppErr } = await supabaseAdmin
