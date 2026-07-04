@@ -8,6 +8,7 @@ import {
   getChartTabClassName,
 } from "../gold-price-today/lib/pricePageBrand";
 import { client } from "@/sanity/client";
+import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -81,13 +82,9 @@ function useDxy(): string | null {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      try {
-        const res = await fetch("/api/dxy");
-        if (!res.ok || cancelled) return;
-        const json = await res.json();
-        if (json.dxy == null || cancelled) return;
-        setValue((json.dxy as number).toFixed(2));
-      } catch {}
+      const dxy = await fetchDxy();
+      if (dxy == null || cancelled) return;
+      setValue(dxy.toFixed(2));
     };
     load();
     const id = window.setInterval(load, 300_000);
@@ -127,40 +124,33 @@ function useSilverPrice(): SilverQuote | null {
     let cancelled = false;
 
     const fetchPrice = async () => {
-      try {
-        const res = await fetch("/api/rates?symbols=XAG", { cache: "no-store" });
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        const xagPerUsd = parseFloat(data.rates?.XAG);
-        if (!isFinite(xagPerUsd) || xagPerUsd <= 0 || cancelled) return;
+      const usd = await fetchUsdPrice("XAG");
+      if (usd === null || cancelled) return;
 
-        const price = roundToTwo(1 / xagPerUsd);
-        if (openRef.current === null) openRef.current = price;
-        if (price > highRef.current) highRef.current = price;
-        if (price < lowRef.current) lowRef.current = price;
+      const price = roundToTwo(usd);
+      if (openRef.current === null) openRef.current = price;
+      if (price > highRef.current) highRef.current = price;
+      if (price < lowRef.current) lowRef.current = price;
 
-        const open = openRef.current;
-        const high = highRef.current;
-        const low = lowRef.current;
-        const absoluteChange = roundToTwo(price - open);
-        const percentageChange = roundToTwo((absoluteChange / open) * 100);
-        const updatedAt = Date.now();
+      const open = openRef.current;
+      const high = highRef.current;
+      const low = lowRef.current;
+      const absoluteChange = roundToTwo(price - open);
+      const percentageChange = roundToTwo((absoluteChange / open) * 100);
+      const updatedAt = Date.now();
 
-        setQuote({
-          updatedAt, price, absoluteChange, percentageChange, high, low, open,
-          formatted: {
-            price: formatCurrency(price),
-            percentageChange: formatSignedPct(percentageChange),
-            absoluteChange: `(${formatSigned(absoluteChange)})`,
-            sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
-            high: formatCurrency(high),
-            low: formatCurrency(low),
-            open: formatCurrency(open),
-          },
-        });
-      } catch {
-        // keep showing last known price on failure
-      }
+      setQuote({
+        updatedAt, price, absoluteChange, percentageChange, high, low, open,
+        formatted: {
+          price: formatCurrency(price),
+          percentageChange: formatSignedPct(percentageChange),
+          absoluteChange: `(${formatSigned(absoluteChange)})`,
+          sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
+          high: formatCurrency(high),
+          low: formatCurrency(low),
+          open: formatCurrency(open),
+        },
+      });
     };
 
     fetchPrice();
@@ -188,28 +178,13 @@ function useMarketData(): MarketData {
     let cancelled = false;
 
     const fetchGold = async () => {
-      try {
-        const res = await fetch("/api/rates?symbols=XAU", { cache: "no-store" });
-        if (!res.ok) return null;
-        const json = await res.json();
-        const xauPerUsd = parseFloat(json.rates?.XAU);
-        if (!isFinite(xauPerUsd) || xauPerUsd <= 0) return null;
-        return formatCurrency(roundToTwo(1 / xauPerUsd));
-      } catch {
-        return null;
-      }
+      const price = await fetchUsdPrice("XAU");
+      return price === null ? null : formatCurrency(roundToTwo(price));
     };
 
     const fetchYield = async () => {
-      try {
-        const res = await fetch("/api/fred-yield");
-        if (!res.ok) return null;
-        const json = await res.json();
-        if (json.yield == null) return null;
-        return `${(json.yield as number).toFixed(2)}%`;
-      } catch {
-        return null;
-      }
+      const y = await fetchTenYearYield();
+      return y === null ? null : `${y.toFixed(2)}%`;
     };
 
     const load = async () => {

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import MacroDecoderImage from "@/assets/images/macro-decoder-cover.png";
+import { apiPost } from "@/lib/api/client";
 
 
 export default function NewsletterForm() {
@@ -18,16 +19,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   setStatus("idle");
 
   try {
-  
-
-   const response = await fetch("/api/newsletter", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ email }),
-});
-
-
-    if (!response.ok) throw new Error("Form submission failed");
+    await apiPost("/api/newsletter", { email });
 
     setStatus("success");
     setEmail("");

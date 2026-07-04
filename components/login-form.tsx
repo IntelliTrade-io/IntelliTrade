@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { signInWithPassword } from "@/lib/auth/client";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -12,12 +12,10 @@ export function LoginForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      await signInWithPassword(email, password);
       window.location.href = "/dashboardv2";
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");

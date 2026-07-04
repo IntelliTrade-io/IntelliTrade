@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, ChevronDown, X } from "lucide-react";
+import { apiGet } from "@/lib/api/client";
 // ---------- Helpers ----------
 const normalizePair = (pair: string) => pair.replace("/", "").toUpperCase();
 
@@ -127,9 +128,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
       try {
         setLoadingPairs(true);
         setPairsError(null);
-        const res = await fetch(CF_SUPPORTED_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch supported currencies");
-        const data = await res.json();
+        const data = await apiGet<{ supportedCurrenciesMap?: Record<string, unknown> }>(CF_SUPPORTED_URL);
         const map = (data?.supportedCurrenciesMap || {}) as Record<string, unknown>;
         const codes = new Set(Object.keys(map));
         // Ensure USD is in the set; if the endpoint ever omits it, add defensively
@@ -177,10 +176,8 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     const { base, quote } = parsePair(pairSymbol);
 
     try {
-      const res = await fetch(`/api/rates?symbols=${base},${quote}`, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch exchange rate");
-      const data = await res.json();
-      const rates = data.rates as Record<string, string>;
+      const data = await apiGet<{ rates: Record<string, string> }>(`/api/rates?symbols=${base},${quote}`);
+      const rates = data.rates;
 
       const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
       const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);

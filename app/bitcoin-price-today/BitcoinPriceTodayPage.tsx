@@ -8,6 +8,7 @@ import {
   getChartTabClassName,
 } from "../gold-price-today/lib/pricePageBrand";
 import { client } from "@/sanity/client";
+import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -105,40 +106,33 @@ function useBitcoinPrice(): BitcoinQuote | null {
     let cancelled = false;
 
     const fetchPrice = async () => {
-      try {
-        const res = await fetch("/api/rates?symbols=BTC", { cache: "no-store" });
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        const btcPerUsd = parseFloat(data.rates?.BTC);
-        if (!isFinite(btcPerUsd) || btcPerUsd <= 0 || cancelled) return;
+      const usd = await fetchUsdPrice("BTC");
+      if (usd === null || cancelled) return;
 
-        const price = roundToTwo(1 / btcPerUsd);
-        if (openRef.current === null) openRef.current = price;
-        if (price > highRef.current) highRef.current = price;
-        if (price < lowRef.current) lowRef.current = price;
+      const price = roundToTwo(usd);
+      if (openRef.current === null) openRef.current = price;
+      if (price > highRef.current) highRef.current = price;
+      if (price < lowRef.current) lowRef.current = price;
 
-        const open = openRef.current;
-        const high = highRef.current;
-        const low = lowRef.current;
-        const absoluteChange = roundToTwo(price - open);
-        const percentageChange = roundToTwo((absoluteChange / open) * 100);
-        const updatedAt = Date.now();
+      const open = openRef.current;
+      const high = highRef.current;
+      const low = lowRef.current;
+      const absoluteChange = roundToTwo(price - open);
+      const percentageChange = roundToTwo((absoluteChange / open) * 100);
+      const updatedAt = Date.now();
 
-        setQuote({
-          updatedAt, price, absoluteChange, percentageChange, high, low, open,
-          formatted: {
-            price: formatCurrency(price),
-            percentageChange: formatSignedPct(percentageChange),
-            absoluteChange: `(${formatSigned(absoluteChange)})`,
-            sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
-            high: formatCurrency(high),
-            low: formatCurrency(low),
-            open: formatCurrency(open),
-          },
-        });
-      } catch {
-        // keep showing last known price on failure
-      }
+      setQuote({
+        updatedAt, price, absoluteChange, percentageChange, high, low, open,
+        formatted: {
+          price: formatCurrency(price),
+          percentageChange: formatSignedPct(percentageChange),
+          absoluteChange: `(${formatSigned(absoluteChange)})`,
+          sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
+          high: formatCurrency(high),
+          low: formatCurrency(low),
+          open: formatCurrency(open),
+        },
+      });
     };
 
     fetchPrice();
@@ -159,13 +153,9 @@ function useDxy(): string | null {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      try {
-        const res = await fetch("/api/dxy");
-        if (!res.ok || cancelled) return;
-        const json = await res.json();
-        if (json.dxy == null || cancelled) return;
-        setValue((json.dxy as number).toFixed(2));
-      } catch {}
+      const dxy = await fetchDxy();
+      if (dxy == null || cancelled) return;
+      setValue(dxy.toFixed(2));
     };
     load();
     const id = window.setInterval(load, 300_000);
@@ -182,15 +172,9 @@ function useTenYearYield(): string | null {
   useEffect(() => {
     let cancelled = false;
     const fetch_ = async () => {
-      try {
-        const res = await fetch("/api/fred-yield");
-        if (!res.ok || cancelled) return;
-        const json = await res.json();
-        if (json.yield == null || cancelled) return;
-        setValue(`${(json.yield as number).toFixed(2)}%`);
-      } catch {
-        // keep showing last known value
-      }
+      const y = await fetchTenYearYield();
+      if (y == null || cancelled) return;
+      setValue(`${y.toFixed(2)}%`);
     };
     fetch_();
     return () => { cancelled = true; };

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { apiPost } from "@/lib/api/client";
+import { signOut, updatePassword } from "@/lib/auth/client";
 import { User, CreditCard, Lock, LogOut, CheckCircle2, XCircle } from "lucide-react";
 
 interface AccountClientProps {
@@ -50,9 +51,7 @@ export default function AccountClient({ email, createdAt, subscriptionStatus, is
     setPortalLoading(true);
     setPortalError(null);
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Failed to open billing portal");
+      const json = await apiPost<{ url?: string }>("/api/stripe/portal");
       window.open(json.url, "_blank");
     } catch (e: unknown) {
       setPortalError(e instanceof Error ? e.message : "Something went wrong");
@@ -69,21 +68,19 @@ export default function AccountClient({ email, createdAt, subscriptionStatus, is
     }
     setPwStatus("loading");
     setPwError(null);
-    const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    if (error) {
-      setPwError(error.message);
-      setPwStatus("error");
-    } else {
+    try {
+      await updatePassword(newPassword);
       setPwStatus("success");
       setNewPassword("");
       setConfirmPassword("");
+    } catch (error: unknown) {
+      setPwError(error instanceof Error ? error.message : "An error occurred");
+      setPwStatus("error");
     }
   };
 
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.refresh();
     router.push("/");
   };

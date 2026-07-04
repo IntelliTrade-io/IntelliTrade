@@ -1,6 +1,6 @@
 "use client";
 
-import { createClient } from "@/lib/supabase/client";
+import { signUpWithPassword } from "@/lib/auth/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -15,7 +15,6 @@ export function SignUpForm() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -26,15 +25,8 @@ export function SignUpForm() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-      if (data.session) {
+      const hasSession = await signUpWithPassword(email, password);
+      if (hasSession) {
         router.refresh();
         router.push("/upgrade");
       } else {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { RefreshCw } from "lucide-react";
+import { apiGet } from "@/lib/api/client";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
@@ -390,8 +391,7 @@ function useStrengthHistory(type: "daily" | "intraday", hours = 24) {
 
   const load = useCallback(() => {
     setLoading(true);
-    fetch(`/api/currency-strength-history?type=${type}&hours=${hours}`, { cache: "no-store" })
-      .then((r) => r.json())
+    apiGet<{ points?: HistoryPoint[] }>(`/api/currency-strength-history?type=${type}&hours=${hours}`)
       .then((json) => { setPoints(json.points ?? []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [type, hours]);
@@ -537,8 +537,7 @@ function useStrengthData(variant: "daily" | "intraday", tick: number) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetch(`/api/currency-strength?type=${variant}`, { cache: "no-store" })
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+    apiGet<{ currencies: Scores; fetchedAt: string; cacheAgeSeconds: number }>(`/api/currency-strength?type=${variant}`)
       .then((json) => { if (!cancelled) { setData(json); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setError(e.message); setLoading(false); } });
     return () => { cancelled = true; };

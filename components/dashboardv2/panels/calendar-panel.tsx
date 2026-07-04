@@ -6,6 +6,7 @@ import {
   BarChart2, CalendarDays, ChevronDown, CircleDot, Search, Star, Waves, X, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiGet } from "@/lib/api/client";
 import { WidgetShell } from "../ui/widget-shell";
 import { SmallAction } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
@@ -329,9 +330,7 @@ function useEconomicEvents() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/economic-events", { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: ApiEvent[] = await res.json();
+        const data = await apiGet<ApiEvent[]>("/api/economic-events");
         const arr = Array.isArray(data) ? data : [data];
         const sorted = arr
           .sort((a, b) => new Date(a.date_time_utc).getTime() - new Date(b.date_time_utc).getTime())

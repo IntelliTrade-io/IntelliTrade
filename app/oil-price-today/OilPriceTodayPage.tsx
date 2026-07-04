@@ -8,6 +8,7 @@ import {
   getChartTabClassName,
 } from "../gold-price-today/lib/pricePageBrand";
 import { client } from "@/sanity/client";
+import { fetchDxy } from "@/lib/api/market";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -44,13 +45,9 @@ function useDxy(): string | null {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      try {
-        const res = await fetch("/api/dxy");
-        if (!res.ok || cancelled) return;
-        const json = await res.json();
-        if (json.dxy == null || cancelled) return;
-        setValue((json.dxy as number).toFixed(2));
-      } catch {}
+      const dxy = await fetchDxy();
+      if (dxy == null || cancelled) return;
+      setValue(dxy.toFixed(2));
     };
     load();
     const id = window.setInterval(load, 300_000);
