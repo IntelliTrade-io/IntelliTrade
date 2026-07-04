@@ -24,6 +24,8 @@ Things only the owner can do (account access, credentials, external services). *
 
 ## External / accounts
 
+- [ ] **Check Supabase sign-up email redirect** — the sign-up flow passes `emailRedirectTo: <origin>/auth/callback`, but no `/auth/callback` route exists in the app (only `/auth/confirm`, which handles `token_hash` links). If the Supabase email template uses `{{ .ConfirmationURL }}`, new users may land on a 404 after confirming. Test one real sign-up; tell Claude "callback works" or "callback 404s" → then it's either left alone or repointed to `/auth/confirm`.
+
 - [ ] **Locate the currency-strength meter Vite source** (built outside this repo — see `claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`). Needed to bring it in-repo with a build step (IMPROVEMENTS.md entry).
 - [ ] **Supabase CLI link** for the project so migrations run via `db push` instead of hand-pasting in the SQL editor; then Claude backfills migration files for the 4 dashboard-created tables (IMPROVEMENTS.md → Ops).
 
