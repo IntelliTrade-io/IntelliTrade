@@ -3,6 +3,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+interface ModulePageShellProps {
+  eyebrow?: string;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  maxWidth?: string;
+  children: React.ReactNode;
+}
+
 export default function ModulePageShell({
   eyebrow = "IntelliTrade modules",
   title,
@@ -10,7 +19,7 @@ export default function ModulePageShell({
   actions = null,
   maxWidth = "max-w-[1880px]",
   children,
-}) {
+}: ModulePageShellProps) {
   return (
     <div className="min-h-screen bg-[#020203] px-6 pb-10 pt-36 text-white sm:px-8 lg:px-10">
       <div className={["mx-auto", maxWidth].join(" ")}>

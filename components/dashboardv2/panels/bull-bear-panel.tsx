@@ -1,8 +1,7 @@
 "use client";
 
 import { Gamepad2 } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { BullBearSurface } = require("../modules/BullBearExperience.jsx");
+import { BullBearSurface } from "../modules/BullBearExperience";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";

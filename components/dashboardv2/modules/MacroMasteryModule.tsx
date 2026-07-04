@@ -2,7 +2,7 @@
 
 import React from "react";
 import { ArrowUpRight, BookOpen, GraduationCap, Sparkles } from "lucide-react";
-import MacroMasteryReader from "../generated/MacroMasteryReader.tsx";
+import MacroMasteryReader from "../generated/MacroMasteryReader";
 
 const COURSE_TRACKS = [
   { label: "Macro mindset", chapters: "1-3", note: "Cycle framing, expectations, and analyst habits." },
@@ -18,7 +18,7 @@ const COURSE_STATS = [
   { label: "Access", value: "Subscriber" },
 ];
 
-export function MacroMasteryWorkspaceModule({ compact = false }) {
+export function MacroMasteryWorkspaceModule({}: { compact?: boolean } = {}) {
   return (
     <div className="relative flex h-full min-h-0 flex-col gap-4 overflow-auto">
       <section className="relative overflow-hidden rounded-[30px] border border-white/20 bg-white/5 p-5 shadow-[0_32px_80px_rgba(0,0,0,0.72)] backdrop-blur-2xl">

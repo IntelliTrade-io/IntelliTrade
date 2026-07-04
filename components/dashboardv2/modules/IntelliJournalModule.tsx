@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { BarChart3, NotebookPen, ShieldCheck, Target, TrendingDown, TrendingUp } from "lucide-react";
-import { createJournalDemoFixtures } from "../generated/journalFixtures.ts";
+import { createJournalDemoFixtures } from "../generated/journalFixtures";
 
 const NAV_ITEMS = [
   { id: "overview", part: "01", title: "Overview", href: "#overview" },
@@ -24,36 +24,36 @@ const PANEL_GLOW = "pointer-events-none absolute inset-0 bg-[linear-gradient(135
 const PANEL_RADIAL = "pointer-events-none absolute inset-0 opacity-0";
 const CHIP = "inline-flex items-center rounded-full border border-white/10 bg-white/[0.05] px-4 py-2 text-[11px] uppercase tracking-[0.2em] text-white/78";
 
-function cx(...parts) {
+function cx(...parts: Array<string | boolean | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
 
-function sum(items, selector) {
+function sum<T>(items: T[], selector: (item: T) => number) {
   return items.reduce((total, item) => total + selector(item), 0);
 }
 
-function weightedAverage(items) {
+function weightedAverage(items: Array<{ qty: number; price: number }>) {
   const qty = sum(items, (item) => item.qty);
   return qty ? sum(items, (item) => item.qty * item.price) / qty : null;
 }
 
-function formatCurrency(value) {
+function formatCurrency(value: number | null | undefined) {
   return value == null || Number.isNaN(value) ? "--" : `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
 }
 
-function formatR(value) {
+function formatR(value: number | null | undefined) {
   return value == null || Number.isNaN(value) ? "--" : `${value >= 0 ? "+" : ""}${value.toFixed(2)}R`;
 }
 
-function formatNumber(value) {
+function formatNumber(value: number | null | undefined) {
   return value == null || Number.isNaN(value) ? "--" : value.toFixed(2);
 }
 
-function formatDate(value) {
+function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(value));
 }
 
-function formatDateTime(value) {
+function formatDateTime(value: string) {
   const date = new Date(value);
   return {
     date: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date),
@@ -65,11 +65,13 @@ function buildSnapshot() {
   const fixtures = createJournalDemoFixtures("dashboard-preview");
   const instruments = new Map(fixtures.instruments.map((item) => [item.id, item]));
   const strategies = new Map(fixtures.strategies.map((item) => [item.id, item]));
+  type Leg = (typeof fixtures.tradeLegs)[number];
   const legsByTrade = fixtures.tradeLegs.reduce((map, leg) => {
-    if (!map.has(leg.trade_id)) map.set(leg.trade_id, []);
-    map.get(leg.trade_id).push(leg);
+    const existing = map.get(leg.trade_id);
+    if (existing) existing.push(leg);
+    else map.set(leg.trade_id, [leg]);
     return map;
-  }, new Map());
+  }, new Map<string, Leg[]>());
 
   const trades = fixtures.trades.map((trade) => {
     const instrument = instruments.get(trade.instrument_id);
@@ -120,7 +122,7 @@ function buildSnapshot() {
       partial: trades.filter((trade) => trade.resolution === "partially_closed").length,
       open: trades.filter((trade) => trade.resolution === "open").length,
       netClosed: Number(resolved.reduce((total, trade) => total + trade.pnlNet, 0).toFixed(2)),
-      avgR: resolvedWithRisk.length ? Number((resolvedWithRisk.reduce((total, trade) => total + trade.r, 0) / resolvedWithRisk.length).toFixed(2)) : null,
+      avgR: resolvedWithRisk.length ? Number((resolvedWithRisk.reduce((total, trade) => total + (trade.r ?? 0), 0) / resolvedWithRisk.length).toFixed(2)) : null,
     },
   };
 }
@@ -141,7 +143,15 @@ function useScrollProgress() {
   return progress;
 }
 
-function GlassPanel({ children, className = "", bodyClassName = "", id, strong = false }) {
+interface GlassPanelProps {
+  children: React.ReactNode;
+  className?: string;
+  bodyClassName?: string;
+  id?: string;
+  strong?: boolean;
+}
+
+function GlassPanel({ children, className = "", bodyClassName = "", id, strong = false }: GlassPanelProps) {
   return (
     <section id={id} className={cx(PANEL, strong && PANEL_STRONG, className)}>
       <div className={PANEL_BG} />
@@ -152,7 +162,7 @@ function GlassPanel({ children, className = "", bodyClassName = "", id, strong =
   );
 }
 
-function SectionHeader({ kicker, title, description, actions }) {
+function SectionHeader({ kicker, title, description, actions }: { kicker?: React.ReactNode; title: React.ReactNode; description?: React.ReactNode; actions?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="grid gap-3">
@@ -169,7 +179,7 @@ function Divider() {
   return <div className="h-px bg-[linear-gradient(90deg,rgba(139,92,246,0.12),rgba(197,213,255,0.05),rgba(167,139,250,0.12))]" />;
 }
 
-function Sparkline({ points, compact = false }) {
+function Sparkline({ points, compact = false }: { points: Array<{ label: string; value: number }>; compact?: boolean }) {
   if (!points.length) return <div className="flex h-full min-h-[180px] items-center justify-center text-sm text-[rgba(203,215,228,0.7)]">No realized equity points are available yet.</div>;
   const width = 780, height = compact ? 180 : 280, pad = 18;
   const values = points.map((point) => point.value);
@@ -190,9 +200,9 @@ function Sparkline({ points, compact = false }) {
   );
 }
 
-function MetricCard({ icon: Icon, label, value, hint, tone = "neutral" }) {
+function MetricCard({ icon: Icon, label, value, hint, tone = "neutral" }: { icon: React.ComponentType<{ className?: string }>; label: string; value: React.ReactNode; hint?: string; tone?: "neutral" | "positive" | "negative" }) {
   return (
-    <GlassPanel as="article" bodyClassName="grid gap-3 p-5">
+    <GlassPanel bodyClassName="grid gap-3 p-5">
       <div className="flex items-start justify-between gap-3">
         <span className="text-[0.68rem] font-extrabold uppercase tracking-[0.24em] text-[rgba(204,191,235,0.58)]">{label}</span>
         <div className="flex h-10 w-10 items-center justify-center rounded-[16px] border border-[rgba(197,213,255,0.12)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent_100%),linear-gradient(135deg,rgba(139,92,246,0.04),rgba(167,139,250,0.08))] text-white/78"><Icon className="h-4 w-4" /></div>
@@ -203,7 +213,7 @@ function MetricCard({ icon: Icon, label, value, hint, tone = "neutral" }) {
   );
 }
 
-function PerformanceSection({ compact = false }) {
+function PerformanceSection({ compact = false }: { compact?: boolean }) {
   const { equity, stats, trades } = SNAPSHOT;
   if (compact) return (
     <div className="flex h-full min-h-0 flex-col gap-4 overflow-auto">
@@ -279,7 +289,7 @@ function RoadmapSection() {
   );
 }
 
-export function IntelliJournalSurface({ compact = false }) {
+export function IntelliJournalSurface({ compact = false }: { compact?: boolean }) {
   return <PerformanceSection compact={compact} />;
 }
 

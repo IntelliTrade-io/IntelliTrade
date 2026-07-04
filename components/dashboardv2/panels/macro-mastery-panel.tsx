@@ -1,8 +1,7 @@
 "use client";
 
 import { BookOpen } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { MacroMasteryWorkspaceModule } = require("../modules/MacroMasteryModule.jsx");
+import { MacroMasteryWorkspaceModule } from "../modules/MacroMasteryModule";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";
