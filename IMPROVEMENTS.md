@@ -35,6 +35,9 @@ Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator +
 - **Currency correlation matrix** — 30-day pair correlations from candles already in Supabase; classic evergreen tool page.
 - **Spread/swap glossary + per-pair "what is" pages** — programmatic SEO pages fed from Sanity, feeds the blog cluster.
 
+- **Currency-strength meter Vite source not in repo** *(2026-07-04)*
+  `public/currency-strength-meter{,-intraday}/assets/index-*.{js,css}` are prebuilt Vite bundles (~810 KB) with **no source in this repo** — they're the only copy, built somewhere external (see `claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`). Risk: unreproducible artifact; any change requires whoever holds the source. Bring the Vite app in-repo (e.g. `apps/strength-meter/`) with a build step that outputs into `public/`, then gitignore the bundles. Ties into Phase 6.1 strength-engine dedup.
+
 ## Ops
 
 - **No repo-linked migration flow** *(2026-07-04)*

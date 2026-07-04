@@ -132,27 +132,27 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 > Rationale: removing committed build output and blobs makes every later diff cleaner and clone/CI faster. No history rewrite (decided).
 
 **2.1 — Fix `.gitignore`**
-- [ ] Add: `.contentlayer/`, `.cache/`, `*.log`, `__pycache__/`, `.pytest_cache/`, `**/node_modules/` (so nested app deps can never be committed), prebuilt `public/**/assets/index-*.js` if those are generated.
-- Note:
+- [x] Add: `.contentlayer/`, `.cache/`, `*.log`, `__pycache__/`, `.pytest_cache/`, `**/node_modules/` (so nested app deps can never be committed), prebuilt `public/**/assets/index-*.js` if those are generated.
+- Note (2026-07-04, session 3): done — `node_modules/` now matches at any depth; added `.contentlayer/`, `.cache/`, `*.log`, `__pycache__/`, `.pytest_cache/`, `*.pyc`, `/backend/support_resistance/reports/`, `/events.json`. Vite bundles NOT ignored — see 2.2 note (they have no in-repo source; they're the deployed artifact).
 
 **2.2 — Remove committed generated/build output from the tree** (`git rm --cached`, keep on disk where still needed)
-- [ ] `.contentlayer/` (13 files, ~1 MB generated cache).
-- [ ] `.cache/events-cache.json`.
-- [ ] `scraper.log` (log file committed at root).
-- [ ] `backend/support_resistance/reports/*` (program outputs under version control).
-- [ ] Prebuilt Vite bundles in `public/currency-strength-meter*/assets/` — confirm whether these are build output of a separate source (if so, they belong in a build step, not git).
-- Note:
+- [x] `.contentlayer/` (13 files, ~1 MB generated cache).
+- [x] `.cache/events-cache.json`.
+- [x] `scraper.log` (log file committed at root).
+- [x] `backend/support_resistance/reports/*` (program outputs under version control).
+- [x] Prebuilt Vite bundles in `public/currency-strength-meter*/assets/` — confirm whether these are build output of a separate source (if so, they belong in a build step, not git).
+- Note (2026-07-04, session 3): all untracked via `git rm --cached` (2,920 lines gone), kept on disk. Prerequisite: `app/blog/sitemap.ts` was the last live `.contentlayer` consumer — rewritten to query Sanity for post slugs (separate `refactor:` commit; also fixes stale sitemap advertising dead MDX starter posts). **Vite bundles: KEEP TRACKED** — searched repo, no Vite source exists here (bundles are the only copy; built externally). Logged in IMPROVEMENTS.md: bring meter source in-repo with a build step. Build + 61 tests green.
 
 **2.3 — Move real test fixtures out of git into LFS or external store**
 - [ ] `backend/support_resistance/fixtures/*.csv.gz` + `*.csv` (~4.4 MB, incl. a **redundant EURUSD M15 2021–2025 dataset pair** — keep one). Decide: Git LFS vs. external bucket + fetch script. Tests must still find them (or a small golden subset stays in-repo).
 - [ ] Keep the small `golden_backend_fixture.csv` in-repo (it anchors the regression test); externalize the large ones.
-- Note:
+- Note (2026-07-04, session 3, state mapped): tracked = `controlled_qc_oanda_*` pair (1.4 MB gz + manifest) + `controlled_zone_events_reference.csv` (1.2 MB) + phase39 fixture (153 KB) — all consumed by `validate_zone_fixture.py`. UNtracked on disk = `eurusd_m15_2021_2025_quantconnect_oanda_mid.csv.gz` (1.6 MB) + manifest, from the SR validation rebuild (same 124,092 rows/range as controlled pair, different lineage — see controlled manifest's `important_note`). **Do NOT commit the untracked pair.** LFS-vs-bucket decision pending owner (recommendation: keep controlled pair in-repo for now — 2.6 MB, tests depend on it, LFS adds clone friction on the Windows VPS; revisit only if repo weight actually hurts).
 
 **2.4 — Remove root strays & filesystem cruft**
-- [ ] `events.json` at root — identify owner; move to `data/` or delete.
-- [ ] Empty misnamed folder `c:intellitradesupabasemigrations/` (a botched path, untracked) — delete from disk.
-- [ ] `alejoScraper.py` at root — defer to Phase 6 (scraper dedup), just flag here.
-- Note:
+- [x] `events.json` at root — identify owner; move to `data/` or delete.
+- [x] Empty misnamed folder `c:intellitradesupabasemigrations/` (a botched path, untracked) — delete from disk.
+- [x] `alejoScraper.py` at root — defer to Phase 6 (scraper dedup), just flag here.
+- Note (2026-07-04, session 3): `events.json` untracked + gitignored in 2.2 (scraper output, regenerated at runtime; stays on disk). Misnamed folder already gone from disk (verified root listing). `alejoScraper.py` still at root, tracked — flagged, Phase 6.2 decides canonical.
 
 **Phase 2 exit criteria:** `git status` clean of generated files; no build output tracked; large fixtures externalized with tests still green.
 
@@ -380,3 +380,4 @@ Capture at start of each phase to show progress:
 - **2026-07-04 (session 2, branch `refactor/phase1-security`)** — Phase 1 largely done: 005 RLS migration written (⚠️ run it in Supabase); `api/conflicts` + `data/current` switched anon→service-role; `/api/rates` proxy added, CurrencyFreaks key off the browser (⚠️ Vercel env rename + rotation pending); open redirect fixed; `/api/scrape` gated + argv validated (route found dead — `scraper/cli.py` missing); CORS wildcard removed; Supabase deps pinned. Build + 61 tests green. Remaining Phase 1: **1.2 route gating (needs owner paid-vs-public call), 1.6 rate limiting**. Added `IMPROVEMENTS.md` (product-idea backlog, separate from this plan).
 - **2026-07-04 (session 2, cont.)** — 1.2 done. Owner locked tier model: free = blog + lot calc + prices-today; all else subscription. New `lib/auth/requireSubscription.ts`; 7 premium data routes gated; middleware gates all premium shells (incl. static meter/conflict-map bundles + legacy `/dashboard` pending 4.3b removal). Closes H2–H6. Build + 61 tests green.
 - **2026-07-04 (session 2, close)** — **Phase 1 complete.** Owner ran 005 in Supabase; RLS verified via anon REST (all 8 tables `42501`) — C1 closed. `CURRENCYFREAKS_API_KEY` set in Vercel (rotation still pending). 1.6 rate limiting descoped with rationale; `/api/rates` hardened to a closed 13-symbol whitelist instead. Register: 13/14 closed, H7 half-open (rotation). Next session → Phase 2 (git hygiene).
+- **2026-07-04 (session 3, branch `refactor/phase1-security` cont.)** — Phase 2 mostly done (recovered from a crashed session that had staged but not committed the work). 2.1 + 2.2 committed in two commits (logic vs tracking, per §3.2): sitemap repointed contentlayer→Sanity (`refactor:`), then `.contentlayer/`, `.cache/`, `scraper.log`, `events.json`, `reports/*` untracked + `.gitignore` broadened (`chore(git):`). Vite meter bundles investigated: no in-repo source → keep tracked, improvement logged. 2.4 done (misnamed folder already gone; `alejoScraper.py` flagged for 6.2). 2.3 mapped, decision pending owner (recommendation in note). Build + 61 tests green. **Remaining Phase 2: 2.3 owner call only.** Loose ends on disk, untouched deliberately: unstaged deletions of 3 tracked `claudeLoad/` files (incl. one scraper duplicate — Phase 6 evidence, don't commit blind) + untracked `scripts/vps/` and `claudeLoad/` working dirs. Next → Phase 3 (isolate nested app), then Phase 4.
