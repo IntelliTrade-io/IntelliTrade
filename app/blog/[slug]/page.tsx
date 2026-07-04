@@ -20,9 +20,10 @@ const options = { next: { revalidate: 30 } };
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug: params.slug }, options);
+  const { slug } = await params;
+  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug }, options);
   if (!post) return { title: "Post Not Found · IntelliTrade" };
 
   const postImageUrl = post.image
@@ -34,11 +35,11 @@ export async function generateMetadata({
     description:
       post.summary ||
       `${post.title} — educational macro and market analysis from IntelliTrade.`,
-    alternates: { canonical: `https://intellitrade.tech/blog/${params.slug}` },
+    alternates: { canonical: `https://intellitrade.tech/blog/${slug}` },
     openGraph: {
       title: post.title,
       description: post.summary || "",
-      url: `https://intellitrade.tech/blog/${params.slug}`,
+      url: `https://intellitrade.tech/blog/${slug}`,
       type: "article",
       publishedTime: post.publishedAt,
       authors: post.author ? [post.author] : ["IntelliTrade Team"],
@@ -58,8 +59,9 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return slugs.map((s) => ({ slug: s.slug.current }));
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug: params.slug }, options);
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = await client.fetch<SanityDocument>(POST_QUERY, { slug }, options);
 
   if (!post) return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
@@ -93,7 +95,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
     "@type": "BlogPosting",
     headline: post.title,
     description: post.summary || "",
-    url: `https://intellitrade.tech/blog/${params.slug}`,
+    url: `https://intellitrade.tech/blog/${slug}`,
     datePublished: post.publishedAt,
     dateModified: post._updatedAt || post.publishedAt,
     author: {
@@ -108,7 +110,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://intellitrade.tech/blog/${params.slug}`,
+      "@id": `https://intellitrade.tech/blog/${slug}`,
     },
     ...(postImageUrl && { image: postImageUrl }),
   };
