@@ -333,7 +333,7 @@ Full detail lives in Phase 1. Register for tracking:
 | H4 | HIGH | currency-strength + `data/current` endpoints no auth | ✅ fixed 2026-07-04 (subscription) |
 | H5 | HIGH | `/api/economic-events` no auth | ✅ fixed 2026-07-04 (subscription) |
 | H6 | HIGH | middleware matcher excludes `/api` entirely | ✅ fixed 2026-07-04 (APIs self-gate via `requireSubscription`; matcher now only excludes free tier + assets) |
-| H7 | HIGH | `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` exposed to browser | ◐ proxy live, `CURRENCYFREAKS_API_KEY` set in Vercel — **key rotation still pending**, then delete `NEXT_PUBLIC_` var + code fallback |
+| H7 | HIGH | `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` exposed to browser | ◐ proxy live, `CURRENCYFREAKS_API_KEY` set in Vercel — **rotation blocked until ~2026-07-06** (co-founder has CurrencyFreaks access, away). Then: rotate → update Vercel var → delete `NEXT_PUBLIC_` var → strip code fallback in `api/rates` + `api/dxy` |
 | M8 | MED | No rate limiting anywhere | ✅ descoped 2026-07-04 — risk gone post-gating; `/api/rates` symbol whitelist closed structurally (see 1.6) |
 | M9 | MED | Wildcard CORS on `data/current` | ✅ fixed 2026-07-04 |
 | M10 | MED | `/api/scrape` unauth, user-controlled argv to `spawn` | ✅ fixed 2026-07-04 (route was also dead — see IMPROVEMENTS.md) |
