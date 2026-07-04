@@ -1,0 +1,28 @@
+{
+  "purpose": "backend engine vs canonical research reference (port fidelity on controlled candles)",
+  "candles": "controlled_qc_oanda_eurusd_m15_2021_2025.csv.gz",
+  "candle_rows": 124092,
+  "candle_start": "2021-01-03 17:00:00",
+  "candle_end": "2025-12-31 00:00:00",
+  "candle_validation_errors": [],
+  "candle_validation_warnings": [],
+  "reference": "controlled_zone_events_reference.csv",
+  "reference_generated_by": "claudeLoad/SnRTool/researchCode/zone_research_io.generate_zone_events (real research code)",
+  "params": {
+    "swing_lookback": 4,
+    "atr_period": 14,
+    "zone_width_atr": 0.35,
+    "merge_tolerance_atr": 0.3,
+    "min_touches": 3
+  },
+  "reference_events": 18488,
+  "backend_events": 18488,
+  "exact_positional_matches": 18488,
+  "identical": true,
+  "geometry_pass_rate": 1.0,
+  "label_pass_rate": 1.0,
+  "zone_geometry_validation_status": "passed",
+  "close_reclaim_validation_status": "simplified",
+  "note": "Validates the shipped backend engine reproduces the research zone algorithm EXACTLY on controlled candles. The original Phase 39 fixture geometry is NOT validated (its source candles are unrecoverable) and is kept for scoring only.",
+  "first_mismatches": []
+}

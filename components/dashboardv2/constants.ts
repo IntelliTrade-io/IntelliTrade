@@ -6,6 +6,7 @@ import {
   FileText,
   Gamepad2,
   Globe2,
+  LineChart,
   Radar,
   Waves,
 } from "lucide-react";
@@ -62,6 +63,7 @@ export const PANEL_DEFAULT_DIMENSIONS: Record<WidgetType, PanelDimension> = {
   journal: { w: 7, h: 10, minW: 1, minH: 8 },
   game: { w: 6, h: 7, minW: 1, minH: 4 },
   macro: { w: 6, h: 6, minW: 1, minH: 4 },
+  supportResistance: { w: 7, h: 17, minW: 3, minH: 10 },
 };
 
 export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
@@ -112,6 +114,11 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     description: "Interactive macro reader with guided tracks and chapter depth.",
     icon: BookOpen,
     comingSoon: true,
+  },
+  supportResistance: {
+    label: "Support & Resistance Alpha",
+    description: "EURUSD support-reclaim opportunity grading from live research scoring.",
+    icon: LineChart,
   },
 };
 

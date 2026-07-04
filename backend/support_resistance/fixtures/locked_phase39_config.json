@@ -1,0 +1,80 @@
+{
+  "locked_utc": "2026-06-24T11:28:34.383734+00:00",
+  "status": "locked_research_candidate_not_final_production",
+  "model_name": "EURUSD Dynamic Support Reclaim Opportunity Score v1",
+  "base_engine": {
+    "symbol": "EURUSD",
+    "zone_variant": "m10_s20",
+    "zone_type": "support_only",
+    "confirmation_type": "close_reclaim",
+    "target_r": 0.5,
+    "stop_buffer_atr": 0.3,
+    "max_touch_wait_bars": 384,
+    "max_confirm_wait_bars": 8,
+    "max_hold_bars": 48,
+    "session_filter": "exclude_late"
+  },
+  "static_zone_labels": {
+    "weak": "touch_count < 10",
+    "medium": "10 <= touch_count < 20",
+    "strong": "touch_count >= 20"
+  },
+  "dynamic_score_components": {
+    "static_zone_score": {
+      "weak": 0.0,
+      "medium": 1.0,
+      "strong": 2.0
+    },
+    "positive_components": {
+      "no_sharp_bearish_m15_12": "+1.00 if m15_return_12_atr > -1.00",
+      "balanced_m15_impulse_12": "+0.50 if -1.00 <= m15_return_12_atr <= 2.00",
+      "h1_trend_basic": "+0.75 if H1 close above EMA200 and H1 EMA200 slope >= 0",
+      "h4_trend_basic": "+0.50 if H4 close above EMA200 and H4 EMA200 slope >= 0",
+      "m15_h1_above_ema200": "+0.25 if M15 and H1 close above EMA200",
+      "session_score": {
+        "asia": 1.0,
+        "london_midday": 0.75,
+        "ny_open": 0.15,
+        "london_open": -0.35,
+        "other": 0.0
+      }
+    },
+    "penalties": {
+      "sharp_bearish_m15_12": "-1.25 if m15_return_12_atr <= -1.00",
+      "fast_rally_chase": "-0.35 if m15_return_12_atr >= 2.00",
+      "london_open": "-0.35 if session == london_open"
+    }
+  },
+  "train_score_thresholds": {
+    "green": 2.8,
+    "elite_green": 3.65,
+    "a_plus": 4.5
+  },
+  "dynamic_grade_rules": {
+    "A+": "score >= 4.5",
+    "Elite Green": "3.65 <= score < 4.5",
+    "Green": "2.8 <= score < 3.65",
+    "Watch": "score >= 2.00 but below Green threshold",
+    "Blocked": "score < 2.00 or no valid score"
+  },
+  "dashboard_tiers": {
+    "Green": [
+      "Green",
+      "Elite Green",
+      "A+"
+    ],
+    "Elite Green": [
+      "Elite Green",
+      "A+"
+    ],
+    "A+": [
+      "A+"
+    ]
+  },
+  "important_research_notes": [
+    "Use original Phase 36 dynamic score, not Phase 38 anti-chase variants.",
+    "Phase 38 anti-chase variants were visually logical but did not improve the main product ladders.",
+    "A+ means high-quality short-term reaction probability, not long-term trend reversal.",
+    "This is currently validated for EURUSD support close-reclaims only."
+  ]
+}

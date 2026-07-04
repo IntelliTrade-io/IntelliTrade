@@ -21,8 +21,9 @@ const FEATURES = [
 export default async function UpgradePage({
   searchParams,
 }: {
-  searchParams: { canceled?: string };
+  searchParams: Promise<{ canceled?: string }>;
 }) {
+  const { canceled } = await searchParams;
   const [supabase, price] = await Promise.all([
     createClient(),
     stripe.prices.retrieve(process.env.STRIPE_PRICE_ID!),
@@ -48,7 +49,7 @@ export default async function UpgradePage({
     <div className="relative min-h-screen w-full px-4 py-20 text-white">
       <div className="mx-auto max-w-lg">
 
-        {searchParams.canceled && (
+        {canceled && (
           <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-300">
             Payment canceled — no charge was made. You can try again whenever you&apos;re ready.
           </div>

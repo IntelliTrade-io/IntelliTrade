@@ -6,7 +6,7 @@ import "react-resizable/css/styles.css";
 const ReactGridLayout = require("react-grid-layout").default ?? require("react-grid-layout");
 import { useContainerWidth } from "react-grid-layout";
 import { useState, useEffect } from "react";
-import { BookOpen, CalendarDays, CandlestickChart, Calculator, FileText, Gamepad2, Globe2, LayoutDashboard, Radar } from "lucide-react";
+import { BookOpen, CalendarDays, CandlestickChart, Calculator, FileText, Gamepad2, Globe2, LayoutDashboard, LineChart, Radar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GRID_MARGIN, GRID_ROW_HEIGHT, WORKSPACE_PRESETS } from "./constants";
 import { useWorkspace } from "./hooks/use-workspace";
@@ -19,6 +19,7 @@ import { ConflictMapPanel } from "./panels/conflict-map-panel";
 import { JournalPanel } from "./panels/journal-panel";
 import { BullBearPanel } from "./panels/bull-bear-panel";
 import { MacroMasteryPanel } from "./panels/macro-mastery-panel";
+import { SupportResistancePanel } from "./panels/support-resistance-panel";
 import type { Panel, WidgetType } from "./types";
 
 const PANEL_TABS = [
@@ -31,6 +32,7 @@ const PANEL_TABS = [
   { id: "conflict",        label: "Conflict Map", icon: Globe2,          comingSoon: true  },
   { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: true  },
   { id: "macro",           label: "Macro Mastery",icon: BookOpen,        comingSoon: true  },
+  { id: "supportResistance", label: "S&R Alpha",  icon: LineChart,       comingSoon: false },
 ] as const;
 
 type TabId = typeof PANEL_TABS[number]["id"];
@@ -73,6 +75,8 @@ function renderPanel(
       return <BullBearPanel {...base} mobile={focused && mobile} />;
     case "macro":
       return <MacroMasteryPanel {...base} />;
+    case "supportResistance":
+      return <SupportResistancePanel {...base} />;
     default:
       return null;
   }

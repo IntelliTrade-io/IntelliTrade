@@ -1,0 +1,42 @@
+{
+  "source_trade_key": "intellitrade_zone_confirmation_phase39_locked_dynamic_score_phase39_trade_feat_locked_source_csv",
+  "source_config_key": "intellitrade_zone_confirmation_phase39_locked_dynamic_score_locked_dynamic_config_json",
+  "rows": 428,
+  "available_cols": [
+    "fixture_row_id",
+    "zone_created_time",
+    "touch_time",
+    "confirm_time",
+    "entry_time",
+    "exit_time",
+    "zone_low",
+    "zone_high",
+    "label",
+    "zone_type",
+    "session",
+    "m15_return_12_atr",
+    "h1_above_ema200",
+    "h1_ema200_slope_nonnegative",
+    "h4_above_ema200",
+    "h4_ema200_slope_nonnegative",
+    "m15_above_ema200",
+    "dynamic_opportunity_score",
+    "dynamic_grade",
+    "entry_result",
+    "realized_r_after_cost",
+    "expected_symbol",
+    "expected_zone_type",
+    "expected_confirmation_type",
+    "expected_model_name"
+  ],
+  "has_geometry": true,
+  "validation_intent": "backend zone detector / close reclaim validation",
+  "recommended_tolerances": {
+    "time_tolerance_m15_bars": 1,
+    "touch_count_tolerance": 1,
+    "zone_price_tolerance": "max(0.00020, 0.10 * atr_at_creation) for EURUSD first pass",
+    "static_label": "exact match",
+    "zone_side": "support only",
+    "confirmation_type": "close_reclaim"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "purpose": "Controlled fallback EURUSD M15 candle rebuild from QuantConnect/Oanda history",
+  "important_note": "This was rebuilt because the original in-memory Phase 39 fixture-source dataframe was not recoverable from the current notebook state. Treat as controlled-candle validation unless proven identical to the original fixture lineage.",
+  "symbol": "EURUSD",
+  "market": "Oanda",
+  "source_resolution": "Minute",
+  "output_resolution": "15min",
+  "resample_rule": "15min, label=left, closed=left, open=first, high=max, low=min, close=last",
+  "start_requested": "2021-01-03 17:00:00",
+  "end_requested": "2025-12-31 00:15:00",
+  "rows": 124092,
+  "start_actual": "2021-01-03 17:00:00",
+  "end_actual": "2025-12-31 00:00:00",
+  "duplicate_timestamps": 0,
+  "file": "controlled_qc_oanda_eurusd_m15_2021_2025.csv",
+  "sha256": "4afbe901686104f0115385bfd3c80c54bb11933195647e26dce2417b61ed740b"
+}

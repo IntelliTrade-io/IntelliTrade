@@ -1,0 +1,9 @@
+# SR Alpha backend runtime deps (VPS worker).
+# Core scoring + golden fixture validation need only the stdlib.
+pandas>=2.0            # candle shaping / resampling (fetch_candles, candle_store)
+supabase>=2.0          # sr_zones / sr_opportunities / market_candles writes
+python-dotenv>=1.0     # load C:\IntelliTrade\config\.env on the VPS
+MetaTrader5>=5.0        # production candle feed (Windows VPS only); optional for local dev
+
+# Dev/test
+pytest>=7.0
