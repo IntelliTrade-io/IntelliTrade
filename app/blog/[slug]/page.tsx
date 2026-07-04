@@ -5,7 +5,7 @@ import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
 import Link from "next/link";
 import Image from "next/image";
-import ReadingProgressBar from "@/components/readingProgressBar";
+import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
 import { ArrowLeft } from "lucide-react";
 
 

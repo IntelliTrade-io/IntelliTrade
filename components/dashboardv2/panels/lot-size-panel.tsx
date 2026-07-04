@@ -2,7 +2,7 @@
 
 import { WidgetShell } from "../ui/widget-shell";
 import { PanelActions } from "../ui/panel-actions";
-import LotSizeCalculator from "@/components/lot-size-calculator-2";
+import LotSizeCalculator from "@/components/calculators/LotSizeCalculator";
 import type { Panel } from "../types";
 
 interface LotSizePanelProps {

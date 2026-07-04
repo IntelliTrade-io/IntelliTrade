@@ -1,22 +1,22 @@
 import '@/styles/main.css';
 import { Space_Grotesk } from 'next/font/google';
-import Footer from '@/components/Footer';
+import Footer from '@/components/layout/Footer';
 import siteMetadata from '@/data/blog/siteMetadata';
 import { ThemeProvider } from 'next-themes';
 import { Metadata } from 'next';
 import './globals.css';
-import ParticlesBackground from '@/components/particles';
+import ParticlesBackground from '@/components/layout/Particles';
 import Link from "next/link";
 import Image from "next/image";
 import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
-import { AuthButton } from "@/components/auth-button";
-import NavLinks from "@/components/nav-links";
-import MobileNav from "@/components/MobileNav";
+import { AuthButton } from "@/components/auth/AuthButton";
+import NavLinks from "@/components/layout/NavLinks";
+import MobileNav from "@/components/layout/MobileNav";
 import { hasEnvVars } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react';
 import Script from "next/script";
 import { GA_TRACKING_ID } from "@/lib/gtag";
-import GATracker from '@/components/GAtracker';
+import GATracker from '@/components/layout/GATracker';
 
 
 const space_grotesk = Space_Grotesk({
