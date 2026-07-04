@@ -243,8 +243,8 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 
 **5.4 — De-duplicate components**
 - [x] `lot-size-calculator.tsx` (v1, unused) — remove ✅ (2026-07-04, zero importers; its `#position-size-calculator-564055` CSS died with it in 5.1); rename done in 5.3: now `components/calculators/LotSizeCalculator.tsx`.
-- [ ] ~~`MobileNav.tsx` vs `blog/MobileNav.tsx`; `theme-switcher.tsx` vs `blog/ThemeSwitch.tsx`~~ (blog copies deleted in 4.4; root `theme-switcher` itself proved dead and died in 5.3); `strength-panel.tsx` vs `strength-panel-native.tsx` — reconcile to one. **Only this item left in 5.4.**
-- [ ] Two newsletter API routes (`app/api/newsletter/` vs near-empty `app/blog/api/newsletter/`) — remove the stub.
+- [x] ~~`MobileNav.tsx` vs `blog/MobileNav.tsx`; `theme-switcher.tsx` vs `blog/ThemeSwitch.tsx`~~ (blog copies deleted in 4.4; root `theme-switcher` itself proved dead and died in 5.3); `strength-panel.tsx` vs `strength-panel-native.tsx` — reconciled 2026-07-04: old `strength-panel.tsx` (79 lines, zero importers) deleted; `-native` (739 lines, the live one) renamed to canonical `strength-panel.tsx`; sole importer (`Dashboard.tsx`) repointed. Export names (`*Native`) untouched — symbol rename belongs with the 5.5 extraction.
+- [x] Two newsletter API routes (`app/api/newsletter/` vs near-empty `app/blog/api/newsletter/`) — remove the stub. ✅ removed in the 5.3 dead-file batch. **5.4 complete 2026-07-04.**
 - Note:
 
 **5.5 — Extract business logic to `lib/`**
