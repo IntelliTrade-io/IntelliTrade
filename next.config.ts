@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
     domains: ["cdn.sanity.io"], // add Sanity CDN here
   },
 
+  // Legacy /dashboard was removed (superseded by /dashboardv2); keep old
+  // links/bookmarks working.
+  async redirects() {
+    return [
+      {
+        source: "/dashboard",
+        destination: "/dashboardv2",
+        permanent: true,
+      },
+    ];
+  },
+
   // ─── Rewrites ─────────────────────────────────────────────────────────────
   // The bundled iframe HTML apps fetch these hardcoded JSON paths.
   // We intercept them and serve our FastForex-backed API instead.

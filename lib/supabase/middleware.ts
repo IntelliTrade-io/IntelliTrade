@@ -63,11 +63,10 @@ export async function updateSession(request: NextRequest) {
   // middleware.ts). Data APIs are gated separately via
   // lib/auth/requireSubscription; this page gate exists for UX (redirect to
   // /upgrade instead of a broken page). /currency-strength-meter covers the
-  // -intraday variant via startsWith. Legacy /dashboard is gated until its
-  // removal (plan task 4.3b).
+  // -intraday variant via startsWith; /dashboardv2 also matches legacy
+  // /dashboard requests after the next.config redirect.
   const PREMIUM_PREFIXES = [
     "/dashboardv2",
-    "/dashboard",
     "/support-resistance",
     "/conflict-map",
     "/currency-strength-meter",

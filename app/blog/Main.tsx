@@ -1,6 +1,6 @@
 import Link from '@/components/blog/Link'
 import siteMetadata from '@/data/blog/siteMetadata'
-import { formatDate } from '@/node_modules/pliny/utils/formatDate'
+import { formatDate } from '@/lib/formatDate'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { client } from "@/sanity/client"

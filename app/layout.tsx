@@ -1,9 +1,6 @@
 import '@/styles/tailwind.css';
 import '@/styles/main.css';
-import 'remark-github-blockquote-alert/alert.css';
 import { Space_Grotesk } from 'next/font/google';
-// import { Analytics, AnalyticsConfig } from 'pliny/analytics';
-import { SearchProvider, SearchConfig } from 'pliny/search';
 import Footer from '@/components/Footer';
 import siteMetadata from '@/data/blog/siteMetadata';
 import { ThemeProvider } from 'next-themes';
@@ -69,10 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ParticlesBackground />
 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {/* <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} /> */}
-          <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
-            
-            {/* Header */}
+          {/* Header */}
             <nav className="sticky top-0 w-full h-16 bg-white/5 backdrop-blur-md border-b border-white/10 z-[9999]" style={{ overflow: "visible" }}>
               <div className="w-full max-w-5xl flex items-center h-full px-5 mx-auto">
                 {/* Logo — left */}
@@ -109,7 +103,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
             <Analytics />
              <GATracker />
-          </SearchProvider>
         </ThemeProvider>
       </body>
     </html>
