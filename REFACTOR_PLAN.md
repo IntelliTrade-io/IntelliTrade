@@ -88,7 +88,8 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 **1.1 — [CRITICAL] Enable RLS on all data tables**
 - [x] Audit every table in `supabase/migrations/` (002, 003, 004 create tables with no RLS): `conflict_cache`, `scanner_results`, `currency_strength_snapshots`, `fx_strength_snapshots`, `market_candles`, `sr_zones`, `sr_opportunities`, `economic_events`, `fx_candles`, etc.
 - [x] Add a new migration `005_enable_rls.sql` that: enables RLS on every table; revokes the default public/anon grants; adds explicit policies — `service_role` full access (writers), and for reader tables either no anon policy (force everything through gated API routes) or a subscription-scoped policy if direct client reads are needed.
-- [ ] Verify with the anon key that a raw Supabase REST `SELECT` against each table now returns empty/denied.
+- [x] Verify with the anon key that a raw Supabase REST `SELECT` against each table now returns empty/denied.
+- Note (2026-07-04, later): **owner ran 005 in Supabase; verified via REST with the anon key — all 8 premium tables return `42501 permission denied`. C1 closed.**
 - Note (2026-07-04): `005_enable_rls.sql` written — RLS + grant revoke on all 13 tables (incl. 4 dashboard-created ones: `conflict_cache`, `scanner_results`, `currency_strength_snapshots`, `economic_events`). No anon/authenticated policies added — all access via service-role server routes. The two routes that used the anon key (`api/conflicts`, `data/current/[...slug]`) were switched to `supabaseAdmin` so they survive RLS. **⚠️ Migration must still be RUN in the Supabase SQL editor (repo has no CLI-linked migration flow), then the anon-key REST verification done.**
 
 > ⚠️ **This is the linchpin.** With RLS off, the anon key (shipped to every browser) can read/write all tables directly, bypassing every Next.js route. Gating the API routes (1.2) is cosmetic until this lands. Do 1.1 before 1.2.
@@ -115,8 +116,8 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 - Note (2026-07-04): scrape now requires `Authorization: Bearer $SCRAPE_SECRET` (fails closed if unset) + argv strictly validated (ints/bools only). Discovery: the route was already dead — `scraper/cli.py` doesn't exist, it 500s on every call; deletion candidate, logged in IMPROVEMENTS.md. `data/current` CORS wildcard removed entirely (iframes are same-origin via rewrites). Closes M9 + M10.
 
 **1.6 — [MEDIUM] Add rate limiting to public/expensive routes**
-- [ ] No app-level rate limiting exists. Add a limiter (e.g. Upstash) at minimum to `/api/scrape`, `/api/newsletter`, and any route left intentionally public.
-- Note:
+- [x] ~~Add a limiter (e.g. Upstash)~~ **Descoped (owner + architect, 2026-07-04).** After 1.1/1.2 the threat shrank: premium routes 401 pre-data, `/api/scrape` is secret-gated dead code, Supabase rate-limits auth itself, Vercel absorbs crude floods. The one concrete abuse left — burning paid CurrencyFreaks quota via novel symbol combos on public `/api/rates` — is fixed structurally instead: symbols now validate against a closed 13-code whitelist (app's exact needs), so combos can't bypass the 60s upstream cache indefinitely. Revisit only if a public teaser endpoint ships (see IMPROVEMENTS.md free-module ideas) or Vercel bills show abuse.
+- Note: `/api/newsletter` spam remains a low-stakes gap — acceptable; revisit with the teaser endpoints.
 
 **1.7 — [MEDIUM] Pin Supabase deps**
 - [x] `package.json` has `@supabase/ssr: "latest"` and `@supabase/supabase-js: "latest"` — non-deterministic builds. Pin to exact versions.
@@ -326,14 +327,14 @@ Full detail lives in Phase 1. Register for tracking:
 
 | ID | Sev | Finding | Status |
 |----|-----|---------|--------|
-| C1 | CRITICAL | RLS off on all tables except `subscriptions`; public anon key → full direct DB read/write | ◐ migration 005 written — **must be run in Supabase + verified** |
+| C1 | CRITICAL | RLS off on all tables except `subscriptions`; public anon key → full direct DB read/write | ✅ fixed 2026-07-04 — 005 run in Supabase, anon REST verified denied on all 8 tables |
 | H2 | HIGH | `/api/sr-alpha` no auth | ✅ fixed 2026-07-04 (subscription) |
 | H3 | HIGH | `/api/conflicts` no auth | ✅ fixed 2026-07-04 (subscription) |
 | H4 | HIGH | currency-strength + `data/current` endpoints no auth | ✅ fixed 2026-07-04 (subscription) |
 | H5 | HIGH | `/api/economic-events` no auth | ✅ fixed 2026-07-04 (subscription) |
 | H6 | HIGH | middleware matcher excludes `/api` entirely | ✅ fixed 2026-07-04 (APIs self-gate via `requireSubscription`; matcher now only excludes free tier + assets) |
-| H7 | HIGH | `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` exposed to browser | ◐ code fixed (proxy) — Vercel env rename + key rotation pending |
-| M8 | MED | No rate limiting anywhere | ☐ open |
+| H7 | HIGH | `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY` exposed to browser | ◐ proxy live, `CURRENCYFREAKS_API_KEY` set in Vercel — **key rotation still pending**, then delete `NEXT_PUBLIC_` var + code fallback |
+| M8 | MED | No rate limiting anywhere | ✅ descoped 2026-07-04 — risk gone post-gating; `/api/rates` symbol whitelist closed structurally (see 1.6) |
 | M9 | MED | Wildcard CORS on `data/current` | ✅ fixed 2026-07-04 |
 | M10 | MED | `/api/scrape` unauth, user-controlled argv to `spawn` | ✅ fixed 2026-07-04 (route was also dead — see IMPROVEMENTS.md) |
 | M11 | MED | Open redirect via `next` param in `auth/confirm` | ✅ fixed 2026-07-04 |
@@ -378,3 +379,4 @@ Capture at start of each phase to show progress:
 - **2026-07-04** — Initial plan created from a 4-scout parallel audit (structure, frontend, security, python). Owner decisions locked (§2). No code changed this session.
 - **2026-07-04 (session 2, branch `refactor/phase1-security`)** — Phase 1 largely done: 005 RLS migration written (⚠️ run it in Supabase); `api/conflicts` + `data/current` switched anon→service-role; `/api/rates` proxy added, CurrencyFreaks key off the browser (⚠️ Vercel env rename + rotation pending); open redirect fixed; `/api/scrape` gated + argv validated (route found dead — `scraper/cli.py` missing); CORS wildcard removed; Supabase deps pinned. Build + 61 tests green. Remaining Phase 1: **1.2 route gating (needs owner paid-vs-public call), 1.6 rate limiting**. Added `IMPROVEMENTS.md` (product-idea backlog, separate from this plan).
 - **2026-07-04 (session 2, cont.)** — 1.2 done. Owner locked tier model: free = blog + lot calc + prices-today; all else subscription. New `lib/auth/requireSubscription.ts`; 7 premium data routes gated; middleware gates all premium shells (incl. static meter/conflict-map bundles + legacy `/dashboard` pending 4.3b removal). Closes H2–H6. Build + 61 tests green.
+- **2026-07-04 (session 2, close)** — **Phase 1 complete.** Owner ran 005 in Supabase; RLS verified via anon REST (all 8 tables `42501`) — C1 closed. `CURRENCYFREAKS_API_KEY` set in Vercel (rotation still pending). 1.6 rate limiting descoped with rationale; `/api/rates` hardened to a closed 13-symbol whitelist instead. Register: 13/14 closed, H7 half-open (rotation). Next session → Phase 2 (git hygiene).

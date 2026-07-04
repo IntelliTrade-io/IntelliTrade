@@ -5,8 +5,20 @@ import { NextRequest, NextResponse } from "next/server";
 // visitor's network tab). Response shape matches the upstream `rates/latest`
 // endpoint ({ rates: { SYM: "1.2345" } }), so clients only swap the URL.
 
-// Comma-separated 3–4 letter uppercase codes (fiat, XAU/XAG, BTC/ETH), max 10.
-const SYMBOLS_RE = /^[A-Z]{3,4}(,[A-Z]{3,4}){0,9}$/;
+// Closed set: exactly the symbols the app requests (price pages, lot size
+// calculator pairs, DXY basket). A closed set — instead of any 3-4 letter
+// code — stops abusers from generating endless symbol combinations, where
+// each new combination bypasses the 60s cache and burns paid upstream quota.
+const ALLOWED_SYMBOLS = new Set([
+  "USD", "EUR", "GBP", "JPY", "CHF", "CAD", "AUD", "NZD", "SEK",
+  "XAU", "XAG", "BTC", "ETH",
+]);
+
+function isAllowedSymbolList(symbols: string): boolean {
+  const parts = symbols.split(",");
+  if (parts.length === 0 || parts.length > 10) return false;
+  return parts.every((s) => ALLOWED_SYMBOLS.has(s));
+}
 
 // Upstream responses are cached for 60s per symbol set: page quotes refresh on
 // a timer per visitor, and without this every visitor's poll would burn paid
@@ -24,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 
   const symbols = request.nextUrl.searchParams.get("symbols") ?? "";
-  if (!SYMBOLS_RE.test(symbols)) {
+  if (!isAllowedSymbolList(symbols)) {
     return NextResponse.json({ error: "Invalid symbols" }, { status: 400 });
   }
 
