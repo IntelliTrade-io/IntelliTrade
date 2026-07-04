@@ -172,16 +172,12 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     };
   }, []);
 
-  // Returns BASEQUOTE (quote per base) using CurrencyFreaks (USD base)
+  // Returns BASEQUOTE (quote per base) via the server rates proxy (USD base)
   const fetchExchangeRate = async (pairSymbol: string) => {
-    const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-    if (!apiKey) throw new Error("Missing API key");
-
-    const baseUrl = `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}`;
     const { base, quote } = parsePair(pairSymbol);
 
     try {
-      const res = await fetch(`${baseUrl}&symbols=${base},${quote}`, { cache: "no-store" });
+      const res = await fetch(`/api/rates?symbols=${base},${quote}`, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch exchange rate");
       const data = await res.json();
       const rates = data.rates as Record<string, string>;

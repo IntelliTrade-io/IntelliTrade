@@ -105,13 +105,8 @@ function useBitcoinPrice(): BitcoinQuote | null {
     let cancelled = false;
 
     const fetchPrice = async () => {
-      const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-      if (!apiKey) return;
       try {
-        const res = await fetch(
-          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=BTC`,
-          { cache: "no-store" }
-        );
+        const res = await fetch("/api/rates?symbols=BTC", { cache: "no-store" });
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const btcPerUsd = parseFloat(data.rates?.BTC);

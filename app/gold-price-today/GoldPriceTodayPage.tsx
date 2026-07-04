@@ -102,13 +102,8 @@ function useMarketData(): MarketData {
     let cancelled = false;
 
     const fetchSilver = async () => {
-      const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-      if (!apiKey) return null;
       try {
-        const res = await fetch(
-          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=XAG`,
-          { cache: "no-store" }
-        );
+        const res = await fetch("/api/rates?symbols=XAG", { cache: "no-store" });
         if (!res.ok) return null;
         const json = await res.json();
         const xagPerUsd = parseFloat(json.rates?.XAG);
@@ -205,13 +200,8 @@ function useGoldPrice(): GoldQuote | null {
     let cancelled = false;
 
     const fetchPrice = async () => {
-      const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
-      if (!apiKey) return;
       try {
-        const res = await fetch(
-          `https://api.currencyfreaks.com/v2.0/rates/latest?apikey=${apiKey}&symbols=XAU`,
-          { cache: "no-store" }
-        );
+        const res = await fetch("/api/rates?symbols=XAU", { cache: "no-store" });
         if (!res.ok || cancelled) return;
         const data = await res.json();
         const xauPerUsd = parseFloat(data.rates?.XAU);

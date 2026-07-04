@@ -1,10 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 // Maps each filename the meter fetches → which Supabase row to query
 type RouteConfig = { type: "daily" | "intraday"; shape: "pairs" | "currencies" };
@@ -33,7 +29,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from("currency_strength_snapshots")
     .select("run_info, pairs, currencies_raw, currencies_weighted")
     .eq("type", config.type)
@@ -44,10 +40,12 @@ export async function GET(
   if (error || !data) {
     // History files are optional — return empty rather than 503
     if (filename.includes("history") || filename.includes("snapshots")) {
-      return NextResponse.json(
-        { run_info: { ts_utc: null }, pairs: {}, currencies_raw: {}, currencies_weighted: {} },
-        { headers: corsHeaders() }
-      );
+      return NextResponse.json({
+        run_info: { ts_utc: null },
+        pairs: {},
+        currencies_raw: {},
+        currencies_weighted: {},
+      });
     }
     return NextResponse.json({ error: "No snapshot available yet" }, { status: 503 });
   }
@@ -57,15 +55,12 @@ export async function GET(
       ? { run_info: data.run_info, pairs: data.pairs }
       : { currencies_raw: data.currencies_raw, currencies_weighted: data.currencies_weighted };
 
+  // Consumed same-origin by the embedded meter iframes (via next.config rewrites),
+  // so no CORS header is needed. Previously returned Access-Control-Allow-Origin: *
+  // (audit M9), which let any site read the snapshot cross-origin.
   return NextResponse.json(body, {
     headers: {
-      ...corsHeaders(),
       "Cache-Control": "public, s-maxage=300, stale-while-revalidate=60",
     },
   });
-}
-
-function corsHeaders() {
-  // The iframes load from the same origin, but allow cross-origin just in case
-  return { "Access-Control-Allow-Origin": "*" };
 }

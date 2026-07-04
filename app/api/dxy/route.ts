@@ -12,7 +12,11 @@ const WEIGHTS: Record<string, number> = {
 const DXY_MULTIPLIER = 50.14348112;
 
 export async function GET() {
-  const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
+  // Server-only key; legacy NEXT_PUBLIC_ fallback until the Vercel env rename
+  // + key rotation lands (audit H7).
+  const apiKey =
+    process.env.CURRENCYFREAKS_API_KEY ??
+    process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Missing API key" }, { status: 500 });
   }

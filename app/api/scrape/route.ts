@@ -5,13 +5,36 @@ import path from 'path';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+// Ops/cron trigger, not user-facing: spawns a Python scraper. Gate on a shared
+// secret so an unauthenticated visitor can't kick off heavy jobs (audit M10).
+function isAuthorized(request: NextRequest): boolean {
+  const secret = process.env.SCRAPE_SECRET;
+  if (!secret) return false; // fail closed if not configured
+  const header = request.headers.get('authorization');
+  return header === `Bearer ${secret}`;
+}
+
+// Whitelist argv: `since`/`until` are day offsets (non-negative ints), the flags
+// are strict booleans. Prevents unvalidated values flowing into spawn() (audit M10).
+function intArg(value: string | null, fallback: string): string {
+  if (value === null) return fallback;
+  return /^\d{1,5}$/.test(value) ? value : fallback;
+}
+function boolArg(value: string | null, fallback: string): string {
+  if (value === null) return fallback;
+  return value === 'true' || value === 'false' ? value : fallback;
+}
+
 export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const searchParams = request.nextUrl.searchParams;
-    const since = searchParams.get('since') || '0';
-    const until = searchParams.get('until') || '30';
-    const central_banks = searchParams.get('central_banks') || 'true';
-    const include_global = searchParams.get('global') || 'true';
+    const since = intArg(searchParams.get('since'), '0');
+    const until = intArg(searchParams.get('until'), '30');
+    const central_banks = boolArg(searchParams.get('central_banks'), 'true');
+    const include_global = boolArg(searchParams.get('global'), 'true');
 
     // Call Python script
     const pythonPath = process.env.PYTHON_PATH || 'python3';
