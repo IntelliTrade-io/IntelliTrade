@@ -1,4 +1,3 @@
-import '@/styles/tailwind.css';
 import '@/styles/main.css';
 import { Space_Grotesk } from 'next/font/google';
 import Footer from '@/components/Footer';
