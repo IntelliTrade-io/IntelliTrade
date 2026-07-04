@@ -181,33 +181,33 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 > Rationale: two CMS stacks coexist. Sanity is live; contentlayer/pliny/MDX appears dead. Every item below must pass the §3.1 protocol before deletion. Expect a few to surprise us (e.g. `app/blog/sitemap.ts` still imports `contentlayer/generated`).
 
 **4.1 — Verify then remove contentlayer**
-- [ ] Confirm `contentlayer.config.ts` is 100% commented (it is) and nothing imports `contentlayer/generated` except possibly `app/blog/sitemap.ts`. Fix or repoint that consumer first.
-- [ ] Remove config, `.contentlayer/` cache (also in 2.2), and the `contentlayer`/`next-contentlayer` deps.
-- Note:
+- [x] Confirm `contentlayer.config.ts` is 100% commented (it is) and nothing imports `contentlayer/generated` except possibly `app/blog/sitemap.ts`. Fix or repoint that consumer first.
+- [x] Remove config, `.contentlayer/` cache (also in 2.2), and the `contentlayer`/`next-contentlayer` deps.
+- Note (2026-07-04, session 4): config 100% commented ✓; sitemap already repointed to Sanity in 2.2. Deps were already absent from `package.json` (only `pliny` remained). Deleted `contentlayer.config.ts` + `scripts/blog/` (`rss.mjs` + `postbuild.mjs` — only consumer was postbuild, which no npm script ever ran).
 
 **4.2 — Verify then remove `layouts/blog/*`**
-- [ ] Six files (`AuthorLayout`, `ListLayout`, `ListLayoutWithTags`, `PostLayout`, `PostSimple`, `PostBanner`) — audit reports zero imports. Run §3.1, then remove the folder.
-- Note:
+- [x] Six files (`AuthorLayout`, `ListLayout`, `ListLayoutWithTags`, `PostLayout`, `PostSimple`, `PostBanner`) — audit reports zero imports. Run §3.1, then remove the folder.
+- Note (2026-07-04, session 4): zero imports confirmed (only refs were frontmatter strings in the dead starter MDX). Whole `layouts/` dir removed (contained only `blog/`).
 
 **4.3 — Verify then handle `data/blog/` MDX + pliny**
-- [ ] `data/blog/*.mdx` (starter posts like `the-time-machine.mdx`), `data/authors/`, `data/siteMetadata.js`, `scripts/blog/rss.mjs`, `pliny` dep, `types/pliny.d.ts`.
-- [ ] Owner decided verify-first; if content is worth keeping, migrate to Sanity, else remove. Confirm nothing live reads `data/blog`.
-- Note:
+- [x] `data/blog/*.mdx` (starter posts like `the-time-machine.mdx`), `data/authors/`, `data/siteMetadata.js`, `scripts/blog/rss.mjs`, `pliny` dep, `types/pliny.d.ts`.
+- [x] Owner decided verify-first; if content is worth keeping, migrate to Sanity, else remove. Confirm nothing live reads `data/blog`.
+- Note (2026-07-04, session 4): all 11 MDX = template demo posts (tailwind-starter docs, time-machine, canada pics) — nothing worth migrating; deleted with `authors/`, `headerNavLinks.ts`, `projectsData.ts`, `references-data.bib`, `logo.svg`. **KEPT `siteMetadata.js`** — live config for `app/layout.tsx`, `app/page.tsx`, `app/blog/{Main,theme-providers,sitemap}`. Pliny surprises: (a) last real usage was `SearchProvider` in `app/layout.tsx` — dead weight (kbar pointing at nonexistent `/search.json`, no search button anywhere) → removed wrapper; (b) two files imported via `@/node_modules/pliny/utils/formatDate` (grep-evading path) → replaced with new 7-line `lib/formatDate.ts`. `types/pliny.d.ts` + `pliny` dep removed. Also dropped `remark-github-blockquote-alert` (CSS import in layout was the only live ref; the remark plugin itself only lived in the commented contentlayer config).
 
 **4.3b — Remove legacy `/dashboard` (owner decision 2026-07-04)**
-- [ ] Old `/dashboard` is legacy — superseded by `/dashboardv2`. Remove `app/dashboard/page.tsx` (320 lines) and redirect `/dashboard` → `/dashboardv2` (or to `/upgrade` for non-subscribers). Update any nav links pointing at it. Its economic-events consumption is moot once removed (API now subscription-gated anyway).
-- Note:
+- [x] Old `/dashboard` is legacy — superseded by `/dashboardv2`. Remove `app/dashboard/page.tsx` (320 lines) and redirect `/dashboard` → `/dashboardv2` (or to `/upgrade` for non-subscribers). Update any nav links pointing at it. Its economic-events consumption is moot once removed (API now subscription-gated anyway).
+- Note (2026-07-04, session 4): page deleted; permanent redirect added in `next.config.ts` (`redirects()` runs before middleware, so `/dashboard` 308s to `/dashboardv2`, which middleware still gates). `"/dashboard"` dropped from middleware `PREMIUM_PREFIXES` (`/dashboardv2` entry covers the post-redirect path). No nav links pointed at it (login + user-dropdown already target `/dashboardv2`). Verified live: `curl /dashboard` → 308 → `/dashboardv2`.
 
 **4.4 — Remove other verified starter leftovers**
-- [ ] `components/hero.tsx`, `next-logo.tsx`, `supabase-logo.tsx`, `deploy-button.tsx`, `env-var-warning.tsx` — Supabase starter cruft. Verify + remove.
-- [ ] `components/tutorial/*` — only `fetch-data-steps.tsx` is used (by `app/protected/page.tsx`, itself a starter page). Decide whether `/protected` stays; if not, remove the page + tutorial folder together.
-- [ ] `styles/prism.css` — no active MDX/Prism pipeline. Verify + remove.
-- Note:
+- [x] `components/hero.tsx`, `next-logo.tsx`, `supabase-logo.tsx`, `deploy-button.tsx`, `env-var-warning.tsx` — Supabase starter cruft. Verify + remove.
+- [x] `components/tutorial/*` — only `fetch-data-steps.tsx` is used (by `app/protected/page.tsx`, itself a starter page). Decide whether `/protected` stays; if not, remove the page + tutorial folder together.
+- [x] `styles/prism.css` — no active MDX/Prism pipeline. Verify + remove.
+- Note (2026-07-04, session 4): all removed. `/protected` decision: **removed** (starter demo page; only live ref was `update-password-form.tsx` post-update redirect → repointed to `/dashboardv2`, consistent with login flow). `env-var-warning` was only imported by the deleted `protected/layout.tsx`. Scope addition (forced): 15 more dead files in `components/blog/` deleted — `Tag.tsx` broke the build post-pliny (imported `github-slugger`, a transitive dep that vanished), and the sweep showed everything there dead except `Link.tsx` + `social-icons/` (kept, used by Footer/Main/not-found). Deleted: BlogWrapper, Card, Comments, Header, Image, Layout, LayoutWrapper, MDXComponents, MobileNav, PageTitle, ScrollTopAndComment, SearchButton, SectionContainer, TableWrapper, Tag, ThemeSwitch. (This pre-empts most of the 5.4 blog-component dedup.)
 
 **4.5 — Remove dead dependencies**
-- [ ] tsparticles **v3** packages (`@tsparticles/engine`, `@tsparticles/react`, `@tsparticles/slim`, `tsparticles@3`) are unused — only **v2** (`react-tsparticles`, `tsparticles-slim`, `tsparticles-engine`) is imported by `components/particles.tsx`. Remove v3. (Or, better, upgrade to v3 and remove v2 — pick one; note the choice.)
-- [ ] `pliny`, `contentlayer` deps (from 4.1/4.3).
-- Note:
+- [x] tsparticles **v3** packages (`@tsparticles/engine`, `@tsparticles/react`, `@tsparticles/slim`, `tsparticles@3`) are unused — only **v2** (`react-tsparticles`, `tsparticles-slim`, `tsparticles-engine`) is imported by `components/particles.tsx`. Remove v3. (Or, better, upgrade to v3 and remove v2 — pick one; note the choice.)
+- [x] `pliny`, `contentlayer` deps (from 4.1/4.3).
+- Note (2026-07-04, session 4): removed v3 set (zero imports; v2 stays — zero code change, upgrade-to-v3 logged as an option for 5.x). Removed `pliny` + `remark-github-blockquote-alert`; `contentlayer` deps were already gone. Net: 6 deps dropped.
 
 **Phase 4 exit criteria:** one CMS stack (Sanity) remains; `npm run build` green; no orphaned MDX/contentlayer/pliny references; dependency count down.
 
@@ -234,7 +234,7 @@ Phases are ordered by **risk-adjusted dependency**: secure first, then remove no
 
 **5.4 — De-duplicate components**
 - [ ] `lot-size-calculator.tsx` (v1, unused) — remove; keep `-2`, then rename `-2` → canonical.
-- [ ] `MobileNav.tsx` vs `blog/MobileNav.tsx`; `theme-switcher.tsx` vs `blog/ThemeSwitch.tsx`; `strength-panel.tsx` vs `strength-panel-native.tsx` — reconcile to one each.
+- [ ] ~~`MobileNav.tsx` vs `blog/MobileNav.tsx`; `theme-switcher.tsx` vs `blog/ThemeSwitch.tsx`~~ (blog copies deleted in 4.4 — root versions are canonical); `strength-panel.tsx` vs `strength-panel-native.tsx` — reconcile to one.
 - [ ] Two newsletter API routes (`app/api/newsletter/` vs near-empty `app/blog/api/newsletter/`) — remove the stub.
 - Note:
 
@@ -388,3 +388,4 @@ Capture at start of each phase to show progress:
 - **2026-07-04 (session 3, branch `refactor/phase1-security` cont.)** — Phase 2 mostly done (recovered from a crashed session that had staged but not committed the work). 2.1 + 2.2 committed in two commits (logic vs tracking, per §3.2): sitemap repointed contentlayer→Sanity (`refactor:`), then `.contentlayer/`, `.cache/`, `scraper.log`, `events.json`, `reports/*` untracked + `.gitignore` broadened (`chore(git):`). Vite meter bundles investigated: no in-repo source → keep tracked, improvement logged. 2.4 done (misnamed folder already gone; `alejoScraper.py` flagged for 6.2). 2.3 mapped, decision pending owner (recommendation in note). Build + 61 tests green. **Remaining Phase 2: 2.3 owner call only.** Loose ends on disk, untouched deliberately: unstaged deletions of 3 tracked `claudeLoad/` files (incl. one scraper duplicate — Phase 6 evidence, don't commit blind) + untracked `scripts/vps/` and `claudeLoad/` working dirs. Next → Phase 3 (isolate nested app), then Phase 4.
 - **2026-07-04 (session 3, close)** — **Phase 2 complete.** Owner: fixtures stay in-repo, no LFS (2.3 closed). New owner facts: VPS has no git, holds only relevant files, deploys were manual copy-paste → 6.7 rewritten as git-based sparse-checkout deploy plan (clone + pull + bootstrap; reconcile VPS drift first, VPS possibly newer than repo). Next → Phase 3.
 - **2026-07-04 (session 3, cont.)** — **Phase 3 complete.** Nested app contained: eslint `ignores` block + root `.prettierignore` added (tsconfig/vitest/node_modules were already clean), status README dropped in `IntelliConflict-Map/`. Duplication documented, not resolved (§8). Lint/build/61 tests green. Also added `OWNER_TODO.md` convention (§0.5). Next → Phase 4 (dead blog stack, verification-gated).
+- **2026-07-04 (session 4, branch `refactor/phase1-security` cont.)** — **Phase 4 complete.** ~60 dead files removed: contentlayer config + `scripts/blog/`, `layouts/blog/` (6), starter MDX + authors + blog data files (kept live `siteMetadata.js`), legacy `/dashboard` (308 → `/dashboardv2` via `next.config.ts` redirects), `/protected` + `components/tutorial/` + starter components (hero/logos/deploy-button/env-var-warning), `styles/prism.css`, and 16 dead `components/blog/` files (kept `Link.tsx` + `social-icons/`). Pliny fully excised: dead `SearchProvider` unwrapped from root layout, two `@/node_modules/pliny/...` grep-evading imports replaced by `lib/formatDate.ts`. Deps −6: pliny, remark-github-blockquote-alert, tsparticles v3 ×4. Verified per §3.1: build green, 61/61 tests, prod-server curl sweep (/, /blog, /dashboard→308, /auth/update-password 200, price pages 200). Gotcha for later sessions: a dev server holding port 3000 shares `.next/` with prod builds — contaminated artifacts produced a phantom 404 until rebuild; also that dev server 500s after `npm uninstall` under it (needs owner restart). Next → Phase 5 (Tailwind v3/v4, data-fetching convention).
