@@ -38,6 +38,25 @@ Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator +
 - **Currency-strength meter Vite source not in repo** *(2026-07-04)*
   `public/currency-strength-meter{,-intraday}/assets/index-*.{js,css}` are prebuilt Vite bundles (~810 KB) with **no source in this repo** — they're the only copy, built somewhere external (see `claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`). Risk: unreproducible artifact; any change requires whoever holds the source. Bring the Vite app in-repo (e.g. `apps/strength-meter/`) with a build step that outputs into `public/`, then gitignore the bundles. Ties into Phase 6.1 strength-engine dedup.
 
+## Paid-module ideas (subscription value) *(2026-07-05)*
+
+All built on pipelines that already run — cost is frontend + one API route each, no new data collection:
+
+- **SR Alpha alerts** · retention driver; traders pay for "tell me when", not "make me watch" · Discord/Telegram webhook (fields already in `scripts/vps/config_template.env`) + email when an opportunity hits grade ≥ user threshold. Watchdog already polls every 5 min; same loop can diff `sr_opportunities`.
+- **Strength regime-change alerts + history charts** · `currency_strength_snapshots` has been accumulating daily+hourly rows for months; nothing surfaces the time dimension · per-currency score sparkline (30/90d), alert when bias flips Strong↔Weak. Data sitting in Supabase.
+- **Scanner-grade "Best Expressions"** · handoff doc (`claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`) documents the current React ranking as a wrong approximation; real per-pair confidence/BOS now flows through the consolidated runners · new `/api/currency-strength-pairs` from snapshot `pairs`, swap `computeExpressions` to real data. Sell as "ranked by multi-timeframe confirmation, not spread math".
+- **Event-risk overlay** · `economic_events` × pairs the user watches → "high-impact USD event in 6h touches 4 of your pairs" · join on currency, next-24h window; dashboard panel + optional alert.
+- **Track-record page** · graded SR opportunities scored against realized outcomes from stored `market_candles` — verifiable performance converts skeptics (and keeps us honest) · nightly job grades past opportunities; page shows hit-rate per grade.
+- **Agreement screener** · both scanner families (D1/H4 + H1/M15) write snapshots; pairs where daily and intraday direction agree = the strongest signal we produce · one query over the two latest snapshots, filterable table.
+
+## SEO *(2026-07-05)*
+
+- **Programmatic per-pair strength pages** (`/currency-strength/eur-usd`, 28 pairs) · long-tail "eurusd strength today" queries; we render live per-pair data nobody else serves server-side · ISR from latest snapshot, real numbers + templated analysis (avoid thin content: include BOS dates, confidence, small history table). Free teaser, detail locked → upsell path.
+- **Replicate the lot-size-calc SEO pattern** (proven Apr 2026) on the sibling calculators above: own URL, FAQ schema, worked examples each. Calculators are the proven free-traffic engine here.
+- **Free economic-calendar teaser page** · "forex economic calendar this week" is high-volume and ours is premium-only, so Google never sees it · public page with today's high-impact rows (or 24h delay), full calendar gated. Already a free-module candidate above — the SEO case makes it first in line.
+- **prices-today enrichment** · pages are thin (live quote + hardcoded text — see Content entry) · add yesterday/7d/30d change, related-instrument links, FAQPage JSON-LD. More long-tail surface per page.
+- **Internal-linking pass** · blog posts rarely link to calculators/tools and tools don't link back · related-tools block in the Sanity post template + related-articles on tool pages. Cheapest crawl-equity win available.
+
 ## Ops
 
 - **No repo-linked migration flow** *(2026-07-04)*
