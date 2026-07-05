@@ -21,14 +21,14 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests numpy pandas supabase
+        run: pip install .
 
       - name: Run daily scanner
         env:
           OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
           OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
         run: |
-          python scripts/currency_strength_scanner_daily.py \
+          python -m intellitrade_scanners.scanner_oanda_daily \
             --preset v43 \
             --trend-mode bos_only \
             --bos-excess-d1-atr 0.04 --bos-excess-d1-pips 0.5 \

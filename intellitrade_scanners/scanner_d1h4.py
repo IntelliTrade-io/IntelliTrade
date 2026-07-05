@@ -206,5 +206,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    feed_adapter.shutdown()
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    finally:
+        feed_adapter.shutdown()

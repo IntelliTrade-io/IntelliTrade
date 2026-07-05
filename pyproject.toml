@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intellitrade-scanners"
+version = "1.5.2"
+description = "IntelliTrade currency-strength scanners (strength_core + MT5/OANDA feed adapters)"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "requests>=2.31",
+    "supabase>=2.0",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# MetaTrader5 ships Windows-only wheels; only the VPS needs it.
+mt5 = ["MetaTrader5>=5.0"]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools]
+packages = ["intellitrade_scanners"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "backend/support_resistance/tests",
+    "intellitrade_scanners/tests",
+]

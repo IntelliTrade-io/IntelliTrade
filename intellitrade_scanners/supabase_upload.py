@@ -6,16 +6,15 @@ Writes to: fx_strength_snapshots, currency_strength_snapshots (compat),
 """
 
 import os
-import sys
 import logging
 import datetime as dt
 from typing import Optional
 
 try:
     from supabase import create_client, Client
-except ImportError:
-    print("supabase not installed. Run: pip install supabase", file=sys.stderr)
-    sys.exit(1)
+except ImportError:  # surfaced in get_client so importing the module stays safe
+    create_client = None
+    Client = None
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +24,8 @@ _client: Optional[Client] = None
 def get_client() -> Client:
     global _client
     if _client is None:
+        if create_client is None:
+            raise RuntimeError("supabase not installed. Run: pip install supabase")
         url = os.environ.get("SUPABASE_URL")
         key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
         if not url or not key:

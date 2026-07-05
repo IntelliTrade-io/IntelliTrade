@@ -21,14 +21,14 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install requests numpy pandas supabase
+        run: pip install .
 
       - name: Run intraday scanner
         env:
           OANDA_API_KEY: ${{ secrets.OANDA_API_KEY }}
           OANDA_ENVIRONMENT: ${{ secrets.OANDA_ENVIRONMENT }}
         run: |
-          python scripts/currency_strength_scanner_intraday.py \
+          python -m intellitrade_scanners.scanner_oanda_intraday \
             --use-adx  --adx-hi-min 18 --adx-lo-min 16 \
             --use-chop --chop-hi-max 58 --chop-lo-max 60 \
             --use-avwap-accept --accept-hi-bars 1 --accept-lo-bars 3 --accept-atr-band 0.20 \
