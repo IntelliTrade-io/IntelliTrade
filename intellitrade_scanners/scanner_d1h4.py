@@ -1,5 +1,5 @@
 # coding: utf-8
-"""
+r"""
 IntelliTrade D1/H4 Currency Strength Scanner — VPS/MT5
 Runs every 4 hours. Fetches D1 + H4 candles from MetaTrader5.
 Uploads to Supabase: fx_strength_snapshots, currency_strength_snapshots (compat),

@@ -1,5 +1,5 @@
 # coding: utf-8
-"""
+r"""
 IntelliTrade H1/M15 Currency Strength Scanner — VPS/MT5
 Runs every 15 minutes. Fetches H1 + M15 candles from MetaTrader5.
 Uploads to Supabase: fx_strength_snapshots, currency_strength_snapshots (compat),
