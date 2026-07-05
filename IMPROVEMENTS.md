@@ -40,7 +40,7 @@ Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator +
 
 ## Paid-module ideas (subscription value) *(2026-07-05)*
 
-All built on pipelines that already run — cost is frontend + one API route each, no new data collection:
+All built on pipelines that already run — cost is frontend + one API route each, no new data collection. **Framing constraint (owner, 2026-07-05): nothing may be positioned as signals or trade recommendations — hard no (legal + Google Ads). Everything below ships as analytics/monitoring language: "notify me when the data changes", never "trade this".**
 
 - **SR Alpha alerts** · retention driver; traders pay for "tell me when", not "make me watch" · Discord/Telegram webhook (fields already in `scripts/vps/config_template.env`) + email when an opportunity hits grade ≥ user threshold. Watchdog already polls every 5 min; same loop can diff `sr_opportunities`.
 - **Strength regime-change alerts + history charts** · `currency_strength_snapshots` has been accumulating daily+hourly rows for months; nothing surfaces the time dimension · per-currency score sparkline (30/90d), alert when bias flips Strong↔Weak. Data sitting in Supabase.

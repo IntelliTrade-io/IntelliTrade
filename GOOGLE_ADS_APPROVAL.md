@@ -15,14 +15,14 @@ Why it matters: "site fixes" only help against destination/content policies. If 
 
 ## 1. Likely root cause: restricted financial vertical
 
-Forex tooling sits in Google's **speculative financial products** orbit (CFDs, forex, spread betting). Google restricts not only brokers but **"instruments related to" them — signal providers, aggregators, affiliates**. A dashboard selling trading signals/opportunities ("SR Alpha opportunities", "best expressions") likely gets classified here.
+**Owner position (2026-07-05, locked): we are NOT a signals service and never will be** — legal exposure (unlicensed investment advice) + guaranteed Google rejection. We sell analytics/education tools.
 
-Two viable postures — pick one deliberately:
+The problem is **perception, not the product**: forex tooling sits in Google's **speculative financial products** orbit (CFDs, forex, spread betting), and Google restricts "instruments related to" them — including anything that *reads like* a signal provider. Copy like "opportunity score", "best expressions", "when to trade" can get a tools product classified as signals by a human reviewer (and, worse, by the AFM). So:
 
-- **A. Certify (hard, maybe impossible for us):** certification generally demands a license from the national regulator of every targeted country (NL = AFM; UK = FCA; etc.). We are a tools/analytics company, not a licensed investment firm — likely not licensable, and NL/EEA additionally runs mandatory **financial services advertiser verification**.
-- **B. Reposition what we advertise (realistic):** ads + landing pages promote only the **educational/utility surface** — calculators, price pages, market-hours, glossary, blog — with zero signal/performance framing. The subscription product stays on the site but is not the ad destination and not promised returns anywhere ads land. Many tool sites get approved this way.
+- **Certification route (A) is off the table** — that's for licensed firms; we're not one and don't want to be.
+- **Our route (B): make the true positioning unmistakable.** Ads + landing pages promote only the **educational/utility surface** — calculators, price pages, market-hours, glossary, blog. Zero performance framing anywhere ads land. And audit the *whole public site* for copy that could read as trade recommendations (§2 claim-scrub covers this — it protects against AFM/legal risk, not just Google).
 
-Recommendation: **B**, while checking A's verification requirement for NL if we target NL at all. Consider initially targeting only geos without extra financial-verification programs.
+Consider initially targeting only geos without extra financial-verification programs.
 
 ## 2. Site compliance (Claude can do most; verify against live Vercel deploy)
 
@@ -35,7 +35,7 @@ Legal/trust surface — Google manually eyeballs these:
 - [ ] **Identity block in footer**: legal entity name, KvK/registration number, physical address, working contact email (not just a form). Google cross-checks this against advertiser verification data — must match exactly.
 - [ ] **About page** with the real company/people.
 - [ ] **Risk disclaimer**, footer + every tool page: trading involves substantial risk of loss; content is informational/educational, **not investment advice**; past performance ≠ future results.
-- [ ] **Scrub performance/earnings claims sitewide**: no "profit", "win rate", "beat the market", "opportunity score that makes you money" phrasing on public pages; no testimonials with result claims. Reword to analytical language ("measures", "ranks", "visualizes").
+- [ ] **Scrub performance/earnings AND recommendation language sitewide** (double duty: Google policy + legal/AFM exposure — owner hard-no on anything signal-shaped): no "profit", "win rate", "beat the market"; also no imperative trade framing — "opportunity", "entry", "when to buy", "take this trade". Reword to analytical language ("measures", "ranks", "visualizes", "historical structure"). Dashboard feature names count (e.g. "opportunity score" → consider "structure score" on public surfaces).
 - [ ] **No thin/broken surface**: every public route renders real content, no placeholder/under-construction pages, no dead links (crawl the live site), custom 404.
 - [ ] **Landing pages substantially ungated**: ad destinations must show real content without login/paywall walls. Free tier pages (calculators, prices-today, blog) qualify; premium shells behind middleware do not.
 - [ ] **Site ↔ ad consistency**: business name, domain, and payment-profile entity all identical.
