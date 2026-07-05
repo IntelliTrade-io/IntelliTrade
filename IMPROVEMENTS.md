@@ -57,6 +57,11 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **prices-today enrichment** · pages are thin (live quote + hardcoded text — see Content entry) · add yesterday/7d/30d change, related-instrument links, FAQPage JSON-LD. More long-tail surface per page.
 - **Internal-linking pass** · blog posts rarely link to calculators/tools and tools don't link back · related-tools block in the Sanity post template + related-articles on tool pages. Cheapest crawl-equity win available.
 
+## Launch prep
+
+- **Alpha demo accounts (free premium access)** *(2026-07-05, owner)*
+  Founders will hand out free demo accounts for alpha testing soon. Gating today = `subscriptions` table row with status `active`/`trialing` (checked by `lib/auth/requireSubscription` + middleware), populated by Stripe webhooks. Cleanest options: (a) Stripe promotion code for a 100%-off trial — zero code, testers walk the real checkout, webhook keeps the row in sync; (b) manual `subscriptions` rows with status `active` and no Stripe customer — fastest but verify the webhook/portal code paths don't choke on a row without a Stripe subscription id (cancel/upgrade flows). Decide before invites go out; (a) preferred.
+
 ## Ops
 
 - **No repo-linked migration flow** *(2026-07-04)*
