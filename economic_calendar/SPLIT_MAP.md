@@ -1,0 +1,56 @@
+# 6.3 split map — scripts/economic_calendar_scraper.py → economic_calendar/
+
+Working map for the multi-session monolith split (REFACTOR_PLAN §6.3).
+Line numbers refer to the monolith at the start of session 7 (14,565 lines, 270 defs).
+Rule: mechanical moves only — logic changes are separate commits.
+
+## Contract that must never break
+
+- `scripts/economic_calendar_upload.py` does `from economic_calendar_scraper import run`
+  (GitHub workflow `economic-calendar.yml` runs it with `pip install ".[scraper]"`).
+- `run(since_days, until_days, include_global, include_central_banks, allow_persist)` → list[dict].
+- Output/cache/config paths anchor to `scripts/` via `PROJECT_DIR = Path(__file__).parent`
+  (out/, cache/, failures/, config JSONs). Path parameterization is plan 6.6, not 6.3.
+
+## Framework layers (extracted session 7 — DONE)
+
+| Monolith region | Target module | Contents |
+|---|---|---|
+| 5–45, 284–337 (minus 321–323), 592–605, 829–835, 1015–1112, 3310–3314 | `timeutils.py` | MONTHS, month_to_num, TZ constants, `_get_zoneinfo`, `_now_utc`, `_iso`, `ensure_aware`, `_parse_local_time`, business-day/weekday helpers, `_within` |
+| 796–827, 837–867, 869–1013 | `events.py` | EVENT_JSON_SCHEMA + `_validate_event_schema`, content hashes, COUNTRY_CODES, `Event`, `_event_to_dict` / `_event_from_dict`, `make_id` |
+| 3348–3859 | `http.py` | `EnhancedCacheManager`, `EphemeralCacheManager`, DEFAULT_HEADERS, `build_session`, `RetryBudget`, `CircuitBreaker`, SOURCE_BREAKERS, `get_source_breaker`, `source_sget`, `sget_with_retry`, `sget_retry_alt` |
+| 3861–4037 | `ics.py` | `parse_ics_datetime`, `parse_ics_bytes` |
+
+Logging: extracted modules log to the monolith's logger name `econ_calendar_complete`
+so the handler configured in the monolith keeps receiving their records. Revisit when
+the CLI/orchestrator moves into the package.
+
+## Remaining families (future sessions, rough order)
+
+1. **PMI config + rules** (488–763, 1115–1260): Grace/PMI dataclasses, JSON config loading,
+   `_calc_pmi_rule_date`, `_estimate_pmi_releases_for_series` → `pmi_config.py`.
+   Depends on `_resolve_config_path` (569) — config files anchor to scripts/.
+2. **Classification & metadata enrichment** (1261–2710): `classify_event` (~400 lines),
+   country/category/pair-relevance inference, URL standardization, descriptions,
+   trader-relevance scoring, `_enrich_event_metadata` → `classify.py` + `enrich.py`.
+3. **HTML parse helpers** (3250–3347): header-keyword row finders, `rows_by_header_xpath` → `htmlparse.py`.
+4. **Central-bank speakers** (2711–3249) → `sources/speakers.py`.
+5. **LKG / schema sentinel / health** (8477–9302): zero snapshots, fetch metadata,
+   `_persist_lkg` / `maybe_merge_lkg`, schema capture, SourceHealth (229–266) + health payloads
+   → `health.py` + `lkg.py`. Heavy global state (FETCH_METADATA etc.) — extract carefully.
+6. **Per-source fetchers** (one module per agency under `sources/`):
+   - Central banks: BoE 4043, BoC 4280, RBA 4392, RBNZ 4613, Fed/FOMC 11684, ECB 11940,
+     BoJ 12257, SNB 12712
+   - US macro: BLS 6535 + BLS debug/reconcile 7109–8090 + html fallback 9303, ISM 6608,
+     curated US 6894–7108, BEA 8091, Census 8110, DOL 8132, EIA 8159, UMich 8186, ADP 8300
+   - Europe: ONS 6019 + 9631–9984, Eurostat 10735, SECO 5285, BFS 5763
+   - APAC: ESRI 4842, ABS 9985, StatCan 10188–10734, Stats NZ 10871, China NBS 10968–11683
+   - PMI S&P Global 8399
+7. **Merge/fallback/orchestration** (12937–13605): key filters, `_merge_events`, per-source
+   fallbacks, `_apply_health_guard`, fetcher task runner → `orchestrator.py`.
+8. **Collect/run/export/CLI** (13606–14565): `gather_*`, `collect_events`, `run`, CSV/JSON/JSONL
+   exporters, `main` → `cli.py` / `collect.py`. When this lands, `scripts/economic_calendar_scraper.py`
+   becomes a pure shim re-exporting `run`.
+
+Per-source sessions: move fetcher + its curated data blocks, add tests against cached
+HTML/ICS fixtures, re-evaluate `lxml`/`feedparser` need per source (plan 6.5 leftover).

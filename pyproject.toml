@@ -28,7 +28,7 @@ scraper = [
 dev = ["pytest>=7.0"]
 
 [tool.setuptools]
-packages = ["intellitrade_scanners", "support_resistance"]
+packages = ["intellitrade_scanners", "support_resistance", "economic_calendar"]
 
 [tool.setuptools.package-dir]
 support_resistance = "backend/support_resistance"
@@ -37,4 +37,5 @@ support_resistance = "backend/support_resistance"
 testpaths = [
     "backend/support_resistance/tests",
     "intellitrade_scanners/tests",
+    "economic_calendar/tests",
 ]
