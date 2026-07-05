@@ -18,6 +18,14 @@ dependencies = [
 [project.optional-dependencies]
 # MetaTrader5 ships Windows-only wheels; only the VPS needs it.
 mt5 = ["MetaTrader5>=5.0"]
+# Economic-calendar scraper (scripts/economic_calendar_scraper.py; packaged in plan 6.3)
+scraper = [
+    "beautifulsoup4>=4.12",
+    "feedparser>=6.0",
+    "lxml>=5.0",
+    "python-dateutil>=2.9",
+    "urllib3>=2.0",
+]
 dev = ["pytest>=7.0"]
 
 [tool.setuptools]

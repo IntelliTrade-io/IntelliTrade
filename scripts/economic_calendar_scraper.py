@@ -14399,7 +14399,7 @@ def main() -> None:
 
     missing_dependencies = _missing_runtime_dependencies()
     if missing_dependencies:
-        install_cmd = f'python -m pip install -r "{PROJECT_DIR / "requirements.txt"}"'
+        install_cmd = 'python -m pip install ".[scraper]"  # from the repo root (deps in pyproject.toml)'
         logger.error("DEPENDENCY_MISSING: %s", ", ".join(missing_dependencies))
         logger.error("DEPENDENCY_INSTALL: %s", install_cmd)
         health_payload = _failed_health_payload(

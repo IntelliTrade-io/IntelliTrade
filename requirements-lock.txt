@@ -1,0 +1,57 @@
+﻿# requirements-lock.txt — exact pins for CI/VPS reproducibility.
+# Generated 2026-07-05 on Python 3.14 (fresh venv, pip install .[scraper,dev]),
+# validated: full pytest (103) green under these versions.
+# Regenerate: python -m venv <tmp> && <tmp>/pip install .[scraper,dev] && pip freeze
+# MetaTrader5 ([mt5] extra) intentionally absent: Windows-only, VPS installs it separately.
+# Direct deps + ranges live in pyproject.toml; this file pins the full resolved tree.
+annotated-types==0.7.0
+anyio==4.14.1
+beautifulsoup4==4.15.0
+certifi==2026.6.17
+cffi==2.0.0
+charset-normalizer==3.4.7
+colorama==0.4.6
+cryptography==49.0.0
+deprecation==2.1.0
+feedparser==6.0.12
+h11==0.16.0
+h2==4.3.0
+hpack==4.2.0
+httpcore==1.0.9
+httpx==0.28.1
+hyperframe==6.1.0
+idna==3.18
+iniconfig==2.3.0
+lxml==6.1.1
+multidict==6.7.1
+numpy==2.5.1
+packaging==26.2
+pandas==3.0.3
+pluggy==1.6.0
+postgrest==2.31.0
+propcache==0.5.2
+pycparser==3.0
+pydantic_core==2.46.4
+pydantic==2.13.4
+Pygments==2.20.0
+PyJWT==2.13.0
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.2
+realtime==2.31.0
+requests==2.34.2
+sgmllib3k==1.0.0
+six==1.17.0
+soupsieve==2.8.4
+storage3==2.31.0
+StrEnum==0.4.15
+supabase==2.31.0
+supabase-auth==2.31.0
+supabase-functions==2.31.0
+typing_extensions==4.16.0
+typing-inspection==0.4.2
+tzdata==2026.2
+urllib3==2.7.0
+websockets==15.0.1
+yarl==1.24.2
+

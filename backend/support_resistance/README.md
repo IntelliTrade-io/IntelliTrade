@@ -69,7 +69,7 @@ dynamic_opportunity_score = static_zone_score
 
 ```bash
 # 1. deps (core scoring + golden validation need only the stdlib)
-pip install -r backend/support_resistance/requirements.txt
+pip install -e ".[dev]"          # from the repo root; add [mt5] on the VPS
 
 # 2. golden fixture regression — the correctness gate
 python backend/support_resistance/run_fixture_validation.py
@@ -180,8 +180,7 @@ backend/support_resistance/
   supabase_writer.py        # upsert candles / zones / opportunities (service-role key)
   run_sr_alpha.py           # end-to-end runner + run summary
   run_fixture_validation.py # golden fixture CLI
-  requirements.txt
-  README.md                 # this file
+  README.md                 # this file (deps: root pyproject.toml)
   fixtures/
     locked_phase39_config.json
     golden_backend_fixture.csv
