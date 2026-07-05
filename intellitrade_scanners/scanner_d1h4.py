@@ -66,8 +66,8 @@ def remap_pair(info: dict) -> dict:
 def main() -> int:
     setup_logging()
     log = logging.getLogger(SCANNER_NAME)
-    run_start = dt.datetime.utcnow()
-    log.info(f"=== D1/H4 scanner start {run_start.isoformat()}Z ===")
+    run_start = dt.datetime.now(dt.timezone.utc)
+    log.info(f"=== D1/H4 scanner start {run_start.isoformat()} ===")
 
     feed_name = os.environ.get("ACTIVE_FEED_NAME", "metaquotes_demo")
     mt5_server = os.environ.get("MT5_SERVER", "") or None
@@ -156,7 +156,7 @@ def main() -> int:
     )
 
     run_info = {
-        "ts_utc": run_start.isoformat() + "Z",
+        "ts_utc": run_start.isoformat().replace("+00:00", "Z"),
         "scanner": SCANNER_NAME,
         "feed": feed_name,
         "version": strength_core.SCANNER_VERSION,
@@ -195,7 +195,7 @@ def main() -> int:
     with open(os.path.join(OUT_DIR, "heatmap_currencies_v152.json"), "w", encoding="utf-8") as f:
         json.dump({"currencies_raw": curr_raw, "currencies_weighted": curr_weighted}, f, indent=2)
 
-    run_end = dt.datetime.utcnow()
+    run_end = dt.datetime.now(dt.timezone.utc)
     elapsed = (run_end - run_start).total_seconds()
     log.info(f"=== D1/H4 scanner done in {elapsed:.1f}s ===")
     return 0

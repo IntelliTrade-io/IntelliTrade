@@ -116,14 +116,7 @@ def load_symbol_map() -> Optional[dict]:
         from . import supabase_writer
         if not supabase_writer.is_configured():
             return None
-        sb = supabase_writer.get_client()
-        res = (
-            sb.table("symbol_mapping")
-            .select("canonical_symbol, broker_symbol")
-            .eq("feed_name", feed)
-            .execute()
-        )
-        rows = res.data or []
+        rows = supabase_writer.fetch_symbol_map(feed)
         mapping = {r["canonical_symbol"]: r["broker_symbol"] for r in rows if r.get("canonical_symbol")}
         if mapping:
             log.info(f"symbol_map: loaded {len(mapping)} entries for feed '{feed}'")

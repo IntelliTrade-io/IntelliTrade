@@ -143,7 +143,7 @@ def main():
     if args.out_json:
         os.makedirs(os.path.dirname(args.out_json) or ".", exist_ok=True)
         with open(args.out_json, "w", encoding="utf-8") as f:
-            json.dump({"run_info": {"ts_utc": dt.datetime.utcnow().isoformat() + "Z",
+            json.dump({"run_info": {"ts_utc": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
                                     "trend_mode": args.trend_mode,
                                     "d1_depth": args.d1_depth, "h4_depth": args.h4_depth},
                        "pairs": all_pairs}, f, indent=2)

@@ -43,22 +43,20 @@ def prune_stale_events(client, new_scraper_ids: list[str], start_dt: str, end_dt
     if not new_scraper_ids:
         return 0
 
+    from intellitrade_scanners.postgrest import gte, lte, not_in
+
     CHUNK = 200
     total_deleted = 0
 
     for i in range(0, len(new_scraper_ids), CHUNK):
         chunk = new_scraper_ids[i : i + CHUNK]
         try:
-            result = (
-                client.table("economic_events")
-                .delete()
-                .gte("date_time_utc", start_dt)
-                .lte("date_time_utc", end_dt)
-                .not_.in_("scraperID", chunk)
-                .execute()
-            )
-            deleted = len(result.data) if result.data else 0
-            total_deleted += deleted
+            deleted_rows = client.delete("economic_events", [
+                gte("date_time_utc", start_dt),
+                lte("date_time_utc", end_dt),
+                not_in("scraperID", chunk),
+            ])
+            total_deleted += len(deleted_rows)
         except Exception as exc:
             logger.warning("Prune chunk %d failed (non-fatal): %s", i // CHUNK + 1, exc)
 
@@ -70,12 +68,12 @@ def prune_stale_events(client, new_scraper_ids: list[str], start_dt: str, end_dt
 def upload_events(events: list[dict], supabase_url: str, service_role_key: str) -> int:
     """Prune stale rows then upsert events. Returns count upserted."""
     try:
-        from supabase import create_client
+        from intellitrade_scanners.postgrest import Postgrest
     except ImportError:
-        logger.error("supabase-py not installed. Run: pip install supabase")
+        logger.error('PostgREST client not importable. Run from an installed checkout: pip install ".[scraper]"')
         sys.exit(1)
 
-    client = create_client(supabase_url, service_role_key)
+    client = Postgrest(supabase_url, service_role_key)
 
     if not events:
         logger.info("No events to upload.")
@@ -135,7 +133,7 @@ def upload_events(events: list[dict], supabase_url: str, service_role_key: str) 
     total_upserted = 0
     for i in range(0, len(rows), batch_size):
         batch = rows[i : i + batch_size]
-        client.table("economic_events").upsert(batch, on_conflict="scraperID").execute()
+        client.upsert("economic_events", batch, on_conflict="scraperID")
         total_upserted += len(batch)
         logger.info("Upserted batch %d-%d (%d rows)", i + 1, i + len(batch), len(batch))
 

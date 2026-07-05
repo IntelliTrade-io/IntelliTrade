@@ -49,16 +49,9 @@ def setup_logging() -> None:
     logging.basicConfig(level=logging.INFO, handlers=[fh, sh])
 
 
-def _get_supabase_client():
-    try:
-        from supabase import create_client
-    except ImportError:
-        raise RuntimeError("supabase not installed")
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
-    return create_client(url, key)
+def _health_rows() -> list[dict]:
+    from intellitrade_scanners.postgrest import Postgrest
+    return Postgrest().select("scanner_health")
 
 
 def send_discord(message: str) -> None:
@@ -93,15 +86,14 @@ def alert(message: str) -> None:
 
 def check_health() -> list[str]:
     """Fetch scanner_health rows and return list of alert messages."""
-    sb = _get_supabase_client()
-    result = sb.table("scanner_health").select("*").execute()
-    if not result.data:
+    health_rows = _health_rows()
+    if not health_rows:
         return ["No scanner_health rows found — scanners may never have run."]
 
-    now = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+    now = dt.datetime.now(dt.timezone.utc)
     issues = []
 
-    for row in result.data:
+    for row in health_rows:
         name = row.get("scanner_name", "?")
         group = row.get("timeframe_group", "?")
         status = row.get("status", "unknown")
@@ -150,7 +142,7 @@ def check_health() -> list[str]:
 def main() -> int:
     setup_logging()
     log = logging.getLogger("watchdog")
-    log.info(f"Watchdog check at {dt.datetime.utcnow().isoformat()}Z")
+    log.info(f"Watchdog check at {dt.datetime.now(dt.timezone.utc).isoformat()}")
 
     try:
         issues = check_health()

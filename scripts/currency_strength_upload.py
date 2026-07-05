@@ -1,11 +1,11 @@
 # coding: utf-8
 """
 IntelliTrade — Currency Strength Supabase Uploader
-Reads the JSON output files produced by the MT5 scanners and inserts a
+Reads the JSON output files produced by the scanners and inserts a
 snapshot row into the `currency_strength_snapshots` Supabase table.
 
-Requirements:
-    pip install supabase
+Requires the repo package to be installed (pip install .) for the
+PostgREST client.
 
 Environment variables (set in your shell or .env before running):
     SUPABASE_URL              — e.g. https://xxxxxxxxxxx.supabase.co
@@ -14,25 +14,15 @@ Environment variables (set in your shell or .env before running):
 Usage:
     python scripts/currency_strength_upload.py \
         --type daily \
-        --pairs-json "C:\IntelliTrade\out\heatmap_pairs_v152.json" \
-        --currencies-json "C:\IntelliTrade\out\heatmap_currencies_v152.json"
-
-    python scripts/currency_strength_upload.py \
-        --type intraday \
-        --pairs-json "C:\IntelliTrade\out\intraday_pairs_trusted.json" \
-        --currencies-json "C:\IntelliTrade\out\intraday_currencies_trusted.json"
+        --pairs-json out/heatmap_pairs_v152.json \
+        --currencies-json out/heatmap_currencies_v152.json
 """
 
 import argparse
 import json
-import os
 import sys
 
-try:
-    from supabase import create_client
-except ImportError:
-    print("supabase package not found. Run: pip install supabase", file=sys.stderr)
-    sys.exit(1)
+from intellitrade_scanners.postgrest import Postgrest, PostgrestError
 
 
 def main() -> None:
@@ -44,15 +34,6 @@ def main() -> None:
     ap.add_argument("--currencies-json", required=True,
                     help="Path to currencies output JSON from the scanner")
     args = ap.parse_args()
-
-    url = os.environ.get("SUPABASE_URL")
-    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not key:
-        print(
-            "ERROR: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
     with open(args.pairs_json, encoding="utf-8") as f:
         pairs_data = json.load(f)
@@ -67,15 +48,18 @@ def main() -> None:
         "currencies_weighted": curr_data.get("currencies_weighted", {}),
     }
 
-    sb = create_client(url, key)
-    result = sb.table("currency_strength_snapshots").insert(row).execute()
+    try:
+        inserted = Postgrest().insert("currency_strength_snapshots", row)
+    except (RuntimeError, PostgrestError) as exc:
+        print(f"ERROR — {exc}", file=sys.stderr)
+        sys.exit(1)
 
-    if result.data:
-        snap_id = result.data[0].get("id", "?")
+    if inserted:
+        snap_id = inserted[0].get("id", "?")
         ts = row["run_info"].get("ts_utc", "unknown time")
         print(f"OK — uploaded {args.type} snapshot id={snap_id} ts={ts}")
     else:
-        print(f"ERROR — insert returned no data: {result}", file=sys.stderr)
+        print("ERROR — insert returned no data", file=sys.stderr)
         sys.exit(1)
 
 

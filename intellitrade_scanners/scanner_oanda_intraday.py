@@ -143,7 +143,7 @@ def main():
     if args.out_json:
         os.makedirs(os.path.dirname(args.out_json) or ".", exist_ok=True)
         with open(args.out_json, "w", encoding="utf-8") as f:
-            json.dump({"run_info": {"ts_utc": dt.datetime.utcnow().isoformat() + "Z",
+            json.dump({"run_info": {"ts_utc": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
                                     "tf_hi": args.hi_tf, "tf_lo": args.lo_tf},
                        "pairs": all_pairs}, f, indent=2)
         print("Wrote", args.out_json)

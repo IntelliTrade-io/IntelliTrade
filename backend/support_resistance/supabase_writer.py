@@ -11,7 +11,7 @@ Env:
     SUPABASE_URL
     SUPABASE_SERVICE_ROLE_KEY   (backend only — never exposed to the frontend)
 
-Mirrors scripts/vps/supabase_upload.py conventions (module-level cached client).
+Talks to PostgREST directly via intellitrade_scanners.postgrest (no supabase-py).
 """
 
 import os
@@ -23,6 +23,19 @@ log = logging.getLogger(__name__)
 
 _client = None
 
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+
+def _postgrest():
+    """Import the shared PostgREST client, tolerating uninstalled checkouts."""
+    try:
+        from intellitrade_scanners import postgrest
+    except ImportError:
+        if _REPO_ROOT not in sys.path:
+            sys.path.insert(0, _REPO_ROOT)
+        from intellitrade_scanners import postgrest
+    return postgrest
+
 
 def is_configured() -> bool:
     return bool(os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_SERVICE_ROLE_KEY"))
@@ -31,26 +44,26 @@ def is_configured() -> bool:
 def get_client():
     global _client
     if _client is None:
-        try:
-            from supabase import create_client
-        except ImportError:
-            print("supabase not installed. Run: pip install supabase", file=sys.stderr)
-            raise
-        url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-        if not url or not key:
-            raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set")
-        _client = create_client(url, key)
+        _client = _postgrest().Postgrest()
     return _client
+
+
+def fetch_symbol_map(feed_name: str) -> List[dict]:
+    """symbol_mapping rows for a feed (canonical_symbol, broker_symbol)."""
+    pg = _postgrest()
+    return get_client().select(
+        "symbol_mapping", "canonical_symbol, broker_symbol",
+        [pg.eq("feed_name", feed_name)],
+    )
 
 
 def upsert_candles(rows: List[dict]) -> int:
     """Upsert market_candles rows. Returns count attempted."""
     if not rows:
         return 0
-    sb = get_client()
+    db = get_client()
     try:
-        sb.table("market_candles").upsert(rows, on_conflict="symbol,timeframe,time").execute()
+        db.upsert("market_candles", rows, on_conflict="symbol,timeframe,time")
         log.info(f"market_candles: upserted {len(rows)} rows")
     except Exception as e:  # noqa: BLE001
         log.error(f"market_candles upsert failed: {e}")
@@ -60,15 +73,12 @@ def upsert_candles(rows: List[dict]) -> int:
 
 def upsert_zone(zone_row: dict) -> Optional[str]:
     """Upsert one sr_zones row and return its id."""
-    sb = get_client()
+    db = get_client()
     try:
-        result = (
-            sb.table("sr_zones")
-            .upsert(zone_row, on_conflict="symbol,zone_side,zone_created_time,model_version")
-            .execute()
-        )
-        if result.data:
-            return result.data[0].get("id")
+        result = db.upsert("sr_zones", zone_row,
+                           on_conflict="symbol,zone_side,zone_created_time,model_version")
+        if result:
+            return result[0].get("id")
     except Exception as e:  # noqa: BLE001
         log.error(f"sr_zones upsert failed: {e}")
         raise
@@ -77,13 +87,13 @@ def upsert_zone(zone_row: dict) -> Optional[str]:
 
 def upsert_opportunity(opp_row: dict, zone_id: Optional[str]) -> None:
     """Upsert one sr_opportunities row. Strips internal (_-prefixed) keys."""
-    sb = get_client()
+    db = get_client()
     row = {k: v for k, v in opp_row.items() if not k.startswith("_")}
     # dynamic_grade_display is convenience only; keep dynamic_grade (canonical key).
     row.pop("dynamic_grade_display", None)
     row["zone_id"] = zone_id
     try:
-        sb.table("sr_opportunities").upsert(row, on_conflict="zone_id,model_version").execute()
+        db.upsert("sr_opportunities", row, on_conflict="zone_id,model_version")
     except Exception as e:  # noqa: BLE001
         log.error(f"sr_opportunities upsert failed: {e}")
         raise
@@ -104,28 +114,27 @@ def prune_stale(symbol: str, model_version: str, active_zone_ids: List[str]) -> 
     if not active_zone_ids:
         log.warning("prune_stale: no active zones this run — skipping delete (safety)")
         return counts
-    sb = get_client()
+    pg = _postgrest()
+    db = get_client()
     try:
-        res = (sb.table("sr_opportunities")
-               .delete()
-               .eq("symbol", symbol)
-               .eq("model_version", model_version)
-               .not_.in_("zone_id", active_zone_ids)
-               .execute())
-        counts["opps_deleted"] = len(res.data or [])
+        deleted = db.delete("sr_opportunities", [
+            pg.eq("symbol", symbol),
+            pg.eq("model_version", model_version),
+            pg.not_in("zone_id", active_zone_ids),
+        ])
+        counts["opps_deleted"] = len(deleted)
         log.info(f"sr_opportunities: pruned {counts['opps_deleted']} rows not in current run "
                  f"({len(active_zone_ids)} kept)")
     except Exception as e:  # noqa: BLE001
         log.warning(f"sr_opportunities prune failed: {e}")
 
     try:
-        res = (sb.table("sr_zones")
-               .update({"is_active": False})
-               .eq("symbol", symbol)
-               .eq("model_version", model_version)
-               .not_.in_("id", active_zone_ids)
-               .execute())
-        counts["zones_deactivated"] = len(res.data or [])
+        deactivated = db.update("sr_zones", {"is_active": False}, [
+            pg.eq("symbol", symbol),
+            pg.eq("model_version", model_version),
+            pg.not_in("id", active_zone_ids),
+        ])
+        counts["zones_deactivated"] = len(deactivated)
         log.info(f"sr_zones: deactivated {counts['zones_deactivated']} zones not in current run "
                  f"({len(active_zone_ids)} kept active)")
     except Exception as e:  # noqa: BLE001
