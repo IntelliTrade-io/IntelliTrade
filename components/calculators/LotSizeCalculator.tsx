@@ -59,10 +59,9 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
           const fallback = composed.includes("EURUSD") ? "EURUSD" : composed[0] || "EURUSD";
           if (!composed.includes(pair)) setPair(fallback);
         }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!cancelled) {
-          setPairsError(e?.message || "Could not load pairs");
+          setPairsError(e instanceof Error ? e.message : "Could not load pairs");
           // still provide a minimal fallback so the UI is usable
           setPairs([
             "EURUSD",
@@ -164,10 +163,9 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
       setCalcContext(
         `${Number(balance).toLocaleString()} ${currency} balance · ${riskPercent}% risk · ${stopLoss} pip stop · ${normalizePair(pair)}${conversionNote}`
       );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      alert(e?.message || "Calculation failed");
+      alert(e instanceof Error ? e.message : "Calculation failed");
     }
   };
 

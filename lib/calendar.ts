@@ -1,10 +1,7 @@
 // Economic-calendar domain logic, extracted from the dashboard calendar panel
 // (refactor plan 5.5). Timezone and "now" are injectable so the date math is
 // unit-testable; defaults preserve the panel's original behavior.
-// NOTE: types come from components/dashboardv2/types until 5.6 creates
-// types/domain/.
-
-import type { CalendarEvent, ImpactLevel } from "@/components/dashboardv2/types";
+import type { CalendarEvent, ImpactLevel } from "@/types/domain/calendar";
 
 export function getUserTz(): string {
   try {
@@ -199,6 +196,7 @@ export function buildListItems(events: CalendarEvent[]): ListItem[] {
   const clusters: PmiCluster[] = [];
   for (const [groupKey, clusterEvents] of clusterMap) {
     const first = clusterEvents[0];
+    if (!first) continue;
     const highestImpact = clusterEvents.reduce<ImpactLevel>(
       (acc, ev) => (IMPACT_RANK[ev.impact] > IMPACT_RANK[acc] ? ev.impact : acc),
       "low",

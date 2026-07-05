@@ -43,13 +43,13 @@ describe("filterBySeverity", () => {
   it('filters to high only', () => {
     const result = filterBySeverity(collection, "high");
     expect(result.features).toHaveLength(1);
-    expect(result.features[0].properties.severityLabel).toBe("High");
+    expect(result.features[0]!.properties.severityLabel).toBe("High");
   });
 
   it('filters to medium only', () => {
     const result = filterBySeverity(collection, "medium");
     expect(result.features).toHaveLength(1);
-    expect(result.features[0].properties.severityLabel).toBe("Medium");
+    expect(result.features[0]!.properties.severityLabel).toBe("Medium");
   });
 
   it('filters to low only', () => {
@@ -79,8 +79,8 @@ describe("buildConflictStats", () => {
       { severityLabel: "Low", country: "Ukraine" },
     ]);
     const stats = buildConflictStats(collection);
-    expect(stats.topCountries[0].name).toBe("Israel");
-    expect(stats.topCountries[0].count).toBe(2);
+    expect(stats.topCountries[0]!.name).toBe("Israel");
+    expect(stats.topCountries[0]!.count).toBe(2);
   });
 
   it("counts top themes", () => {
@@ -90,8 +90,8 @@ describe("buildConflictStats", () => {
       { severityLabel: "Low", themes: ["Diplomacy"] },
     ]);
     const stats = buildConflictStats(collection);
-    expect(stats.topThemes[0].name).toBe("Airstrikes");
-    expect(stats.topThemes[0].count).toBe(2);
+    expect(stats.topThemes[0]!.name).toBe("Airstrikes");
+    expect(stats.topThemes[0]!.count).toBe(2);
   });
 
   it("returns empty arrays for empty collection", () => {
@@ -130,7 +130,7 @@ describe("normalizeDocArticles", () => {
     ];
     const result = normalizeDocArticles(articles, { now: NOW });
     if (result.features.length > 0) {
-      const coords = result.features[0].geometry.coordinates;
+      const coords = result.features[0]!.geometry.coordinates;
       expect(Number.isFinite(coords[0])).toBe(true);
       expect(Number.isFinite(coords[1])).toBe(true);
     }

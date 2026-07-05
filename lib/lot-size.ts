@@ -95,8 +95,8 @@ export function composePairsFrom(codes: Set<string>) {
  * Throws on missing/invalid rates.
  */
 export function rateFromUsdRates(base: string, quote: string, rates: Record<string, string>): number {
-  const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
-  const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);
+  const usdToBase = base === "USD" ? 1 : parseFloat(rates[base] ?? "");
+  const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote] ?? "");
 
   if (!isFinite(usdToBase) || !isFinite(usdToQuote)) throw new Error("Invalid API rates");
 

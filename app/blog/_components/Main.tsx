@@ -5,11 +5,11 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { client } from "@/sanity/client"
 import imageUrlBuilder from "@sanity/image-url"
+import type { SanityImageSource } from "@sanity/image-url/lib/types/types"
 
 // Standard Sanity Image Helper
 const builder = imageUrlBuilder(client)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const urlFor = (source: any) => builder.image(source)
+const urlFor = (source: SanityImageSource) => builder.image(source)
 
 interface BlogPost {
   slug: string
@@ -17,8 +17,7 @@ interface BlogPost {
   title: string
   summary: string
   tags: string[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  image?: any
+  image?: SanityImageSource | null
 }
 
 interface HomeProps {

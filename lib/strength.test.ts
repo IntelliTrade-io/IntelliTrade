@@ -51,20 +51,20 @@ describe("computeExpressions", () => {
   it("emits a pair only when one side is strong (>15) and the other weak (<-15)", () => {
     const exprs = computeExpressions(scores({ EUR: 40, USD: -30, GBP: 10, JPY: -10 }));
     expect(exprs).toHaveLength(1);
-    expect(exprs[0].symbol).toBe("EUR/USD");
-    expect(exprs[0].state).toBe("Bullish");
-    expect(exprs[0].summary).toBe("EUR strong vs USD weak");
+    expect(exprs[0]!.symbol).toBe("EUR/USD");
+    expect(exprs[0]!.state).toBe("Bullish");
+    expect(exprs[0]!.summary).toBe("EUR strong vs USD weak");
   });
 
   it("marks the pair Bearish when the strong currency is the quote", () => {
     const exprs = computeExpressions(scores({ EUR: -40, USD: 30 }));
     expect(exprs).toHaveLength(1);
-    expect(exprs[0].symbol).toBe("EUR/USD");
-    expect(exprs[0].state).toBe("Bearish");
+    expect(exprs[0]!.symbol).toBe("EUR/USD");
+    expect(exprs[0]!.state).toBe("Bearish");
   });
 
   it("computes spread, confidence, and opportunity from the two magnitudes", () => {
-    const [expr] = computeExpressions(scores({ EUR: 40, USD: -20 }));
+    const expr = computeExpressions(scores({ EUR: 40, USD: -20 }))[0]!;
     expect(expr.spread).toBe(60);
     expect(expr.confidence).toBe(30);
     expect(expr.opportunity).toBe(18); // 60 * 30 / 100

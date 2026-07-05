@@ -378,8 +378,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
               fontSize: 10,
             }}
             labelFormatter={(ts: unknown) => formatChartTime(String(ts))}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any, name: any) => [`${value > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
+            formatter={(value, name) => [`${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
             itemStyle={{ color: "rgba(255,255,255,0.7)", padding: "1px 0" }}
             labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 4 }}
           />

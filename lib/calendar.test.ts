@@ -95,7 +95,7 @@ describe("buildListItems", () => {
     const cluster = items.find((i) => i.type === "cluster");
     expect(cluster && cluster.type === "cluster" && cluster.cluster.highestImpact).toBe("high");
     // cluster's first event (08:00) sorts before the 09:00 standalone
-    expect(items[0].type).toBe("cluster");
+    expect(items[0]!.type).toBe("cluster");
   });
 
   it("keeps non-cluster events standalone and time-sorted", () => {

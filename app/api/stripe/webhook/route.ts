@@ -46,8 +46,10 @@ async function syncSubscription(subscription: Stripe.Subscription) {
 
   // current_period_end moved off the top-level subscription object in newer Stripe
   // API versions — fall back to the first item's billing period if not present.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rawSub = subscription as any;
+  const rawSub = subscription as unknown as {
+    current_period_end?: number;
+    items?: { data?: Array<{ current_period_end?: number }> };
+  };
   const periodEndSeconds: number | undefined =
     rawSub.current_period_end ??
     rawSub.items?.data?.[0]?.current_period_end;

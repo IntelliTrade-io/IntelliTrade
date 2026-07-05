@@ -61,14 +61,16 @@ export function computeExpressions(scores: Scores): Expression[] {
   for (let i = 0; i < list.length; i++) {
     for (let j = i + 1; j < list.length; j++) {
       const a = list[i], b = list[j];
-      const sa = scores[a].score, sb = scores[b].score;
+      if (a === undefined || b === undefined) continue;
+      const sa = scores[a]?.score, sb = scores[b]?.score;
+      if (sa === undefined || sb === undefined) continue;
 
       const oneStrongOneWeak = (sa > 15 && sb < -15) || (sb > 15 && sa < -15);
       if (!oneStrongOneWeak) continue;
 
       const { base, quote } = getCanonicalPair(a, b);
-      const bs = scores[base].score;
-      const qs = scores[quote].score;
+      const bs = scores[base]?.score ?? 0;
+      const qs = scores[quote]?.score ?? 0;
       const state: "Bullish" | "Bearish" = bs > qs ? "Bullish" : "Bearish";
 
       const strongCode = sa > sb ? a : b;

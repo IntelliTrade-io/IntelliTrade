@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Main from "@/app/blog/_components/Main";
+import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 
 interface Post {
   slug: string;
@@ -12,8 +13,7 @@ interface Post {
   title: string;
   summary: string;
   tags: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  image?: any; // <--- Add this line to the interface
+  image?: SanityImageSource | null;
 }
 
 function getVisiblePages(current: number, total: number): (number | "…")[] {

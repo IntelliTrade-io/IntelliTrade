@@ -38,7 +38,7 @@ export async function GET() {
   // CurrencyFreaks rates are X-per-USD, which maps directly to the formula.
   let dxy = DXY_MULTIPLIER;
   for (const [currency, weight] of Object.entries(WEIGHTS)) {
-    const rate = parseFloat(rates[currency]);
+    const rate = parseFloat(rates[currency] ?? "");
     if (!isFinite(rate) || rate <= 0) {
       return NextResponse.json({ error: `Invalid rate for ${currency}` }, { status: 502 });
     }
