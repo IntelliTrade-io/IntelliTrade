@@ -266,8 +266,8 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 - Note: **Done 2026-07-05 (session 6).** Canonical = `intellitrade_scanners/strength_core.py`. Feeds: `feed_adapter.py` (MT5, VPS) + new `oanda_adapter.py` (CI) share the same `make_fetch_fn` surface. CI scanners are now thin runners (`scanner_oanda_{daily,intraday}.py`) with identical CLI flags + output contracts; workflows call them via `python -m`. "Drift" between forks turned out to be cosmetic only — equivalence proven on 40 seeded series + full 28-pair mocked scan before deletion. Snapshot of the pre-move `scripts/vps/` tree committed first (2a010de) as the baseline for 6.7 drift reconciliation.
 
 **6.2 — Resolve the two economic-calendar scrapers**
-- [ ] `alejoScraper.py` (root, 1,069) vs `scripts/economic_calendar_scraper.py` (14,565). Determine canonical (likely the scripts one), remove the other. Then plan taming the monolith.
-- Note:
+- [x] `alejoScraper.py` (root, 1,069) vs `scripts/economic_calendar_scraper.py` (14,565). Determine canonical (likely the scripts one), remove the other. Then plan taming the monolith.
+- Note: **Done 2026-07-05 (session 6).** Canonical = scripts one: the economic-calendar workflow runs it (via `economic_calendar_upload.py` → `economic_calendar_scraper.run`), and it evolved from alejoScraper (diff = ancestor). Verified zero references + zero unique source hosts in alejoScraper before `git rm`. Next in this area → 6.3 monolith split (multi-session).
 
 **6.3 — Tame the 14,565-line scraper monolith**
 - [ ] 270 defs, 45+ oversized functions (five ≥400 lines), 183 broad excepts, machine-patched provenance, 0 tests. Split by source (one module per central bank/agency), extract a shared fetch/parse framework, add tests per source incrementally. This is a mini-project on its own — schedule across multiple sessions.
