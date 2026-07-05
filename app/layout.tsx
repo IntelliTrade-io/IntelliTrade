@@ -17,6 +17,7 @@ import { Analytics } from '@vercel/analytics/react';
 import Script from "next/script";
 import { GA_TRACKING_ID } from "@/lib/gtag";
 import GATracker from '@/components/layout/GATracker';
+import ConsentBanner from '@/components/layout/ConsentBanner';
 
 
 const space_grotesk = Space_Grotesk({
@@ -45,6 +46,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <meta name="google-adsense-account" content="ca-pub-4817545358384465"></meta>
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
+  {/* Google Consent Mode v2: everything denied until the banner records a
+      choice (ConsentBanner applies stored/updated consent). Must run before
+      gtag.js loads. */}
+  <Script id="consent-default" strategy="beforeInteractive">
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+    `}
+  </Script>
          <Script
     strategy="afterInteractive"
     src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -100,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Footer */}
             <Footer />
+            <ConsentBanner />
             <Analytics />
              <GATracker />
         </ThemeProvider>

@@ -3,6 +3,8 @@ import siteMetadata from '@/data/blog/siteMetadata'
 import SocialIcon from '@/components/blog/social-icons'
 // import NewsletterForm from '@/node_modules/pliny/ui/NewsletterForm'
 import NewsletterForm from './NewsletterForm'
+import { CookiePreferencesLink } from './ConsentBanner'
+import { COMPANY, RISK_DISCLAIMER } from '@/lib/company'
 
 export default function Footer() {
   return (
@@ -43,10 +45,22 @@ export default function Footer() {
           <Link href="/cookieStatement">Cookie statement</Link>
           <div>{` • `}</div>
           <Link href="/termsOfService">Terms of service</Link>
+          <div>{` • `}</div>
+          <Link href="/termsOfService#tos-billing">Billing &amp; refunds</Link>
+          <div>{` • `}</div>
+          <CookiePreferencesLink />
         </div>
-        <div className="mb-8 text-sm">
-         
-        </div>
+        {(COMPANY.legalName || COMPANY.kvk || COMPANY.address) && (
+          <div className="mb-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-sm text-center px-4 text-white/70">
+            {COMPANY.legalName && <div>{COMPANY.legalName}</div>}
+            {COMPANY.kvk && <div>{`KvK ${COMPANY.kvk}`}</div>}
+            {COMPANY.address && <div>{COMPANY.address}</div>}
+            <div>{COMPANY.email}</div>
+          </div>
+        )}
+        <p className="mb-8 max-w-3xl px-6 text-center text-xs text-white/50">
+          {RISK_DISCLAIMER}
+        </p>
       </div>
     </footer>
   )

@@ -1,5 +1,15 @@
 // global.d.ts
-type GtagEventNames = 'config' | 'event' | 'set' | 'js';
+type GtagEventNames = 'config' | 'event' | 'set' | 'js' | 'consent';
+
+type GtagConsentValue = 'granted' | 'denied';
+
+interface GtagConsentParams {
+  ad_storage?: GtagConsentValue;
+  ad_user_data?: GtagConsentValue;
+  ad_personalization?: GtagConsentValue;
+  analytics_storage?: GtagConsentValue;
+  wait_for_update?: number;
+}
 
 interface GtagConfig {
   page_path?: string;
@@ -14,5 +24,5 @@ interface GtagEventParams {
 }
 
 interface Window {
-  gtag: (command: GtagEventNames, ...args: Array<string | Date | GtagConfig | GtagEventParams>) => void;
+  gtag: (command: GtagEventNames, ...args: Array<string | Date | GtagConfig | GtagEventParams | GtagConsentParams>) => void;
 }
