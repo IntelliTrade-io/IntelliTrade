@@ -8,20 +8,24 @@ Context: the AdSense script (`ca-pub-4817545358384465`) is already in `app/layou
 
 ## 0. Diagnose (owner, blocking)
 
-- [ ] AdSense dashboard → Sites → intellitrade.tech → record the **exact rejection wording** here (typical: "Low value content", "Site behind login / under construction", "Policy violation", "Site not found/crawlable"). Everything below is prioritized generically until we have it.
-- Note:
+- [x] AdSense dashboard → Sites → intellitrade.tech → record the **exact rejection wording** here (typical: "Low value content", "Site behind login / under construction", "Policy violation", "Site not found/crawlable"). Everything below is prioritized generically until we have it.
+- Note (2026-07-05, owner): latest rejection verbatim — **"Low value content. Your site does not yet meet the criteria of use in the Google publisher network."** with links to minimum content requirements + thin-content webmaster guidelines. §1 is the confirmed battle plan; §2/§3 are hygiene.
 
-## 1. Most likely blocker: "Low value content"
+## 1. Confirmed blocker: "Low value content" — corrected diagnosis (2026-07-05 audit)
 
-By far the most common AdSense rejection, and this site fits the profile: tool/dashboard-heavy, thin written content, and much of the product **behind a login/paywall the reviewer can't see**. AdSense reviews only the public surface.
+**Volume is NOT the problem.** Audit found: 172 published posts, ~10,000 words each, daily cadence, Sanity-served; nav is fully public (lot calc, blog, about, 4 price pages) — no login walls from the nav; homepage is substantive with Organization/WebSite schema.
 
-Fixes (overlaps heavily with the SEO backlog in `IMPROVEMENTS.md` — same work, two payoffs):
+The remaining explanation that fits: **the blog pattern-matches Google's "scaled content abuse" / templated-content signal.** Near-identical titles day after day ("… | Daily Forex Market Update | IntelliTrade"), uniform ~10k-word length, obviously automated cadence, and content that restates market info available everywhere. To a reviewer that reads as mass-produced, not "unique high quality content" — which is exactly the policy text they cited.
 
-- [ ] **Blog depth**: consistent cadence of substantial original posts (aim: 20–30+ live articles before re-applying; reviewers look at volume + originality). Sanity pipeline exists — this is a content task, not a code task.
-- [ ] **Text-rich tool pages**: replicate the lot-size-calculator SEO upgrade (explanations, worked examples, FAQ) on every public calculator/price page. Thin pages with one widget = low value.
-- [ ] **prices-today enrichment** (already in IMPROVEMENTS.md): historical context, related links — more substance per page.
-- [ ] **Public surface share**: reviewer clicking the nav must not hit mostly login walls. Ensure enough nav destinations are fully public (blog, calculators, prices, about). Consider a public teaser page per premium module (screenshot + explanation) instead of a bare login redirect.
-- [ ] **No under-construction signals**: remove/hide "coming soon" items on public pages (e.g. the upgrade page lists "Macro Mastery — soon"). Placeholder anything = rejection fuel.
+Fixes, in order of expected impact:
+
+- [ ] **Inject proprietary data into posts** — our strongest and cheapest originality lever. We run pipelines nobody else has (currency-strength snapshots, S&R zone data, economic-calendar aggregation). Embedding real charts/tables from our own Supabase data makes posts demonstrably unique — the one thing templated-content detection can't hold against us. (Also a product showcase → subscription funnel.)
+- [ ] **Break the template**: vary titles (drop the fixed "| Daily Forex Market Update |" suffix pattern), vary length (a focused 1,500-word update beats a padded 10k one), vary structure. If posts are AI-assisted, that's fine by current Google guidance — *helpful* is the bar — but they must stop looking stamped out.
+- [ ] **Add evergreen pillar content**: guides that answer real searches (risk management, session timing, pair characteristics) and get linked from the daily posts. A blog that is 100% dailies has no lasting spine.
+- [ ] **Text-rich tool pages**: replicate the lot-size-calculator SEO upgrade (explanations, worked examples, FAQ) on every public calculator/price page.
+- [ ] **prices-today enrichment** (already in IMPROVEMENTS.md): historical context, related links.
+- [ ] **No under-construction signals**: remove/hide "coming soon" items on public pages (upgrade page lists "Macro Mastery — soon").
+- [ ] **Owner: Search Console check** — how many of the 172 posts are actually indexed? If Google indexes few, that's corroborating evidence of the quality-signal problem (and fixing indexing is part of the same work).
 
 ## 2. Site compliance (mostly DONE 2026-07-05)
 
