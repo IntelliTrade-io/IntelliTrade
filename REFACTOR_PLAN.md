@@ -285,7 +285,7 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 **6.6 — Parameterize paths & config**
 - [ ] Hardcoded `C:\IntelliTrade\*` in `scripts/vps/setup_windows_tasks.ps1`, `config_template.env`, `export_eurusd_m15.py`. Move to env/config with sensible defaults so the tree isn't Windows-path-locked.
 - [ ] Replace 115 `print()` debug calls in the backend runners with `logging`.
-- Note:
+- Note: Python side done 2026-07-05: `intellitrade_scanners/config.py` resolves .env/logs/out from `INTELLITRADE_HOME` (default `C:\IntelliTrade`) + per-dir overrides; scanners/watchdog/exporter use it (5 tests). Remaining: `run_sr_alpha.py` (with 6.4 backend packaging), `setup_windows_tasks.ps1` + template (rewrite with 6.7 bootstrap anyway), the print→logging swap.
 
 **6.7 — Git-based VPS deploy (stay Windows/Task Scheduler)**
 - Owner facts (2026-07-04): VPS holds **only the relevant files, no git at all** — deploy today is literally hand-copy-paste of individual files. Owner wants the VPS moved onto git later so deploys become a pull.
