@@ -24,9 +24,12 @@ Things only the owner can do (account access, credentials, external services). *
 - [ ] **Reconcile VPS drift before the git deploy**: copy the scanner `.py` files off the box (RDP) and hand them to Claude to diff against commit `2a010de` — that commit is the exact tree that was last hand-copied to the VPS (committed 2026-07-05). Any in-place VPS edits get folded into the repo before the box switches to `git pull`.
 - [ ] **Heads-up until then**: scanner code moved in the repo (`scripts/vps/*.py` → `intellitrade_scanners/`; runners are now `python -m intellitrade_scanners.scanner_d1h4` etc.). The VPS's current flat files keep working as-is — but if you hand-copy anything scanner-related to the box before 6.7, ask Claude for the file list first; a partial copy of the new layout won't run.
 
-## Google Ads (see GOOGLE_ADS_APPROVAL.md — blocking item)
+## Google AdSense (see GOOGLE_ADSENSE_APPROVAL.md)
 
-- [ ] **Record the exact denial reasons**: Google Ads → Policy Manager (or disapproval emails) → paste the exact policy names for each of the ~5 denials into `GOOGLE_ADS_APPROVAL.md` §0. Everything else in that doc is sequenced off this. Also needed from you later: legal entity name, KvK number, business address for the site footer (§2) and verification match (§3). **Don't resubmit again until the doc's checklist is done** — repeated rejections risk account suspension.
+- [ ] **Record the exact rejection wording**: AdSense dashboard → Sites → intellitrade.tech → paste the reason into `GOOGLE_ADSENSE_APPROVAL.md` §0 (most likely "Low value content"). Fixes are sequenced off this.
+- [ ] **Fill `lib/company.ts`** with legal entity name, KvK number, business address (footer identity block renders automatically once set; email default is info@intellitrade.tech — correct if wrong).
+- [ ] **Don't re-request review** until the doc's §1 content work is live on production. Fix → deploy → wait → request.
+- [ ] Later, post-approval: enable Privacy & messaging (GDPR message) in AdSense + add `ads.txt` (doc §3).
 
 ## Quick checks
 
