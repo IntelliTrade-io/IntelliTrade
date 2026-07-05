@@ -262,8 +262,8 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 > Rationale: highest-effort area. Sequence: pick canonical copies → package → kill path hacks → tame the monolith → deploy script → tests.
 
 **6.1 — Collapse the triple-duplicated currency-strength engine**
-- [ ] Three drifting copies of one algorithm: `claudeLoad/...v1_5_2 (1).py` (MT5 original) → `scripts/currency_strength_scanner_{daily,intraday}.py` (OANDA port) → `scripts/vps/strength_core.py` ("verbatim copy"). Pick **one canonical `strength_core`** in the package, parameterize the feed (MT5 vs OANDA) via an adapter, delete the rest.
-- Note:
+- [x] Three drifting copies of one algorithm: `claudeLoad/...v1_5_2 (1).py` (MT5 original) → `scripts/currency_strength_scanner_{daily,intraday}.py` (OANDA port) → `scripts/vps/strength_core.py` ("verbatim copy"). Pick **one canonical `strength_core`** in the package, parameterize the feed (MT5 vs OANDA) via an adapter, delete the rest.
+- Note: **Done 2026-07-05 (session 6).** Canonical = `intellitrade_scanners/strength_core.py`. Feeds: `feed_adapter.py` (MT5, VPS) + new `oanda_adapter.py` (CI) share the same `make_fetch_fn` surface. CI scanners are now thin runners (`scanner_oanda_{daily,intraday}.py`) with identical CLI flags + output contracts; workflows call them via `python -m`. "Drift" between forks turned out to be cosmetic only — equivalence proven on 40 seeded series + full 28-pair mocked scan before deletion. Snapshot of the pre-move `scripts/vps/` tree committed first (2a010de) as the baseline for 6.7 drift reconciliation.
 
 **6.2 — Resolve the two economic-calendar scrapers**
 - [ ] `alejoScraper.py` (root, 1,069) vs `scripts/economic_calendar_scraper.py` (14,565). Determine canonical (likely the scripts one), remove the other. Then plan taming the monolith.
@@ -275,8 +275,8 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 
 **6.4 — Package the Python properly**
 - [ ] Add `pyproject.toml` making `backend/support_resistance` (and a new `intellitrade_scanners` package for the scripts) pip-installable. This alone removes most of the 7 sys.path hacks.
-- [ ] Kill the cross-tree hack where `backend/support_resistance/fetch_candles.py` inserts `scripts/vps` onto `sys.path` — restructure so shared code lives in one importable place.
-- Note:
+- [x] Kill the cross-tree hack where `backend/support_resistance/fetch_candles.py` inserts `scripts/vps` onto `sys.path` — restructure so shared code lives in one importable place.
+- Note: **Half done 2026-07-05 (session 6).** Root `pyproject.toml` exists; `intellitrade_scanners` is pip-installable (MetaTrader5 as a Windows-only `[mt5]` extra) and the CI workflows `pip install .`. `fetch_candles.py` now imports `intellitrade_scanners.feed_adapter` (with transitional fallbacks: repo-root path insert for uninstalled checkouts, old flat `scripts/vps` for the current VPS layout — remove both after 6.7). Remaining: fold `backend/support_resistance` into the packaging + remove its 6 `_PKG_PARENT` conftest/runner inserts.
 
 **6.5 — Consolidate dependencies**
 - [ ] Two disjoint, effectively-unpinned `requirements.txt` with coverage gaps (`numpy`/`pandas`/`MetaTrader5` inconsistent). Move to `pyproject.toml` with pinned versions + a lockfile; split runtime vs dev.
@@ -297,7 +297,7 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 
 **6.8 — Python tests**
 - [ ] ~88% of Python is untested. Backend package has a golden-fixture suite (good). Add tests for the scanners (post-dedup) and the scraper (per-source, post-split). Set a coverage floor in CI.
-- Note:
+- Note: Scanner side started 2026-07-05: 35 tests (`intellitrade_scanners/tests/`) — core indicators/trend/confidence/aggregation, OANDA adapter parse/retry, and the per-pair key contracts each runner writes to the snapshot tables. Root `pytest` collects backend + scanners (98 total). Remaining: scraper tests (blocked on 6.3 split), CI coverage floor (7.3).
 
 ---
 
@@ -398,6 +398,7 @@ Capture at start of each phase to show progress:
 - **2026-07-04 (session 3, close)** — **Phase 2 complete.** Owner: fixtures stay in-repo, no LFS (2.3 closed). New owner facts: VPS has no git, holds only relevant files, deploys were manual copy-paste → 6.7 rewritten as git-based sparse-checkout deploy plan (clone + pull + bootstrap; reconcile VPS drift first, VPS possibly newer than repo). Next → Phase 3.
 - **2026-07-04 (session 3, cont.)** — **Phase 3 complete.** Nested app contained: eslint `ignores` block + root `.prettierignore` added (tsconfig/vitest/node_modules were already clean), status README dropped in `IntelliConflict-Map/`. Duplication documented, not resolved (§8). Lint/build/61 tests green. Also added `OWNER_TODO.md` convention (§0.5). Next → Phase 4 (dead blog stack, verification-gated).
 - **2026-07-05 (session 5, cont.)** — **5.6 complete → PHASE 5 COMPLETE.** Zero `any` (from 13 at session start; audit's 15 baseline), `noImplicitReturns` + `noUncheckedIndexedAccess` on, `types/domain/` started with calendar types. Metrics vs §7 start: `any` 15→0, `.jsx` 6→2 (both deferred conversions tracked in 5.3), tests 3 root → 45 root TS files' worth (103 total). Next → Phase 6 (Python) — multi-session.
+- **2026-07-05 (session 6)** — **Phase 6 started: 6.1 complete, 6.4 half, 6.8 started.** New `intellitrade_scanners` package (root `pyproject.toml`) is the single home of the strength engine: `strength_core` canonical, MT5 (`feed_adapter`) + OANDA (`oanda_adapter`) behind one `fetch_fn` interface, four thin runners (2 VPS MT5, 2 CI OANDA — CLI + output contracts unchanged, workflows now `pip install .` + `python -m`). Forks deleted **after** scripted equivalence proof (40 seeded series + 28-pair mocked scan, outputs identical). Pre-move `scripts/vps/` committed as-is first (2a010de) = 6.7 drift-reconciliation baseline; `scripts/vps/` keeps only ops files (ps1 + env template, still pointing at the old flat layout until 6.6/6.7). `fetch_candles.py` cross-tree hack replaced by package import + transitional fallbacks. 35 scanner tests added; pytest 98, build + 103 frontend tests green. Next: 6.2 (scraper dedup — `alejoScraper.py` vs `scripts/economic_calendar_scraper.py`) or 6.4 completion (backend packaging).
 - **2026-07-05 (session 5)** — **5.4 + 5.5 complete.** 5.4: dead `strength-panel.tsx` deleted, `-native` renamed canonical. 5.5: domain math extracted to `lib/{strength,calendar,lot-size}.ts` with 42 new unit tests (suite 61 → 103); components are fetch/UI-only now. Phase 5 remaining: 5.6 only (TS hardening + `types/domain/`).
 - **2026-07-04 (session 4, cont. 2)** — **5.2 + 5.3 complete.** 5.2: RSC + typed-wrapper convention locked (owner); `lib/api/{client,market}.ts` + `lib/auth/client.ts`; 17 files migrated off raw fetch/inline supabase. 5.3: app/ = routes + `_components/` only; components/ = 8 feature folders, PascalCase; 4 of 6 jsx islands converted (ConflictMapModule + BullBearGame deferred); conventions locked into new repo `CLAUDE.md`. 8 more dead files found+removed during inventory. All batches: build + 61 tests green; tsc clean. Remaining Phase 5: 5.4 strength-panel reconcile, 5.5 logic extraction, 5.6 TS hardening.
 - **2026-07-04 (session 4, cont.)** — **5.1 complete + 5.3 spec locked.** Owner locked: Tailwind stays v3 (v4 package dropped); structure follows official Next conventions — app/ = route files + route-private `_components/`, shared components in `components/<feature>/`, PascalCase filenames (spec written into 5.3, execution pending). Stylesheets 3→2 with dead-rule purge (1,301-line main.css → ~110; double @tailwind emission fixed). v1 lot-size-calculator deleted (5.4 first bullet). Build + 61 tests green throughout.

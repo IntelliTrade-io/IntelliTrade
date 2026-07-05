@@ -21,6 +21,12 @@ Things only the owner can do (account access, credentials, external services). *
 
 - [ ] **Install git on the VPS** + create a read-only deploy key / fine-grained PAT for the repo (not owner credentials).
 - [ ] **Don't hand-edit files on the VPS from now on** — any in-place fix should also land in the repo, or drift reconciliation (§6.7 step 3) gets harder.
+- [ ] **Reconcile VPS drift before the git deploy**: copy the scanner `.py` files off the box (RDP) and hand them to Claude to diff against commit `2a010de` — that commit is the exact tree that was last hand-copied to the VPS (committed 2026-07-05). Any in-place VPS edits get folded into the repo before the box switches to `git pull`.
+- [ ] **Heads-up until then**: scanner code moved in the repo (`scripts/vps/*.py` → `intellitrade_scanners/`; runners are now `python -m intellitrade_scanners.scanner_d1h4` etc.). The VPS's current flat files keep working as-is — but if you hand-copy anything scanner-related to the box before 6.7, ask Claude for the file list first; a partial copy of the new layout won't run.
+
+## Quick checks
+
+- [ ] **Currency-strength GitHub Actions healthy after merge?** The daily (22:15 UTC) and hourly intraday workflows now install the package (`pip install .`) and run `python -m intellitrade_scanners.scanner_oanda_{daily,intraday}` — same flags, same output, algorithm verified identical. This only takes effect once the refactor branch merges to `main` (scheduled workflows run from the default branch). After the next scheduled runs, glance at GitHub → Actions; if a run fails on `pip install .` or OANDA auth, paste Claude the error. (Claude couldn't check run history: no `gh` CLI on this machine.)
 
 ## External / accounts
 
