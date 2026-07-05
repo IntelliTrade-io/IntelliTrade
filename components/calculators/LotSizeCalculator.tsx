@@ -3,100 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, ChevronDown, X } from "lucide-react";
 import { apiGet } from "@/lib/api/client";
-// ---------- Helpers ----------
-const normalizePair = (pair: string) => pair.replace("/", "").toUpperCase();
-
-const parsePair = (pair: string) => {
-  const s = normalizePair(pair);
-  if (s.length !== 6) throw new Error("Pair must be like 'EURUSD' or 'EUR/USD'");
-  return { base: s.slice(0, 3), quote: s.slice(3, 6) };
-};
-
-// Pip size per instrument (your broker may differ for metals/CFDs/crypto)
-const pipSizeFor = (p: string) => {
-  const s = normalizePair(p);
-  if (s.endsWith("JPY")) return 0.01; // FX JPY pairs: 0.01
-  if (s.startsWith("XAU")) return 0.01; // XAUUSD: $0.01 per oz
-  if (s.startsWith("XAG")) return 0.01; // XAGUSD: $0.01 per oz
-  if (s.startsWith("WTI")) return 0.01; // WTIUSD: $0.01 per barrel (only if supported elsewhere)
-  if (s.startsWith("BTC")) return 1; // define "pip" = $1
-  if (s.startsWith("ETH")) return 1; // define "pip" = $1
-  return 0.0001; // Most FX
-};
-
-// Contract size per lot (typical broker conventions; adjust if needed)
-const contractSizeFor = (p: string) => {
-  const s = normalizePair(p);
-  if (s.startsWith("XAU")) return 100; // 1 lot = 100 oz
-  if (s.startsWith("XAG")) return 5000; // 1 lot = 5,000 oz
-  if (s.startsWith("WTI")) return 1000; // 1 lot = 1,000 barrels
-  if (s.startsWith("BTC")) return 1; // 1 lot = 1 BTC (broker dependent)
-  if (s.startsWith("ETH")) return 1; // 1 lot = 1 ETH (broker dependent)
-  return 100000; // FX: 1 lot = 100,000 units
-};
+// Domain math (pip/contract sizes, pair composition, rate orientation, lot
+// sizing) lives in lib/lot-size.ts since plan 5.5.
+import {
+  composePairsFrom,
+  computeLotSize,
+  normalizePair,
+  parsePair,
+  rateFromUsdRates,
+} from "@/lib/lot-size";
 
 // ---------- Dynamic pairs ----------
 // We pull supported currency codes from CurrencyFreaks' public endpoint (no API key).
-// Then we compose a curated but dynamic list (majors + popular crosses + metals + crypto) only if codes exist.
-
 const CF_SUPPORTED_URL = "https://api.currencyfreaks.com/v2.0/supported-currencies";
-
-const PREFERRED_BASES = [
-  "EUR",
-  "USD",
-  "GBP",
-  "JPY",
-  "AUD",
-  "CAD",
-  "CHF",
-  "NZD",
-  // extended asset codes that CurrencyFreaks lists when available
-  "XAU",
-  "XAG",
-  "BTC",
-  "ETH",
-];
-
-function composePairsFrom(codes: Set<string>) {
-  // Keep only codes we actually have
-  const avail = PREFERRED_BASES.filter((c) => codes.has(c));
-
-  const fxMajors = [
-    // majors vs USD in both directions
-    ...["EUR", "GBP", "AUD", "NZD", "CAD", "CHF", "JPY"]
-      .filter((c) => c !== "USD" && avail.includes(c) && avail.includes("USD"))
-      .flatMap((c) => [`${c}USD`, `USD${c}`]),
-  ];
-
-  const popularCrossPairsDefs: Array<[string, string]> = [
-    ["EUR", "GBP"],
-    ["EUR", "JPY"],
-    ["GBP", "JPY"],
-    ["EUR", "AUD"],
-    ["EUR", "CAD"],
-    ["EUR", "CHF"],
-    ["EUR", "NZD"],
-    ["GBP", "AUD"],
-    ["GBP", "CAD"],
-    ["GBP", "CHF"],
-    ["GBP", "NZD"],
-    ["AUD", "JPY"],
-    ["CAD", "JPY"],
-    ["CHF", "JPY"],
-    ["NZD", "JPY"],
-  ];
-
-  const crosses = popularCrossPairsDefs
-    .filter(([a, b]) => avail.includes(a) && avail.includes(b))
-    .map(([a, b]) => `${a}${b}`);
-
-  const metalsCrypto = ["XAU", "XAG", "BTC", "ETH"]
-    .filter((c) => avail.includes(c) && avail.includes("USD"))
-    .map((c) => `${c}USD`);
-
-  const out = Array.from(new Set([...fxMajors, ...crosses, ...metalsCrypto])).sort();
-  return out;
-}
 
   interface LotSizeCalculatorProps {
     className?: string;
@@ -177,19 +96,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
 
     try {
       const data = await apiGet<{ rates: Record<string, string> }>(`/api/rates?symbols=${base},${quote}`);
-      const rates = data.rates;
-
-      const usdToBase = base === "USD" ? 1 : parseFloat(rates[base]);
-      const usdToQuote = quote === "USD" ? 1 : parseFloat(rates[quote]);
-
-      if (!isFinite(usdToBase) || !isFinite(usdToQuote)) throw new Error("Invalid API rates");
-
-      let rate: number;
-      if (base === "USD") rate = usdToQuote;
-      else if (quote === "USD") rate = 1 / usdToBase;
-      else rate = usdToQuote / usdToBase;
-
-      return rate;
+      return rateFromUsdRates(base, quote, data.rates);
     } catch (error) {
       console.error("Exchange rate error:", error);
       return null;
@@ -239,33 +146,17 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     try {
       const cleanPair = normalizePair(pair);
       const { quote } = parsePair(cleanPair);
-      const pipSize = pipSizeFor(cleanPair);
-      const contractSize = contractSizeFor(cleanPair);
 
-      // 1) Risk amount in account currency
-      const riskAmt = balanceNum * (riskPercentNum / 100);
+      // Resolve the quote -> account conversion, then run the pure math.
+      const quoteToAccount = currency !== quote ? await convertRate(quote, currency) : 1;
+      const { riskAmount: riskAmt, pipValuePerLot, lots } = computeLotSize({
+        balance: balanceNum,
+        riskPercent: riskPercentNum,
+        stopLossPips: stopLossNum,
+        pair: cleanPair,
+        quoteToAccount,
+      });
 
-      // 2) Pip value per UNIT in QUOTE currency is pipSize (for FX/CFDs)
-      const pipValuePerUnitInQuote = pipSize;
-
-      // 3) Convert pip value into ACCOUNT currency (quote -> account)
-      let quoteToAccount = 1;
-      if (currency !== quote) {
-        quoteToAccount = await convertRate(quote, currency); // e.g., USD -> EUR
-      }
-
-      const pipValuePerUnitInAccount = pipValuePerUnitInQuote * quoteToAccount;
-
-      // 4) Per-lot pip value and final lots
-      const pipValuePerLot = pipValuePerUnitInAccount * contractSize; // account ccy / pip / 1.00 lot
-      const riskPerLot = stopLossNum * pipValuePerLot;
-      if (!isFinite(riskPerLot) || riskPerLot <= 0) {
-        throw new Error("Calculated risk per lot is invalid.");
-      }
-
-      const lots = riskAmt / riskPerLot;
-
-      // 5) Update UI
       setRiskAmount(`${riskAmt.toFixed(2)} ${currency}`);
       setPipValue(`${pipValuePerLot.toFixed(2)} ${currency}`);
       setPositionSize(`${lots.toFixed(2)} lots`);
