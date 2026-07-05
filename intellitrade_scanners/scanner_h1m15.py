@@ -1,12 +1,12 @@
 # coding: utf-8
 """
-IntelliTrade D1/H4 Currency Strength Scanner — VPS/MT5
-Runs every 4 hours. Fetches D1 + H4 candles from MetaTrader5.
+IntelliTrade H1/M15 Currency Strength Scanner — VPS/MT5
+Runs every 15 minutes. Fetches H1 + M15 candles from MetaTrader5.
 Uploads to Supabase: fx_strength_snapshots, currency_strength_snapshots (compat),
                      fx_strength_components, scanner_health, fx_candles.
 
 Usage:
-    python scanner_d1h4.py
+    python scanner_h1m15.py
 
 Environment (C:\IntelliTrade\config\.env):
     SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
@@ -21,23 +21,20 @@ import logging
 import datetime as dt
 from logging.handlers import TimedRotatingFileHandler
 
-# Load .env from config dir
 try:
     from dotenv import load_dotenv
     _env = r"C:\IntelliTrade\config\.env"
     load_dotenv(_env if os.path.exists(_env) else None)
 except ImportError:
-    pass  # python-dotenv not installed; rely on environment variables
+    pass
 
-import feed_adapter
-import strength_core
-import supabase_upload
+from intellitrade_scanners import feed_adapter, strength_core, supabase_upload
 
-SCANNER_NAME = "d1h4_scanner"
-TIMEFRAME_GROUP = "D1_H4"
-SNAPSHOT_TYPE = "daily"
-TF1_KEY = "1day"
-TF2_KEY = "4hour"
+SCANNER_NAME = "h1m15_scanner"
+TIMEFRAME_GROUP = "H1_M15"
+SNAPSHOT_TYPE = "intraday"
+TF1_KEY = "1hour"
+TF2_KEY = "15min"
 TF1_BARS = 1200
 TF2_BARS = 1500
 
@@ -49,7 +46,7 @@ def setup_logging() -> None:
     os.makedirs(LOG_DIR, exist_ok=True)
     fmt = logging.Formatter("%(asctime)s %(levelname)-8s %(name)s: %(message)s")
     fh = TimedRotatingFileHandler(
-        os.path.join(LOG_DIR, "scanner_d1h4.log"),
+        os.path.join(LOG_DIR, "scanner_h1m15.log"),
         when="midnight", backupCount=30, encoding="utf-8"
     )
     fh.setFormatter(fmt)
@@ -59,12 +56,12 @@ def setup_logging() -> None:
 
 
 def remap_pair(info: dict) -> dict:
-    """Remap generic tf1/tf2 keys to d1/h4 for frontend compatibility."""
+    """Remap generic tf1/tf2 to h1/m15 for frontend compatibility."""
     return {
-        "d1": info.get("tf1"), "h4": info.get("tf2"),
+        "h1": info.get("tf1"), "m15": info.get("tf2"),
         "pair": info.get("pair"), "confidence": info.get("confidence", 0.0),
-        "last_bos_d1": info.get("last_bos_tf1"), "last_bos_d1_time": info.get("last_bos_tf1_time"),
-        "last_bos_h4": info.get("last_bos_tf2"), "last_bos_h4_time": info.get("last_bos_tf2_time"),
+        "last_bos_h1": info.get("last_bos_tf1"), "last_bos_h1_time": info.get("last_bos_tf1_time"),
+        "last_bos_m15": info.get("last_bos_tf2"), "last_bos_m15_time": info.get("last_bos_tf2_time"),
         "error": info.get("error", ""),
     }
 
@@ -73,7 +70,7 @@ def main() -> int:
     setup_logging()
     log = logging.getLogger(SCANNER_NAME)
     run_start = dt.datetime.utcnow()
-    log.info(f"=== D1/H4 scanner start {run_start.isoformat()}Z ===")
+    log.info(f"=== H1/M15 scanner start {run_start.isoformat()}Z ===")
 
     feed_name = os.environ.get("ACTIVE_FEED_NAME", "metaquotes_demo")
     mt5_server = os.environ.get("MT5_SERVER", "") or None
@@ -81,7 +78,6 @@ def main() -> int:
     mt5_password = os.environ.get("MT5_PASSWORD", "") or None
     mt5_login = int(mt5_login_str) if mt5_login_str else None
 
-    # Initialize MT5
     try:
         feed_adapter.initialize(server=mt5_server, login=mt5_login, password=mt5_password)
     except Exception as e:
@@ -92,11 +88,12 @@ def main() -> int:
         )
         return 1
 
-    fetch_fn = feed_adapter.make_fetch_fn(max_retries=4, retry_wait=0.3)
+    fetch_fn = feed_adapter.make_fetch_fn(max_retries=3, retry_wait=0.25)
 
+    # Intraday uses lighter indicator settings
     use_inds = {
-        "use_adx": True, "adx_d1_min": 20.0, "adx_h4_min": 18.0,
-        "use_chop": True, "chop_d1_max": 55.0, "chop_h4_max": 58.0,
+        "use_adx": True, "adx_d1_min": 18.0, "adx_h4_min": 16.0,
+        "use_chop": True, "chop_d1_max": 58.0, "chop_h4_max": 60.0,
         "use_avwap_accept": True, "accept_d1_bars": 1, "accept_h4_bars": 3,
         "accept_atr_band": 0.20,
     }
@@ -106,29 +103,26 @@ def main() -> int:
     }
     tf1_depth = (3, 1)
     tf2_depth = (3, 1)
-    bos_d1 = (0.04, 0.5)
-    bos_h4 = (0.08, 0.5)
-    merge_d1 = (0.06, 1.0)
-    merge_h4 = (0.08, 1.0)
+    bos_h1  = (0.05, 0.5)
+    bos_m15 = (0.08, 0.5)
+    merge_h1  = (0.06, 1.0)
+    merge_m15 = (0.08, 1.0)
 
     all_pairs_raw: dict = {}
     symbols_ok = 0
     symbols_fail = 0
 
     for sym in strength_core.DEFAULT_PAIRS:
-        # Pre-warm both TFs per symbol before scan (matches original --warmup-first behavior)
-        feed_adapter.warmup_canonical(sym, TF1_KEY, bars=80,  retries=3, wait=0.3)
-        feed_adapter.warmup_canonical(sym, TF2_KEY, bars=120, retries=3, wait=0.3)
         try:
             all_pairs_raw[sym] = strength_core.scan_pair(
                 sym, TF1_KEY, TF2_KEY, tf1_depth, tf2_depth,
-                bos_d1, bos_h4, merge_d1, merge_h4,
+                bos_h1, bos_m15, merge_h1, merge_m15,
                 use_inds, penalties, fetch_fn,
                 tf1_bars=TF1_BARS, tf2_bars=TF2_BARS,
             )
             symbols_ok += 1
             p = all_pairs_raw[sym]
-            log.info(f"  {sym}: {p['pair']} (conf={p['confidence']:.1f} d1={p['tf1']} h4={p['tf2']})")
+            log.info(f"  {sym}: {p['pair']} (conf={p['confidence']:.1f} h1={p['tf1']} m15={p['tf2']})")
         except Exception as e:
             all_pairs_raw[sym] = {
                 "tf1": "neutral", "tf2": "neutral", "pair": "neutral",
@@ -152,10 +146,8 @@ def main() -> int:
     curr_raw = strength_core.aggregate_currencies(all_pairs_raw, weighted=False)
     curr_weighted = strength_core.aggregate_currencies(all_pairs_raw, weighted=True)
 
-    # Remap to frontend-compatible d1/h4 field names
     pairs_compat = {sym: remap_pair(info) for sym, info in all_pairs_raw.items()}
 
-    # Latest candle time for health (use first successful pair's tf1)
     last_candle_time = next(
         (v["last_candle_tf1_time"] for v in all_pairs_raw.values()
          if v.get("last_candle_tf1_time")), None
@@ -170,7 +162,6 @@ def main() -> int:
         "symbols_ok": symbols_ok, "symbols_fail": symbols_fail,
     }
 
-    # Upload to Supabase
     try:
         snapshot_id = supabase_upload.upload_snapshot(
             SNAPSHOT_TYPE, feed_name, run_info,
@@ -194,16 +185,15 @@ def main() -> int:
         )
         return 1
 
-    # Optional: write JSON to disk for debugging
     os.makedirs(OUT_DIR, exist_ok=True)
-    with open(os.path.join(OUT_DIR, "heatmap_pairs_v152.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT_DIR, "intraday_pairs_trusted.json"), "w", encoding="utf-8") as f:
         json.dump({"run_info": run_info, "pairs": pairs_compat}, f, indent=2)
-    with open(os.path.join(OUT_DIR, "heatmap_currencies_v152.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT_DIR, "intraday_currencies_trusted.json"), "w", encoding="utf-8") as f:
         json.dump({"currencies_raw": curr_raw, "currencies_weighted": curr_weighted}, f, indent=2)
 
     run_end = dt.datetime.utcnow()
     elapsed = (run_end - run_start).total_seconds()
-    log.info(f"=== D1/H4 scanner done in {elapsed:.1f}s ===")
+    log.info(f"=== H1/M15 scanner done in {elapsed:.1f}s ===")
     return 0
 
 
