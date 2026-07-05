@@ -1,5 +1,5 @@
 # coding: utf-8
-"""
+r"""
 IntelliTrade Scanner Watchdog
 Runs every 5 minutes. Checks scanner_health in Supabase.
 Sends Discord (and optionally Telegram) alerts on stale data or errors.
@@ -10,7 +10,7 @@ Alert conditions:
   - Any scanner status = 'error'
   - Symbols processed < 28
 
-Environment (C:\IntelliTrade\config\.env):
+Environment (INTELLITRADE_HOME\config\.env, default C:\IntelliTrade — see config.py):
     SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
     DISCORD_WEBHOOK_URL         (optional)
     TELEGRAM_BOT_TOKEN          (optional)
@@ -23,16 +23,13 @@ import logging
 import datetime as dt
 from logging.handlers import TimedRotatingFileHandler
 
-try:
-    from dotenv import load_dotenv
-    _env = r"C:\IntelliTrade\config\.env"
-    load_dotenv(_env if os.path.exists(_env) else None)
-except ImportError:
-    pass
-
 import requests
 
-LOG_DIR = r"C:\IntelliTrade\logs"
+from intellitrade_scanners import config
+
+config.load_env()
+
+LOG_DIR = config.log_dir()
 
 STALE_INTRADAY_MINUTES = 30
 STALE_DAILY_HOURS = 5

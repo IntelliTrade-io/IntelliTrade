@@ -6,9 +6,9 @@ Uploads to Supabase: fx_strength_snapshots, currency_strength_snapshots (compat)
                      fx_strength_components, scanner_health, fx_candles.
 
 Usage:
-    python scanner_h1m15.py
+    python -m intellitrade_scanners.scanner_h1m15
 
-Environment (C:\IntelliTrade\config\.env):
+Environment (INTELLITRADE_HOME\config\.env, default C:\IntelliTrade — see config.py):
     SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
     MT5_LOGIN (optional), MT5_PASSWORD (optional), MT5_SERVER (optional)
     ACTIVE_FEED_NAME (default: metaquotes_demo)
@@ -21,12 +21,9 @@ import logging
 import datetime as dt
 from logging.handlers import TimedRotatingFileHandler
 
-try:
-    from dotenv import load_dotenv
-    _env = r"C:\IntelliTrade\config\.env"
-    load_dotenv(_env if os.path.exists(_env) else None)
-except ImportError:
-    pass
+from intellitrade_scanners import config
+
+config.load_env()
 
 from intellitrade_scanners import feed_adapter, strength_core, supabase_upload
 
@@ -38,8 +35,8 @@ TF2_KEY = "15min"
 TF1_BARS = 1200
 TF2_BARS = 1500
 
-LOG_DIR = r"C:\IntelliTrade\logs"
-OUT_DIR = r"C:\IntelliTrade\out"
+LOG_DIR = config.log_dir()
+OUT_DIR = config.out_dir()
 
 
 def setup_logging() -> None:

@@ -5,7 +5,7 @@ claudeLoad/validation/phase39_zone_validation_fixture.csv.
 
 Run on the VPS (MT5 terminal connected):
     python scripts\\vps\\export_eurusd_m15.py
-    python scripts\\vps\\export_eurusd_m15.py --start 2021-01-01 --out C:\\IntelliTrade\\out\\eurusd_m15.csv
+    python -m intellitrade_scanners.export_eurusd_m15 --start 2021-01-01 --out C:\\IntelliTrade\\out\\eurusd_m15.csv
 
 Output columns: time,open,high,low,close,tick_vol   (time = UTC ISO)
 
@@ -26,12 +26,9 @@ except ImportError:
     print("MetaTrader5 not installed. Run: pip install MetaTrader5", file=sys.stderr)
     sys.exit(1)
 
-try:
-    from dotenv import load_dotenv
-    _env = r"C:\IntelliTrade\config\.env"
-    load_dotenv(_env if os.path.exists(_env) else None)
-except ImportError:
-    pass
+from intellitrade_scanners import config
+
+config.load_env()
 
 SYMBOL = "EURUSD"
 
