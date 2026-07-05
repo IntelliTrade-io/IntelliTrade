@@ -24,6 +24,10 @@ Things only the owner can do (account access, credentials, external services). *
 - [ ] **Reconcile VPS drift before the git deploy**: copy the scanner `.py` files off the box (RDP) and hand them to Claude to diff against commit `2a010de` — that commit is the exact tree that was last hand-copied to the VPS (committed 2026-07-05). Any in-place VPS edits get folded into the repo before the box switches to `git pull`.
 - [ ] **Heads-up until then**: scanner code moved in the repo (`scripts/vps/*.py` → `intellitrade_scanners/`; runners are now `python -m intellitrade_scanners.scanner_d1h4` etc.). The VPS's current flat files keep working as-is — but if you hand-copy anything scanner-related to the box before 6.7, ask Claude for the file list first; a partial copy of the new layout won't run.
 
+## Google Ads (see GOOGLE_ADS_APPROVAL.md — blocking item)
+
+- [ ] **Record the exact denial reasons**: Google Ads → Policy Manager (or disapproval emails) → paste the exact policy names for each of the ~5 denials into `GOOGLE_ADS_APPROVAL.md` §0. Everything else in that doc is sequenced off this. Also needed from you later: legal entity name, KvK number, business address for the site footer (§2) and verification match (§3). **Don't resubmit again until the doc's checklist is done** — repeated rejections risk account suspension.
+
 ## Quick checks
 
 - [ ] **Currency-strength GitHub Actions healthy after merge?** The daily (22:15 UTC) and hourly intraday workflows now install the package (`pip install .`) and run `python -m intellitrade_scanners.scanner_oanda_{daily,intraday}` — same flags, same output, algorithm verified identical. This only takes effect once the refactor branch merges to `main` (scheduled workflows run from the default branch). After the next scheduled runs, glance at GitHub → Actions; if a run fails on `pip install .` or OANDA auth, paste Claude the error. (Claude couldn't check run history: no `gh` CLI on this machine.)
