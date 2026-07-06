@@ -63,6 +63,17 @@ out_dir explicitly). Parity-3 lesson recorded: statcan.gc.ca rate-limits repeate
 parity runs and flaps between live/degraded — when a parity diff is confined to one
 source, AST-compare that source's functions pre/post before suspecting the cut.
 
+## Session 11 (2026-07-06) — LKG / schema sentinel / health (DONE)
+
+`health.py`: LKG persist/merge/read, schema capture, fetch metadata, zero snapshots,
+SourceHealth SLOs + all health/QA payload builders, publish state. Path anchoring via
+`health.set_paths(OUT_DIR, PRODUCTION_DIR)` (monolith pins at import). Coupling fixes
+that came with it: monolith's `gather_events` was REBINDING `RUN_CONTEXT` — now
+in-place `clear()/update()` so the runstate-shared dict stays one object;
+`CURRENT_CACHE_MANAGER`, `RUN_OVERRIDES`, `DEBUG_ZERO_FLAG`/`STRICT_ZERO_FLAG` moved
+to `runstate` (flags read via attribute access — CLI rebinds stay visible everywhere).
+Monolith 10,819 → 9,972. Parity verified on both events AND health/warning log lines.
+
 ## Remaining families (future sessions, rough order)
 3. **HTML parse helpers** (3250–3347): header-keyword row finders, `rows_by_header_xpath` → `htmlparse.py`.
 4. **Central-bank speakers** (2711–3249) → `sources/speakers.py`.
