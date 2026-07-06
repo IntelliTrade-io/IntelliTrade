@@ -456,36 +456,3 @@ def main() -> None:
     else:
 
         logger.info(f"âœ… CI check passed: {len(events)} events >= {expected_min} threshold")
-
-
-# (removed duplicate MONTH_NUM reassign)
-
-try:
-
-    SOURCE_SLO_EXPECTATIONS.update({
-
-        "ONS_RSS": 0,
-
-        "ONS_HTML_UPCOMING": 5,
-
-        "STATCAN_ATOM": 0,
-
-        "STATCAN_DAILY_SCHEDULE": 5,
-
-        "FED_TEXT_CALENDAR": 1,
-
-        "ESRI_SCHEDULE_TABLE": 1,
-
-        "NBS_CALENDAR_TABLE": 1,
-
-        "SECO_HTML": 1,
-
-        "BOJ_SCHEDULE": 1,
-
-        "SNB_SCHEDULE": 1
-
-    })
-
-except Exception:
-
-    pass
