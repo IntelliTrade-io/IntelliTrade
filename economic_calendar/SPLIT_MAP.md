@@ -95,6 +95,21 @@ from the original 14,565). Parity verdict via hardened method: STATCAN flapped
 live/degraded across the runs (rate limiting), zero field diffs on all common
 events, statcan functions AST-identical pre/post.
 
+## Session 14 (2026-07-06) — orchestrator + collect/run/export/CLI: SPLIT COMPLETE
+
+Final five modules: `paths.py` (filesystem anchors, `set_project_dir()` pinned by
+the shim; env parameterization is plan 6.6), `orchestrator.py` (source keys, merge,
+fallback handlers, health guard, grace retries, threaded fetcher groups, gather_*),
+`collect.py` (run-context setup, speaker merge, enrichment, health reporting,
+public `run()`/`collect_events()`), `export.py` (CSV/JSON/JSONL + staging/production
+artifact sets), `cli.py` (argparse main, runtime-dep check, debug diagnostics,
+logger handler setup).
+
+`scripts/economic_calendar_scraper.py` is now a 31-line shim: pins paths/config
+anchors to its directory and re-exports `run`/`collect_events`/`gather_events`/`main`.
+The upload-script contract (`from economic_calendar_scraper import run`) and CLI
+invocation are unchanged. 14,565 → 31 lines.
+
 ## Remaining families (future sessions, rough order)
 6. **Per-source fetchers** (one module per agency under `sources/`):
    - Central banks: BoE 4043, BoC 4280, RBA 4392, RBNZ 4613, Fed/FOMC 11684, ECB 11940,
