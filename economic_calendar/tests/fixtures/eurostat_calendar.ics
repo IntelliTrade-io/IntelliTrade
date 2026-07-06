@@ -1,0 +1,22 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Eurostat//Release Calendar//EN
+BEGIN:VEVENT
+SUMMARY:GDP and main aggregates - flash estimate
+DTSTART;TZID=Europe/Luxembourg:20260710T110000
+URL:https://ec.europa.eu/eurostat/web/products-euro-indicators/gdp
+UID:eurostat-gdp-2026q2
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Unemployment - monthly data
+DTSTART;TZID=Europe/Luxembourg:20260715T110000
+URL:https://ec.europa.eu/eurostat/web/products-euro-indicators/une
+UID:eurostat-une-202606
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Industrial production - outside window
+DTSTART;TZID=Europe/Luxembourg:20261225T110000
+URL:https://ec.europa.eu/eurostat/web/products-euro-indicators/ip
+UID:eurostat-ip-out
+END:VEVENT
+END:VCALENDAR
