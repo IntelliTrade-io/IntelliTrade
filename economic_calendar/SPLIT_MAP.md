@@ -49,6 +49,20 @@ Monolith 13,002 → 11,520. Speaker constants (CENTRAL_BANK_SPEAKER_*) deliberat
 left in the monolith for the speakers-family session. `_curated_us_event`,
 `_iter_local_month_starts`, `_shift_local_business_date` stay with the US fetchers.
 
+## Session 10 (2026-07-06, same day) — speakers + HTML helpers + run state (DONE)
+
+| Target module | Contents |
+|---|---|
+| `runstate.py` | `RUN_CONTEXT` + `RUN_CONTEXT_LOCK` — shared run-scoped state dict; monolith imports the same object, so LKG/health/orchestrator keep mutating it unchanged |
+| `htmlparse.py` | selector-compat table/list helpers (`find_rows_by_header_keywords`, `broad_li_filter`, `rows_by_header_xpath`) |
+| `speakers.py` | full central-bank speaker family: institution priority config, role rules, identity/scoring, datetime extraction, HTML + BoE-text parsing, dedupe, `collect_central_bank_speaker_events` (writes health into RUN_CONTEXT) |
+
+Monolith 11,520 → 10,819. `run_central_bank_speaker_debug_diagnostics` stays in the
+monolith (CLI-debug glue writing under script-anchored OUT_DIR; single caller passes
+out_dir explicitly). Parity-3 lesson recorded: statcan.gc.ca rate-limits repeated
+parity runs and flaps between live/degraded — when a parity diff is confined to one
+source, AST-compare that source's functions pre/post before suspecting the cut.
+
 ## Remaining families (future sessions, rough order)
 3. **HTML parse helpers** (3250–3347): header-keyword row finders, `rows_by_header_xpath` → `htmlparse.py`.
 4. **Central-bank speakers** (2711–3249) → `sources/speakers.py`.
