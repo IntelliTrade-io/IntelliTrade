@@ -33,6 +33,8 @@ Things only the owner can do (account access, credentials, external services). *
 
 ## Quick checks
 
+- [ ] **PMI config JSONs are missing from the repo** (found during the 6.3 scraper split, 2026-07-06). The scraper's S&P Global PMI source expects `PMI_FEEDS_CATALOG.json`, `PMI_ESTIMATOR_RULES.json`, `PMI_OVERRIDES.json` next to the scraper (or in a `PMI Research/` folder) — none exist anywhere in the repo, so the PMI estimator has been failing into its broad-except fallback on every run (GitHub Actions included; it fails the same way before and after the split). If you have these files somewhere (old machine, "PMI Research" folder?), drop them in `scripts/` and PMI events start flowing; if not, tell Claude and the dead path gets removed or the catalog rebuilt in a later 6.3 session.
+
 - [ ] **Currency-strength GitHub Actions healthy after merge?** The daily (22:15 UTC) and hourly intraday workflows now install the package (`pip install .`) and run `python -m intellitrade_scanners.scanner_oanda_{daily,intraday}` — same flags, same output, algorithm verified identical. This only takes effect once the refactor branch merges to `main` (scheduled workflows run from the default branch). After the next scheduled runs, glance at GitHub → Actions; if a run fails on `pip install .` or OANDA auth, paste Claude the error. (Claude couldn't check run history: no `gh` CLI on this machine.)
 
 ## External / accounts
