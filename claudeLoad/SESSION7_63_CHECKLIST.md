@@ -3,25 +3,19 @@
 Work committed locally (no push, per refactor rule). Everything below is the
 owner/next-session verification list before trusting the split.
 
-## 1. Parity check (MOST IMPORTANT — was still running at session end)
+## 1. Parity check — PASSED (verified in-session 2026-07-05)
 
-Pre-split (HEAD) vs post-split scraper, identical args (`since=-1, until=14,
-global+central banks, allow_persist=False`), output sorted by event id.
-
-Artifacts (session scratchpad, may be gone — rerun if so):
-`C:\Users\SYMONR~1\AppData\Local\Temp\claude\c--intellitrade\6167ddb2-909c-4d46-9e78-d9905ed4dc9c\scratchpad\parity\`
-— `old.json` / `new.json` + `err_old.log` / `err_new.log`, harness `run_one.py`,
-pre-split copy `pre_split_scraper.py` (= `git show <pre-split-commit>:scripts/economic_calendar_scraper.py`).
-
-To rerun from repo root:
+Pre-split (`0a544d6^`) vs post-split scraper, identical args (`since=-1,
+until=14, global+central banks, allow_persist=False`), live scrape, output
+sorted by event id: **byte-identical JSON, 127 events each** (`diff` clean,
+276,897 bytes both). Artifacts copied to `claudeLoad/parity63/`
+(old.json/new.json + harness `run_one.py` + `pre_split_scraper.py`).
+Nothing left to do here; harness kept for reuse after future split sessions:
 ```
-python <scratchpad>/parity/run_one.py <scratchpad>/parity/pre_split_scraper.py old.json
-python <scratchpad>/parity/run_one.py scripts/economic_calendar_scraper.py new.json
+python claudeLoad/parity63/run_one.py claudeLoad/parity63/pre_split_scraper.py old.json
+python claudeLoad/parity63/run_one.py scripts/economic_calendar_scraper.py new.json
 diff old.json new.json
 ```
-Expect: identical, modulo live-scrape noise (a source flaking in one run,
-curated `age_days` if runs cross midnight UTC). Event ids must match — id set
-diff is the signal, cosmetic extras diffs are the noise.
 
 ## 2. Suite + install checks (done this session, cheap to re-confirm)
 
