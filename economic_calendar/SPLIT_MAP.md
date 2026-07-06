@@ -84,6 +84,17 @@ present); >1 local def still trips the machine-patch duplication guard it was
 built for — caught live by the parity run, not by the unit suite. Monolith
 7,955 lines (−45% from start).
 
+## Session 13 (2026-07-06) — all remaining fetcher families (DONE)
+
+13 modules script-moved into `sources/` (5,801 lines): `esri`, `seco`, `bfs`,
+`ons` (ICS + HTML calendar), `bls` (ICS/official-HTML reconcile/curated
+fallback/diagnostics; imports curated-US helpers), `ism`, `us_curated`
+(BEA/Census/DOL/EIA/UMich/ADP + `_curated_us_event` helpers), `pmi_spglobal`,
+`abs`, `statcan`, `eurostat`, `statsnz`, `nbs`. Monolith 7,955 → 2,157 (−85%
+from the original 14,565). Parity verdict via hardened method: STATCAN flapped
+live/degraded across the runs (rate limiting), zero field diffs on all common
+events, statcan functions AST-identical pre/post.
+
 ## Remaining families (future sessions, rough order)
 6. **Per-source fetchers** (one module per agency under `sources/`):
    - Central banks: BoE 4043, BoC 4280, RBA 4392, RBNZ 4613, Fed/FOMC 11684, ECB 11940,

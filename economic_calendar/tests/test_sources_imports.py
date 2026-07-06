@@ -17,6 +17,19 @@ SOURCES = {
     "ecb": "fetch_ecb_governing_council_events",
     "boj": "fetch_boj_mpm_events",
     "snb": "fetch_snb_events",
+    "esri": "fetch_japan_esri_events",
+    "seco": "fetch_switzerland_seco_events",
+    "bfs": "fetch_bfs_events",
+    "ons": "fetch_ons_events_enhanced",
+    "bls": "fetch_bls_events",
+    "ism": "fetch_ism_events",
+    "us_curated": "fetch_bea_events",
+    "pmi_spglobal": "fetch_pmi_spglobal_events",
+    "abs": "fetch_abs_events",
+    "statcan": "fetch_statcan_events",
+    "eurostat": "fetch_eurostat_events",
+    "statsnz": "fetch_stats_nz_events",
+    "nbs": "fetch_china_nbs_events",
 }
 
 
