@@ -25,3 +25,10 @@ STRICT_ZERO_FLAG = False
 # Active cache manager for the current run; rebound by gather_events via
 # attribute access (runstate.CURRENT_CACHE_MANAGER) so all modules see it.
 CURRENT_CACHE_MANAGER: Any = None
+
+# Feature toggles for additive hardening (safe-by-default); moved from the monolith.
+FEATURE: Dict[str, bool] = {
+    "ESRI_NFKC_KANJI": True,             # normalize text + add kanji time pattern
+    "SECO_STRUCTURED_PASS": True,        # structured pass on the 3 language pages; only if 0 events
+    "RBNZ_JSONLD_PASS": True,            # parse JSON-LD when available; keep HTML & schedule fallback
+}

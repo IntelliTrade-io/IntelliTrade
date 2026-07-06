@@ -74,12 +74,17 @@ in-place `clear()/update()` so the runstate-shared dict stays one object;
 to `runstate` (flags read via attribute access — CLI rebinds stay visible everywhere).
 Monolith 10,819 → 9,972. Parity verified on both events AND health/warning log lines.
 
+## Session 12 (2026-07-06) — central-bank fetchers (DONE)
+
+`sources/` package: `boe.py`, `boc.py`, `rba.py`, `rbnz.py`, `fomc.py`, `ecb.py`,
+`boj.py`, `snb.py` — one module per bank, script-moved (2,017 lines). `FEATURE`
+toggles moved to `runstate` (RBNZ/SECO/ESRI flags read by fetchers). Adaptation:
+`_assert_unique_fetchers` now accepts imported fetchers (0 local defs + callable
+present); >1 local def still trips the machine-patch duplication guard it was
+built for — caught live by the parity run, not by the unit suite. Monolith
+7,955 lines (−45% from start).
+
 ## Remaining families (future sessions, rough order)
-3. **HTML parse helpers** (3250–3347): header-keyword row finders, `rows_by_header_xpath` → `htmlparse.py`.
-4. **Central-bank speakers** (2711–3249) → `sources/speakers.py`.
-5. **LKG / schema sentinel / health** (8477–9302): zero snapshots, fetch metadata,
-   `_persist_lkg` / `maybe_merge_lkg`, schema capture, SourceHealth (229–266) + health payloads
-   → `health.py` + `lkg.py`. Heavy global state (FETCH_METADATA etc.) — extract carefully.
 6. **Per-source fetchers** (one module per agency under `sources/`):
    - Central banks: BoE 4043, BoC 4280, RBA 4392, RBNZ 4613, Fed/FOMC 11684, ECB 11940,
      BoJ 12257, SNB 12712
