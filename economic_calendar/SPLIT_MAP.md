@@ -37,11 +37,19 @@ the monolith pins it to its own directory at import. NOTE: the three PMI config 
 (`PMI_FEEDS_CATALOG/ESTIMATOR_RULES/OVERRIDES.json`) exist nowhere in the repo — the
 SPGLOBAL_PMI source has been running its broad-except fallback path in prod (owner flagged).
 
-## Remaining families (future sessions, rough order)
+## Session 9 (2026-07-06, same day) — classification & enrichment extracted (DONE)
 
-2. **Classification & metadata enrichment** (1261–2710): `classify_event` (~400 lines),
-   country/category/pair-relevance inference, URL standardization, descriptions,
-   trader-relevance scoring, `_enrich_event_metadata` → `classify.py` + `enrich.py`.
+| Target module | Contents |
+|---|---|
+| `textutils.py` | eventish accessors, `_normalize_metadata_text`, text/regex matchers (shared by enrich + bls_specs; avoids a circular import) |
+| `bls_specs.py` | BLS canonical release specs + curated date overrides + `_bls_canonical_key_from_text` + the local business-day helpers its rule lambdas need (`_weekday_local`, `_nth_business_day_local`, `_last_business_day_local`) |
+| `enrich.py` | impact keywords + `classify_event`, country/category/pair-relevance inference, official-URL standardization (incl. S&P Global + `NBS_RELEASE_CALENDAR_INDEX_URL`), descriptions, low-signal/market-mover gates, ECB classification, trader-relevance scoring, dashboard gating, `_enrich_event(s)_metadata` |
+
+Monolith 13,002 → 11,520. Speaker constants (CENTRAL_BANK_SPEAKER_*) deliberately
+left in the monolith for the speakers-family session. `_curated_us_event`,
+`_iter_local_month_starts`, `_shift_local_business_date` stay with the US fetchers.
+
+## Remaining families (future sessions, rough order)
 3. **HTML parse helpers** (3250–3347): header-keyword row finders, `rows_by_header_xpath` → `htmlparse.py`.
 4. **Central-bank speakers** (2711–3249) → `sources/speakers.py`.
 5. **LKG / schema sentinel / health** (8477–9302): zero snapshots, fetch metadata,
