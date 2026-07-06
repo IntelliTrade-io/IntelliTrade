@@ -25,11 +25,20 @@ Logging: extracted modules log to the monolith's logger name `econ_calendar_comp
 so the handler configured in the monolith keeps receiving their records. Revisit when
 the CLI/orchestrator moves into the package.
 
+## Session 8 (2026-07-06) — PMI + curated extracted (DONE)
+
+| Monolith region (post-session-7 lines) | Target module | Contents |
+|---|---|---|
+| 306–474, 722–752 | `curated.py` | CuratedMeeting + CURATED_* data, strict/warn zero gates, benign-zero-reason policy, `_curated_fallback_info`, GraceWindowConfig + GRACE_WINDOW_SOURCES, `_resolve_curated_local_dt`, `_ensure_time_confidence` |
+| 476–720, 755–859 | `pmi.py` | PROVIDER constants, PMI dataclasses, config JSON loading + lazy caches, sector/importance inference, `_calc_pmi_rule_date`, override matching, `_estimate_pmi_releases_for_series` |
+
+Adaptation (documented in commit): `_resolve_config_path` anchors via `pmi.set_config_base()`;
+the monolith pins it to its own directory at import. NOTE: the three PMI config JSONs
+(`PMI_FEEDS_CATALOG/ESTIMATOR_RULES/OVERRIDES.json`) exist nowhere in the repo — the
+SPGLOBAL_PMI source has been running its broad-except fallback path in prod (owner flagged).
+
 ## Remaining families (future sessions, rough order)
 
-1. **PMI config + rules** (488–763, 1115–1260): Grace/PMI dataclasses, JSON config loading,
-   `_calc_pmi_rule_date`, `_estimate_pmi_releases_for_series` → `pmi_config.py`.
-   Depends on `_resolve_config_path` (569) — config files anchor to scripts/.
 2. **Classification & metadata enrichment** (1261–2710): `classify_event` (~400 lines),
    country/category/pair-relevance inference, URL standardization, descriptions,
    trader-relevance scoring, `_enrich_event_metadata` → `classify.py` + `enrich.py`.
