@@ -1,10 +1,10 @@
 """Pin LKG persistence, fetch metadata, and health key/SLO behavior."""
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 
-from economic_calendar import health, runstate
+from economic_calendar import runstate
 from economic_calendar.events import Event, make_id
 from economic_calendar.health import (
     AGENCY_KEY_OVERRIDES,
@@ -19,7 +19,7 @@ from economic_calendar.health import (
     maybe_merge_lkg,
 )
 from economic_calendar.http import EnhancedCacheManager
-from economic_calendar.timeutils import UTC, _now_utc
+from economic_calendar.timeutils import _now_utc
 
 
 def _event(title="CPI", days_ahead=3):

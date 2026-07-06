@@ -3,7 +3,6 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import pytest
 
 from economic_calendar.curated import (
     CuratedMeeting,

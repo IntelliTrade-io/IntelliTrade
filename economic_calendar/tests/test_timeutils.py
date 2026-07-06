@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-import pytest
 
 from economic_calendar.timeutils import (
     LONDON_TZ,

@@ -6,17 +6,12 @@ behavior unchanged.
 
 from __future__ import annotations
 
-import json
 import logging
 import re
-import time
 import unicodedata
-from urllib.parse import urljoin
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set, Tuple
-from zoneinfo import ZoneInfo
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-import requests
 
 try:
     from bs4 import BeautifulSoup
@@ -35,58 +30,26 @@ except ImportError:
 
 from economic_calendar import runstate as _ec_runstate
 from economic_calendar.curated import (
-    CURATED_BOE_DATES,
-    CURATED_BOJ_DATES,
     CURATED_FED_DATES,
-    CuratedMeeting,
     _ensure_time_confidence,
     _resolve_curated_local_dt,
 )
 from economic_calendar.enrich import classify_event
-from economic_calendar.events import Event, _content_hash_bytes, _content_hash_text, make_id
+from economic_calendar.events import Event, make_id
 from economic_calendar.health import (
-    ENABLE_LKG,
-    LKG_TTLS,
     _finalize_source_log,
     _persist_lkg,
-    _read_lkg_events,
-    _schema_capture,
     ZERO_SNAPSHOT_MAX_CHARS,
-    _set_fetch_metadata,
     maybe_merge_lkg,
     write_zero_snapshot,
 )
-from economic_calendar.htmlparse import broad_li_filter, find_rows_by_header_keywords, rows_by_header_xpath
 from economic_calendar.http import (
     DEFAULT_HEADERS,
-    RetryBudget,
-    get_source_breaker,
-    sget_retry_alt,
-    sget_with_retry,
     source_sget,
 )
-from economic_calendar.ics import parse_ics_bytes, parse_ics_datetime
-from economic_calendar.runstate import RUN_CONTEXT
-from economic_calendar.textutils import _normalize_metadata_text
 from economic_calendar.timeutils import (
-    BEIJING_TZ,
-    BERLIN_TZ,
-    BRUSSELS_TZ,
-    FRANKFURT_TZ,
-    LONDON_TZ,
-    MONTH_ABBR2NUM,
-    MONTHS,
     NEW_YORK_TZ,
-    OTTAWA_TZ,
-    SYDNEY_TZ,
-    TOKYO_TZ,
-    TORONTO_TZ,
     UTC,
-    WELLINGTON_TZ,
-    ZURICH_TZ,
-    _get_zoneinfo,
-    _iso,
-    _now_utc,
     _within,
     ensure_aware,
     month_to_num,

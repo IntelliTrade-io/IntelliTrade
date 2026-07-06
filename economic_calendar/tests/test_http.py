@@ -1,10 +1,8 @@
 """Pin the fetch framework: cache managers, retry/circuit-breaker, request prep."""
 
-import time
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import pytest
 import requests
 
 from economic_calendar.http import (

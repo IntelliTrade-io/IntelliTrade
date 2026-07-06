@@ -11,7 +11,6 @@ from economic_calendar.pmi import (
     PMI_PROVIDER_DISPLAY,
     PMIOverrideConfig,
     PMIRuleConfig,
-    PMISeriesConfig,
     PROVIDER_SPGLOBAL_PMI,
     _calc_pmi_rule_date,
     _estimate_pmi_releases_for_series,

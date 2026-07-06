@@ -6,13 +6,11 @@ from types import SimpleNamespace
 import pytest
 
 bs4 = pytest.importorskip("bs4")
-from bs4 import BeautifulSoup
 
 from economic_calendar import speakers
 from economic_calendar.runstate import RUN_CONTEXT
 from economic_calendar.speakers import (
     _central_bank_speaker_sources,
-    _dedupe_central_bank_speaker_events,
     _parse_central_bank_speaker_html,
     _speaker_datetime_from_value,
     _speaker_event_type,

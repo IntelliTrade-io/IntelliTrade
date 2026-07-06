@@ -8,7 +8,6 @@ tree of _reconcile_bls_candidates and its helpers with synthetic candidates
 from datetime import datetime, timedelta
 from types import SimpleNamespace
 
-import pytest
 
 from economic_calendar.sources.bls import (
     _bls_candidate,

@@ -9,18 +9,14 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import re
-import shutil
 import threading
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import hashlib
 import unicodedata
 
-import requests
 
 try:
     from bs4 import BeautifulSoup
@@ -36,8 +32,6 @@ from economic_calendar.enrich import (
 from economic_calendar.speakers import _empty_central_bank_speakers_health
 from economic_calendar.curated import (
     STRICT_ZERO_SOURCES,
-    WARN_REQUIRED_SOURCES,
-    WARN_REQUIRED_ZERO_ALLOW,
     _curated_fallback_info,
     _curated_fallback_source_key,
     _is_benign_zero_case,
@@ -46,13 +40,9 @@ from economic_calendar.curated import (
 )
 from economic_calendar.events import Event, _content_hash_bytes, _event_from_dict, _event_to_dict
 from economic_calendar.http import EnhancedCacheManager
-from economic_calendar.pmi import NO_LKG_SOURCES
-from economic_calendar.runstate import RUN_CONTEXT, RUN_CONTEXT_LOCK, RUN_OVERRIDES
+from economic_calendar.runstate import RUN_CONTEXT, RUN_OVERRIDES
 from economic_calendar.textutils import (
-    _eventish_extras,
     _eventish_text_blob,
-    _eventish_value,
-    _normalize_metadata_text,
     _regex_has_any,
 )
 from economic_calendar.timeutils import EUROSTAT_TZ, UTC, _iso, _now_utc, _within

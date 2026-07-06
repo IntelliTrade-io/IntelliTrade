@@ -5,19 +5,11 @@ Shared-framework imports only; behavior unchanged.
 
 from __future__ import annotations
 
-import calendar
-import csv
-import json
 import logging
 import re
-import time
-import unicodedata
-import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
-from urllib.parse import quote_plus, urljoin, urlparse
-from zoneinfo import ZoneInfo
+from datetime import datetime
+from typing import Any, Dict, List
+from urllib.parse import urljoin
 
 import requests
 
@@ -43,89 +35,21 @@ try:
 except ImportError:
     lxml_html = None
 
-from economic_calendar import runstate as _ec_runstate
-from economic_calendar.bls_specs import (
-    BLS_API_V2_SINGLE_SERIES_URL,
-    BLS_CANONICAL_SPECS,
-    BLS_CURATED_OFFICIAL_DATE_OVERRIDES,
-    BLS_RELEASE_BASE_URL,
-    _bls_canonical_key_from_text,
-    _last_business_day_local,
-    _nth_business_day_local,
-    _weekday_local,
-)
-from economic_calendar.curated import (
-    CURATED_ADP_OVERRIDES,
-    CURATED_UMICH_OVERRIDES,
-    _ensure_time_confidence,
-)
-from economic_calendar.enrich import NBS_RELEASE_CALENDAR_INDEX_URL, classify_event
-from economic_calendar.events import Event, _content_hash_bytes, _content_hash_text, _event_from_dict, make_id
+from economic_calendar.enrich import classify_event
+from economic_calendar.events import Event, make_id
 from economic_calendar.health import (
-    ENABLE_LKG,
-    LKG_TTLS,
-    ZERO_SNAPSHOT_MAX_CHARS,
     _finalize_source_log,
     _persist_lkg,
-    _read_lkg_events,
-    _schema_capture,
-    _set_fetch_metadata,
     maybe_merge_lkg,
-    write_zero_snapshot,
 )
-from economic_calendar.htmlparse import broad_li_filter, find_rows_by_header_keywords, rows_by_header_xpath
 from economic_calendar.http import (
-    DEFAULT_HEADERS,
-    EnhancedCacheManager,
-    RetryBudget,
-    get_source_breaker,
-    sget_retry_alt,
-    sget_with_retry,
     source_sget,
 )
-from economic_calendar.ics import parse_ics_bytes, parse_ics_datetime
-from economic_calendar.pmi import (
-    NO_LKG_SOURCES,
-    PMI_PROVIDER_DISPLAY,
-    PROVIDER_SPGLOBAL_PMI,
-    _estimate_pmi_releases_for_series,
-    _get_pmi_config_hash,
-    _get_pmi_overrides,
-    _get_pmi_rules,
-    _get_pmi_series_configs,
-)
-from economic_calendar.runstate import FEATURE, RUN_CONTEXT
-from economic_calendar.textutils import _normalize_metadata_text
 from economic_calendar.timeutils import (
-    BEIJING_TZ,
-    BERLIN_TZ,
-    BRUSSELS_TZ,
-    EUROSTAT_TZ,
-    FRANKFURT_TZ,
-    LONDON_TZ,
-    MONTH_ABBR2NUM,
-    MONTHS,
-    NEW_YORK_TZ,
-    OTTAWA_TZ,
-    SYDNEY_TZ,
-    TOKYO_TZ,
     TORONTO_TZ,
     UTC,
-    WELLINGTON_TZ,
-    ZURICH_TZ,
-    _get_zoneinfo,
-    _is_business_day,
-    _iso,
-    _last_weekday_of_month,
-    _month_year_iter,
-    _move_business_days,
-    _now_utc,
-    _nth_weekday_of_month,
-    _parse_local_time,
-    _shift_to_business_day,
     _within,
     ensure_aware,
-    month_to_num,
 )
 
 logger = logging.getLogger("econ_calendar_complete")
