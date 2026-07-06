@@ -65,8 +65,9 @@ Decisions (do not re-decide):
   and trim to the relevant table/feed section if >100KB. Note capture date in a
   comment in the test.
 - 2–4 tests per source is enough (happy parse, empty page → zero events + no
-  crash, window filtering). Don't chase the debug/reconcile branches (BLS) —
-  those are Fable-tier if ever.
+  crash, window filtering). BLS reconcile machinery is ALREADY TESTED
+  (test_source_bls.py, 23 tests) — for BLS you only need the ICS-parse happy
+  path (_parse_bls_ics_candidates) with a small .ics fixture; skip the rest.
 - Commit per batch: `test: fixture tests for <sources> (6.8)`.
 
 ## Task D — 6.8/7.3: coverage floor in CI (config)
