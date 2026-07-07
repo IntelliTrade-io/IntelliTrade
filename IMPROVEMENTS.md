@@ -66,3 +66,5 @@ All built on pipelines that already run — cost is frontend + one API route eac
 
 - **No repo-linked migration flow** *(2026-07-04)*
   `supabase/migrations/*.sql` are run by hand in the SQL editor (002–004 tables even predate their migration files; 4 tables exist only in the dashboard). Consider `supabase` CLI link + `db push` so migrations are tracked and reproducible, and backfill migration files for the dashboard-created tables (`conflict_cache`, `scanner_results`, `currency_strength_snapshots`, `economic_events`).
+
+- **CSM data-freshness surfacing (from the 2026-07-07 outage):** the strength API silently serves week-old snapshots. Product fix: route already returns `cacheAgeSeconds` — dashboard panel should render a "data from Xh ago" badge / warning state when age exceeds ~2× scan cadence, so stale pipelines are visible to users AND founders instead of failing silent. Ops fix: a tiny GitHub-scheduled workflow that checks `scanner_health.updated_at` staleness and fails loudly (email) when >N hours — off-box watchdog replacing the VPS-resident one.

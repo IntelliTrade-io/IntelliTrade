@@ -18,7 +18,8 @@ export type CurrencyStrength = {
 type StrengthPayload = {
   daily: Record<Currency, CurrencyStrength>;
   intraday: Record<Currency, CurrencyStrength>;
-  fetchedAt: string;
+  fetchedAt: string;          // daily run timestamp (legacy field, kept for cache compat)
+  fetchedAtIntraday?: string; // intraday run timestamp
 };
 
 // ─── Transform scanner output → CurrencyStrength ─────────────────────────────
@@ -77,6 +78,7 @@ async function fetchFromScanner(): Promise<
       daily:    transformSnapshot(dailyRow.currencies_weighted),
       intraday,
       fetchedAt: dailyRow.run_info?.ts_utc ?? new Date().toISOString(),
+      fetchedAtIntraday: intradayRow?.run_info?.ts_utc ?? dailyRow.run_info?.ts_utc ?? new Date().toISOString(),
     },
   };
 }
@@ -131,10 +133,14 @@ export async function GET(request: Request) {
     }
   }
 
+  // Intraday responses carry the intraday run's own timestamp; older cache rows
+  // predating fetchedAtIntraday fall back to the daily timestamp.
+  const fetchedAt = type === "intraday" ? (payload.fetchedAtIntraday ?? payload.fetchedAt) : payload.fetchedAt;
+
   return NextResponse.json({
     currencies: type === "intraday" ? payload.intraday : payload.daily,
     type,
-    fetchedAt: payload.fetchedAt,
-    cacheAgeSeconds: Math.round((Date.now() - new Date(payload.fetchedAt).getTime()) / 1000),
+    fetchedAt,
+    cacheAgeSeconds: Math.round((Date.now() - new Date(fetchedAt).getTime()) / 1000),
   });
 }
