@@ -2,14 +2,22 @@
 
 Historically anchored to scripts/ via the monolith's __file__; the shim pins
 them with set_project_dir() at import. Read via attribute access (paths.OUT_DIR)
-so the pin is visible everywhere. Full env parameterization is plan 6.6.
+so the pin is visible everywhere.
+
+Initial PROJECT_DIR resolution (plan 6.6):
+  1. ECON_CALENDAR_HOME env var, if set — the parameterized default.
+  2. else this package's directory (historical default).
+set_project_dir() (called by the scripts shim, the real entry point) still
+overrides both when it runs.
 """
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
-PROJECT_DIR: Path = Path(__file__).resolve().parent
+_ENV_HOME = os.environ.get("ECON_CALENDAR_HOME")
+PROJECT_DIR: Path = Path(_ENV_HOME) if _ENV_HOME else Path(__file__).resolve().parent
 OUT_DIR: Path = PROJECT_DIR / "out"
 PRODUCTION_DIR: Path = OUT_DIR / "production"
 STAGING_DIR: Path = OUT_DIR / "staging"
