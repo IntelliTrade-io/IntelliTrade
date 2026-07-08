@@ -303,6 +303,7 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 **6.8 — Python tests**
 - [ ] ~88% of Python is untested. Backend package has a golden-fixture suite (good). Add tests for the scanners (post-dedup) and the scraper (per-source, post-split). Set a coverage floor in CI.
 - Note: Scanner side started 2026-07-05: 35 tests (`intellitrade_scanners/tests/`) — core indicators/trend/confidence/aggregation, OANDA adapter parse/retry, and the per-pair key contracts each runner writes to the snapshot tables. Root `pytest` collects backend + scanners (98 total). Remaining: scraper tests (blocked on 6.3 split), CI coverage floor (7.3).
+- Note (2026-07-08, Task C started): per-source fixture tests begun, replicating the `test_source_eurostat.py` exemplar. **ONS done** (`test_source_ons.py`, 3 tests): RSS-primary happy path + window filter, HTML fallback when RSS yields 0, all-transports-down → empty. Fixtures synthesized inline (RSS feed + upcoming HTML), no live capture. Suite 233 → 236. Priority order for the rest (handoff Task C): bls (ICS-parse only — reconcile already tested), statcan, abs, statsnz, boe, ecb, fomc, boj; curated/rules sources (us_curated, ism, pmi_spglobal) = rules-path tests, no fixtures.
 
 ---
 
