@@ -19,10 +19,18 @@ Things only the owner can do (account access, credentials, external services). *
 
 ## When Phase 6.7 (VPS on git) starts
 
+**Tooling is ready (2026-07-08):** full step-by-step in `scripts/vps/DEPLOY.md`;
+`scripts/vps/bootstrap.ps1` does the pull + `pip install -e .[mt5]` + idempotent
+re-registration of the 3 scanner/watchdog tasks to the new `python -m` layout.
+Do the ordered steps below (the script assumes 1–3 are done).
+
 - [ ] **Install git on the VPS** + create a read-only deploy key / fine-grained PAT for the repo (not owner credentials).
 - [ ] **Don't hand-edit files on the VPS from now on** — any in-place fix should also land in the repo, or drift reconciliation (§6.7 step 3) gets harder.
 - [ ] **Reconcile VPS drift before the git deploy**: copy the scanner `.py` files off the box (RDP) and hand them to Claude to diff against commit `2a010de` — that commit is the exact tree that was last hand-copied to the VPS (committed 2026-07-05). Any in-place VPS edits get folded into the repo before the box switches to `git pull`.
-- [ ] **Heads-up until then**: scanner code moved in the repo (`scripts/vps/*.py` → `intellitrade_scanners/`; runners are now `python -m intellitrade_scanners.scanner_d1h4` etc.). The VPS's current flat files keep working as-is — but if you hand-copy anything scanner-related to the box before 6.7, ask Claude for the file list first; a partial copy of the new layout won't run.
+- [ ] **Sparse-clone + run bootstrap** per `scripts/vps/DEPLOY.md` (clone to `C:\IntelliTrade\repo`, `git sparse-checkout set intellitrade_scanners backend/support_resistance economic_calendar scripts/vps`, create `config\.env` from the template, run `bootstrap.ps1` as Administrator).
+- [ ] **Manual step the script can't do:** Task Scheduler → each IntelliTrade task → "Run whether user is logged in or not" (needs the account password). **This is the CSM-outage fix.** Then confirm MT5 is logged in and run `python -m intellitrade_scanners.scanner_h1m15` once to verify a scan writes a row.
+- [ ] **Heads-up**: scanner code moved in the repo (`scripts/vps/*.py` → `intellitrade_scanners/`; runners are now `python -m intellitrade_scanners.scanner_d1h4` etc.). The VPS's current flat files keep working as-is — but if you hand-copy anything scanner-related to the box before switching to git, ask Claude for the file list first; a partial copy of the new layout won't run.
+- [ ] **S&R backend task** (`run_sr_alpha.py`, 15-min) isn't in bootstrap.ps1 yet (old setup didn't register it either) — tell Claude its current schedule and it gets folded in.
 
 ## Google AdSense (see GOOGLE_ADSENSE_APPROVAL.md)
 
