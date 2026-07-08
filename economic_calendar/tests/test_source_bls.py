@@ -16,6 +16,7 @@ from economic_calendar.sources.bls import (
     _bls_event_from_candidate,
     _group_bls_candidates_by_time,
     _match_bls_curated_occurrences,
+    _parse_bls_ics_candidates,
     _reconcile_bls_candidates,
     _select_bls_official_candidate,
     verify_bls_release_published,
@@ -242,3 +243,88 @@ class TestEventFromCandidate:
         assert ev.extras["release_time_local"] == "08:30"  # 12:30 UTC in July = 08:30 ET
         assert ev.extras["bls_candidates"][0]["date_time_utc"] == CPI_JULY.isoformat()
         assert ev.extras["default_dashboard"] is True
+
+
+# The ICS-parse happy path is the one live-transport step the reconcile tests
+# above stub out. It is exercised here with a synthesized feed (no network):
+# _parse_bls_ics_candidates(content, source_tz=NEW_YORK_TZ, default 08:30) maps
+# each VEVENT to a canonical-key candidate, dropping non-canonical and
+# out-of-window VEVENTs.
+#
+# Fixture origin: synthesized 2026-07-08 in the shape of the BLS
+# news_release/bls.ics feed (VEVENT + DTSTART;TZID=America/New_York markup per
+# economic_calendar/ics.py's parser).
+BLS_ICS = b"""BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//BLS//Release Schedule//EN
+BEGIN:VEVENT
+UID:cpi-2026-07@bls.gov
+SUMMARY:Consumer Price Index
+DTSTART;TZID=America/New_York:20260714T083000
+URL:https://www.bls.gov/schedule/news_release/cpi.htm
+END:VEVENT
+BEGIN:VEVENT
+UID:empsit-2026-07@bls.gov
+SUMMARY:Employment Situation
+DTSTART;TZID=America/New_York:20260702T083000
+URL:https://www.bls.gov/schedule/news_release/empsit.htm
+END:VEVENT
+BEGIN:VEVENT
+UID:noise-2026-07@bls.gov
+SUMMARY:BLS Regional Office Picnic
+DTSTART;TZID=America/New_York:20260709T120000
+END:VEVENT
+BEGIN:VEVENT
+UID:cpi-2026-08@bls.gov
+SUMMARY:Consumer Price Index
+DTSTART;TZID=America/New_York:20260812T083000
+END:VEVENT
+END:VCALENDAR
+"""
+
+
+class TestIcsParse:
+    WINDOW_START = datetime(2026, 7, 1, tzinfo=UTC)
+    WINDOW_END = datetime(2026, 7, 31, 23, 59, tzinfo=UTC)
+
+    def test_canonical_events_parsed_noise_and_window_dropped(self):
+        candidates, total = _parse_bls_ics_candidates(
+            BLS_ICS,
+            "https://www.bls.gov/schedule/news_release/bls.ics",
+            self.WINDOW_START,
+            self.WINDOW_END,
+        )
+        # All four VEVENTs are counted; only the two in-window canonical
+        # releases survive (picnic is non-canonical, August CPI is out of window).
+        assert total == 4
+        keys = [c["canonical_key"] for c in candidates]
+        assert keys == ["BLS_CPI", "BLS_EMPLOYMENT_SITUATION"]
+
+        cpi = candidates[0]
+        assert cpi["source_reliability"] == "official"
+        assert cpi["source_path"] == "ics"
+        assert cpi["confidence"] == "medium_high"
+        assert cpi["source_url"] == "https://www.bls.gov/schedule/news_release/cpi.htm"
+        # 08:30 America/New_York (EDT, -4) -> 12:30 UTC
+        assert _bls_candidate_dt(cpi) == datetime(2026, 7, 14, 12, 30, tzinfo=UTC)
+
+    def test_ics_candidate_becomes_valid_event(self):
+        candidates, _ = _parse_bls_ics_candidates(
+            BLS_ICS,
+            "https://www.bls.gov/schedule/news_release/bls.ics",
+            self.WINDOW_START,
+            self.WINDOW_END,
+        )
+        cpi = candidates[0]
+        ev = _bls_event_from_candidate(
+            cpi, [cpi], schedule_confidence="medium_high", post_release_status="not_due",
+        )
+        assert ev.title == "US Consumer Price Index (CPI)"
+        assert ev.agency == "BLS"
+        assert ev.country == "US"
+        assert ev.source == "BLS_ICS"
+        assert ev.event_local_tz == "America/New_York"
+        assert ev.impact == "High"
+        assert ev.date_time_utc == datetime(2026, 7, 14, 12, 30, tzinfo=UTC)
+        assert ev.extras["release_time_local"] == "08:30"
+        assert len(ev.id) == 40  # sha1 via make_id
