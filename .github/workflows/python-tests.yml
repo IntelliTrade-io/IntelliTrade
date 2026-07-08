@@ -1,0 +1,45 @@
+name: Python Tests — pytest + coverage floor
+
+on:
+  push:
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "requirements-lock.txt"
+      - ".github/workflows/python-tests.yml"
+  pull_request:
+    paths:
+      - "**.py"
+      - "pyproject.toml"
+      - "requirements-lock.txt"
+      - ".github/workflows/python-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        # MetaTrader5 ([mt5]) is Windows-only; CI runs the OANDA/mocked paths.
+        run: pip install ".[scraper,dev]" -c requirements-lock.txt
+
+      - name: Run pytest with coverage floor
+        # Floor set to current − 2 (measured 52% on 2026-07-08); capped at 60
+        # per plan 7.3. Raise as coverage grows; never above 60 here.
+        run: |
+          python -m pytest \
+            --cov=economic_calendar \
+            --cov=intellitrade_scanners \
+            --cov=support_resistance \
+            --cov-report=term-missing \
+            --cov-fail-under=50

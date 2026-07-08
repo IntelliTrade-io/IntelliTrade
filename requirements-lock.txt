@@ -1,6 +1,8 @@
 ﻿# requirements-lock.txt — exact pins for CI/VPS reproducibility.
 # Generated 2026-07-05 on Python 3.14 (fresh venv, pip install .[scraper,dev]),
 # validated: full pytest (127) green under these versions.
+# Updated 2026-07-08: added coverage + pytest-cov (dev extra) for the
+#   python-tests.yml coverage floor (plan 7.3); full pytest (395) green.
 # Regenerate: python -m venv <tmp> && <tmp>/pip install .[scraper,dev] && pip freeze
 # MetaTrader5 ([mt5] extra) intentionally absent: Windows-only, VPS installs it separately.
 # Direct deps + ranges live in pyproject.toml; this file pins the full resolved tree.
@@ -8,6 +10,7 @@ beautifulsoup4==4.15.0
 certifi==2026.6.17
 charset-normalizer==3.4.7
 colorama==0.4.6
+coverage==7.15.0
 feedparser==6.0.12
 idna==3.18
 iniconfig==2.3.0
@@ -18,6 +21,7 @@ pandas==3.0.3
 pluggy==1.6.0
 Pygments==2.20.0
 pytest==9.1.1
+pytest-cov==7.1.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 requests==2.34.2
