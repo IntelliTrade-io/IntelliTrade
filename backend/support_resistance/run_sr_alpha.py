@@ -175,24 +175,25 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
 
 
 def _print_summary(s: dict) -> None:
-    print("== SR Alpha run summary ==")
-    print(f"run_id                : {s['run_id']}")
-    print(f"timestamp_utc         : {s['timestamp_utc']}")
-    print(f"calculated_at         : {s['calculated_at']}")
-    print(f"model_version         : {s['model_version']}")
-    print(f"symbol / source       : {s['symbol']} / {s['source']}")
-    print(f"candles processed     : {s['candles_processed']}")
-    print(f"candles archived      : {s['candles_archived']} -> {s['archive_path']}")
-    print(f"zones detected        : {s['zones_detected']}")
-    print(f"active support zones  : {s['active_support_zones']}")
-    print(f"strength distribution : {s['strength_dist']}")
-    print(f"opportunities built   : {s['opportunities_built']}")
-    print(f"active reclaims       : {s['active_reclaims']}")
-    print(f"grade distribution    : {s['grade_dist']}")
-    print(f"opportunities written : {s['opportunities_written']} (persisted={s['persisted']})")
-    print(f"stale cleaned         : {s['stale_opps_deleted']} opps deleted, {s['stale_zones_deactivated']} zones deactivated")
-    print(f"current session       : {s['current_session']}")
-    print(f"m15_return_12_atr     : {s['m15_return_12_atr']}")
+    log.info("== SR Alpha run summary ==")
+    log.info("run_id                : %s", s["run_id"])
+    log.info("timestamp_utc         : %s", s["timestamp_utc"])
+    log.info("calculated_at         : %s", s["calculated_at"])
+    log.info("model_version         : %s", s["model_version"])
+    log.info("symbol / source       : %s / %s", s["symbol"], s["source"])
+    log.info("candles processed     : %s", s["candles_processed"])
+    log.info("candles archived      : %s -> %s", s["candles_archived"], s["archive_path"])
+    log.info("zones detected        : %s", s["zones_detected"])
+    log.info("active support zones  : %s", s["active_support_zones"])
+    log.info("strength distribution : %s", s["strength_dist"])
+    log.info("opportunities built   : %s", s["opportunities_built"])
+    log.info("active reclaims       : %s", s["active_reclaims"])
+    log.info("grade distribution    : %s", s["grade_dist"])
+    log.info("opportunities written : %s (persisted=%s)", s["opportunities_written"], s["persisted"])
+    log.info("stale cleaned         : %s opps deleted, %s zones deactivated",
+             s["stale_opps_deleted"], s["stale_zones_deactivated"])
+    log.info("current session       : %s", s["current_session"])
+    log.info("m15_return_12_atr     : %s", s["m15_return_12_atr"])
 
 
 def main(argv=None) -> int:

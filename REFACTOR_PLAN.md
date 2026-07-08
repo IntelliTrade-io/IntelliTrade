@@ -287,8 +287,9 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 
 **6.6 — Parameterize paths & config**
 - [ ] Hardcoded `C:\IntelliTrade\*` in `scripts/vps/setup_windows_tasks.ps1`, `config_template.env`, `export_eurusd_m15.py`. Move to env/config with sensible defaults so the tree isn't Windows-path-locked.
-- [ ] Replace 115 `print()` debug calls in the backend runners with `logging`.
-- Note: Python side done 2026-07-05: `intellitrade_scanners/config.py` resolves .env/logs/out from `INTELLITRADE_HOME` (default `C:\IntelliTrade`) + per-dir overrides; scanners/watchdog/exporter use it (5 tests). Remaining: `run_sr_alpha.py` (with 6.4 backend packaging), `setup_windows_tasks.ps1` + template (rewrite with 6.7 bootstrap anyway), the print→logging swap.
+- [x] Replace `print()` debug calls in the backend runners with `logging`.
+- Note: Python side done 2026-07-05: `intellitrade_scanners/config.py` resolves .env/logs/out from `INTELLITRADE_HOME` (default `C:\IntelliTrade`) + per-dir overrides; scanners/watchdog/exporter use it (5 tests). Remaining: `run_sr_alpha.py` (with 6.4 backend packaging), `setup_windows_tasks.ps1` + template (rewrite with 6.7 bootstrap anyway).
+- Note (2026-07-08, Task A): print→logging swap done across the 4 backend runners (`run_fixture_validation`, `run_sr_alpha`, `run_zone_validation`, `validate_zone_fixture`) — 63 `print()` calls → module `logger`, `basicConfig(INFO, "%(asctime)s [%(levelname)s] %(message)s")` in each `__main__` (run_sr_alpha already had its own). Lazy %-style args; error-ish → `logger.error/warning`; engine logic untouched; `economic_calendar/` CLI prints deliberately left. Verified: pytest 69 green + all 4 runners re-run offline, output readable (golden 50/50, zone hard-checks PASS, geometry 18488/18488 identical).
 
 **6.7 — Git-based VPS deploy (stay Windows/Task Scheduler)**
 - Owner facts (2026-07-04): VPS holds **only the relevant files, no git at all** — deploy today is literally hand-copy-paste of individual files. Owner wants the VPS moved onto git later so deploys become a pull.

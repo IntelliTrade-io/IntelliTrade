@@ -17,6 +17,7 @@ Exit code 0 = all rows passed, 1 = one or more failures / missing config.
 
 import argparse
 import csv
+import logging
 import os
 import sys
 
@@ -28,6 +29,8 @@ if _PKG_PARENT not in sys.path:
 
 from support_resistance import config  # noqa: E402
 from support_resistance import dynamic_score  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_TOLERANCE = 1e-9
 
@@ -109,31 +112,36 @@ def main(argv=None) -> int:
     try:
         summary = validate_fixture(args.fixture, args.tolerance)
     except (ValidationFailure, config.ConfigError) as exc:
-        print(f"FATAL: {exc}", file=sys.stderr)
+        logger.error("FATAL: %s", exc)
         return 1
 
-    print("== SR Alpha golden fixture validation ==")
-    print(f"fixture     : {summary['fixture']}")
-    print(f"tolerance   : {summary['tolerance']}")
-    print(f"rows tested : {summary['rows_tested']}")
-    print(f"rows passed : {summary['rows_passed']}")
-    print(f"rows failed : {summary['rows_failed']}")
+    logger.info("== SR Alpha golden fixture validation ==")
+    logger.info("fixture     : %s", summary["fixture"])
+    logger.info("tolerance   : %s", summary["tolerance"])
+    logger.info("rows tested : %s", summary["rows_tested"])
+    logger.info("rows passed : %s", summary["rows_passed"])
+    logger.info("rows failed : %s", summary["rows_failed"])
 
     if summary["failures"]:
-        print("\nfirst failures (expected vs actual):")
+        logger.info("first failures (expected vs actual):")
         for f in summary["failures"][: args.max_show]:
-            print(
-                f"  line {f['line']}: "
-                f"score {f['actual_score']!r} vs {f['expected_score']!r} "
-                f"({'ok' if f['score_ok'] else 'MISMATCH'}) | "
-                f"grade {f['actual_grade']!r} vs {f['expected_grade']!r} "
-                f"({'ok' if f['grade_ok'] else 'MISMATCH'})"
+            logger.info(
+                "  line %s: score %r vs %r (%s) | grade %r vs %r (%s)",
+                f["line"],
+                f["actual_score"], f["expected_score"],
+                "ok" if f["score_ok"] else "MISMATCH",
+                f["actual_grade"], f["expected_grade"],
+                "ok" if f["grade_ok"] else "MISMATCH",
             )
         return 1
 
-    print("\nAll rows reproduced the locked research scores and grades. [PASS]")
+    logger.info("All rows reproduced the locked research scores and grades. [PASS]")
     return 0
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
     sys.exit(main())

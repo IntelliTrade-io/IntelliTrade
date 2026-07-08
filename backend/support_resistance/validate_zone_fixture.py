@@ -29,6 +29,7 @@ Outputs:
 import csv
 import gzip
 import json
+import logging
 import os
 import sys
 from datetime import datetime
@@ -38,6 +39,8 @@ if _PKG_PARENT not in sys.path:
     sys.path.insert(0, _PKG_PARENT)
 
 from support_resistance import research_zone_engine as rze  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _FX = os.path.join(_HERE, "fixtures")
@@ -188,23 +191,28 @@ def validate() -> dict:
 
 def main() -> int:
     r = validate()
-    print("== Zone geometry validation (backend engine vs research reference) ==")
-    print(f"candles           : {r['candle_rows']} ({r['candle_start']} -> {r['candle_end']})")
+    logger.info("== Zone geometry validation (backend engine vs research reference) ==")
+    logger.info("candles           : %s (%s -> %s)", r["candle_rows"], r["candle_start"], r["candle_end"])
     if r["candle_validation_errors"]:
-        print(f"candle ERRORS     : {r['candle_validation_errors']}")
+        logger.warning("candle ERRORS     : %s", r["candle_validation_errors"])
     if r["candle_validation_warnings"]:
-        print(f"candle warnings   : {r['candle_validation_warnings']}")
-    print(f"reference events  : {r['reference_events']} (by {r['reference_generated_by'].split('(')[0].strip()})")
-    print(f"backend events    : {r['backend_events']}")
-    print(f"exact matches     : {r['exact_positional_matches']} / {r['reference_events']}")
-    print(f"identical         : {r['identical']}")
-    print(f"geometry pass     : {r['geometry_pass_rate']*100:.2f}%")
-    print(f"label pass        : {r['label_pass_rate']*100:.2f}%")
-    print(f"zone_geometry_validation_status = {r['zone_geometry_validation_status']}")
-    print(f"close_reclaim_validation_status = {r['close_reclaim_validation_status']}")
-    print("reports -> backend/support_resistance/reports/")
+        logger.warning("candle warnings   : %s", r["candle_validation_warnings"])
+    logger.info("reference events  : %s (by %s)",
+                r["reference_events"], r["reference_generated_by"].split("(")[0].strip())
+    logger.info("backend events    : %s", r["backend_events"])
+    logger.info("exact matches     : %s / %s", r["exact_positional_matches"], r["reference_events"])
+    logger.info("identical         : %s", r["identical"])
+    logger.info("geometry pass     : %.2f%%", r["geometry_pass_rate"] * 100)
+    logger.info("label pass        : %.2f%%", r["label_pass_rate"] * 100)
+    logger.info("zone_geometry_validation_status = %s", r["zone_geometry_validation_status"])
+    logger.info("close_reclaim_validation_status = %s", r["close_reclaim_validation_status"])
+    logger.info("reports -> backend/support_resistance/reports/")
     return 0 if r["zone_geometry_validation_status"] == "passed" else 1
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
     sys.exit(main())
