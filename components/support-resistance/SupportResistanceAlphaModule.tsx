@@ -40,26 +40,21 @@ export function SupportResistanceAlphaModule({
   const defaultZone = selectFeaturedZone(zones);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(defaultZone?.id ?? null);
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? defaultZone ?? null;
-  // ── CHART ZONE SELECTION RULE (approved) ──────────────────────────────────
-  // Draw only the support shelves worth watching, grounded in the research
-  // engine's own quality label (NOT invented heuristics):
-  //   (a) medium or strong static_strength — the research scores most zones
-  //       "weak" (thin / over-tested); those are noise, kept off the chart.
-  //   (b) genuinely touched in view — a candle LOW dipped into the band (support
-  //       tested from above), so bands hug real price, not float over dead space.
-  //   (c) top CHART_ZONE_LIMIT by priority; scanner + details still list ALL zones.
-  // TO REVERT to "draw all zones": set chartZones = zones (and remove this block).
+  // ── CHART ZONE SELECTION RULE ─────────────────────────────────────────────
+  // A zone is drawn whenever it EXISTS in the current data — strength/grade only
+  // affect its badge/colour, never whether it's on the chart. (Earlier this
+  // required strong/medium static_strength; but the research scores most zones
+  // "weak", so in weak-only markets the chart drew NOTHING despite valid zones.)
+  //   (a) genuinely touched in view — a candle LOW dipped into the band, so the
+  //       band hugs real price instead of floating over dead space.
+  //   (b) top CHART_ZONE_LIMIT by priority; scanner + details still list ALL zones.
   const CHART_ZONE_LIMIT = 5;
   const chartZones = (() => {
     const genuinelyTouched = (zone: (typeof zones)[number]) =>
       candles.some((c) => c.low <= zone.zoneHigh && c.low >= zone.zoneLow);
-    const notable = zones.filter(
-      (zone) =>
-        genuinelyTouched(zone) &&
-        (zone.staticStrength === "strong" || zone.staticStrength === "medium"),
-    );
-    const ranked = [...notable].sort(compareZonesByPriority).slice(0, CHART_ZONE_LIMIT);
-    if (selectedZone && !ranked.some((z) => z.id === selectedZone.id) && notable.includes(selectedZone)) {
+    const touched = zones.filter(genuinelyTouched);
+    const ranked = [...touched].sort(compareZonesByPriority).slice(0, CHART_ZONE_LIMIT);
+    if (selectedZone && !ranked.some((z) => z.id === selectedZone.id) && touched.includes(selectedZone)) {
       ranked.push(selectedZone);
     }
     return ranked;
@@ -80,7 +75,7 @@ export function SupportResistanceAlphaModule({
             icon={Radar}
             label="Research reaction range"
             value={selectedZone ? formatReactionRange(selectedZone.reactionRange) : "No active row"}
-            note={selectedZone ? `${selectedZone.pair} / ${selectedZone.timeframe}` : supportResistanceCopy.emptyStates.noneQualified}
+            note={selectedZone ? `${selectedZone.pair} / ${selectedZone.timeframe}` : supportResistanceCopy.emptyStates.noReclaim}
           />
           <StatCard
             icon={Shield}

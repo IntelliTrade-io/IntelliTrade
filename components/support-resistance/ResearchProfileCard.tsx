@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowUpRight, Clock3, Target } from "lucide-react";
-import { dynamicOpportunityGradeConfig } from "./gradeConfig";
+import { dynamicOpportunityGradeConfig, gradeBadgeStyle } from "./gradeConfig";
 import type { ResearchTierProfile } from "./types";
 
 interface ResearchProfileCardProps {
@@ -22,7 +22,10 @@ export function ResearchProfileCard({ profile }: ResearchProfileCardProps) {
     <article className="rounded-[18px] border border-white/8 bg-white/[0.025] p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className={["inline-flex items-center rounded-full border px-2.5 py-1 text-[9px] uppercase tracking-[0.18em]", tone.badgeClassName].join(" ")}>
+          <div
+            className="inline-flex items-center rounded-full border px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.18em]"
+            style={gradeBadgeStyle(profile.id)}
+          >
             {profile.label}
           </div>
           <h3 className="mt-2 text-sm font-semibold text-white">{profile.scopeLabel}</h3>

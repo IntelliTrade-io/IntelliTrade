@@ -1,5 +1,5 @@
 import React from "react";
-import { dynamicOpportunityGradeConfig } from "./gradeConfig";
+import { dynamicOpportunityGradeConfig, gradeBadgeStyle } from "./gradeConfig";
 import type { DynamicOpportunityGrade } from "./types";
 
 interface OpportunityGradeBadgeProps {
@@ -13,10 +13,10 @@ export function OpportunityGradeBadge({ grade, compact = false }: OpportunityGra
   return (
     <span
       className={[
-        "inline-flex items-center rounded-full border font-medium uppercase tracking-[0.18em]",
+        "inline-flex items-center rounded-full border font-semibold uppercase tracking-[0.18em]",
         compact ? "px-2.5 py-1 text-[10px]" : "px-3 py-1.5 text-[11px]",
-        config.badgeClassName,
       ].join(" ")}
+      style={gradeBadgeStyle(grade)}
     >
       {config.label}
     </span>
