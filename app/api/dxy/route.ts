@@ -12,7 +12,11 @@ const WEIGHTS: Record<string, number> = {
 const DXY_MULTIPLIER = 50.14348112;
 
 export async function GET() {
-  const apiKey = process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
+  // Server-only key; legacy NEXT_PUBLIC_ fallback until the Vercel env rename
+  // + key rotation lands (audit H7).
+  const apiKey =
+    process.env.CURRENCYFREAKS_API_KEY ??
+    process.env.NEXT_PUBLIC_CURRENCYFREAKS_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ error: "Missing API key" }, { status: 500 });
   }
@@ -34,7 +38,7 @@ export async function GET() {
   // CurrencyFreaks rates are X-per-USD, which maps directly to the formula.
   let dxy = DXY_MULTIPLIER;
   for (const [currency, weight] of Object.entries(WEIGHTS)) {
-    const rate = parseFloat(rates[currency]);
+    const rate = parseFloat(rates[currency] ?? "");
     if (!isFinite(rate) || rate <= 0) {
       return NextResponse.json({ error: `Invalid rate for ${currency}` }, { status: 502 });
     }

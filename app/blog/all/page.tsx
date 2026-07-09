@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
 import { type SanityDocument } from "next-sanity";
-import BlogClientPage from "./BlogClientPage";
+import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
+import BlogClientPage from "./_components/BlogClientPage";
 
 export const metadata: Metadata = {
   title: "All Blog Posts · IntelliTrade Insights",
@@ -29,8 +30,14 @@ export default async function AllBlogsPage() {
     image // <--- Updated to match your Sanity field name
   }`;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let posts: any[] = [];
+  let posts: {
+    slug: string;
+    date: string;
+    title: string;
+    summary: string;
+    tags: string[];
+    image?: SanityImageSource | null;
+  }[] = [];
 
   try {
     const rawPosts: SanityDocument[] = await client.fetch(

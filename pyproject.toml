@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "intellitrade-backend"
+version = "1.5.2"
+description = "IntelliTrade Python backend: currency-strength scanners (strength_core + MT5/OANDA feeds) and the S&R Alpha package"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "requests>=2.31",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+# MetaTrader5 ships Windows-only wheels; only the VPS needs it.
+mt5 = ["MetaTrader5>=5.0"]
+# Economic-calendar scraper (scripts/economic_calendar_scraper.py; packaged in plan 6.3)
+scraper = [
+    "beautifulsoup4>=4.12",
+    "feedparser>=6.0",
+    "lxml>=5.0",
+    "python-dateutil>=2.9",
+    "urllib3>=2.0",
+]
+dev = ["pytest>=7.0", "pytest-cov>=5.0"]
+
+[tool.setuptools]
+packages = ["intellitrade_scanners", "support_resistance", "economic_calendar"]
+
+[tool.setuptools.package-dir]
+support_resistance = "backend/support_resistance"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "backend/support_resistance/tests",
+    "intellitrade_scanners/tests",
+    "economic_calendar/tests",
+]

@@ -1,26 +1,23 @@
-import '@/styles/tailwind.css';
 import '@/styles/main.css';
-import 'remark-github-blockquote-alert/alert.css';
 import { Space_Grotesk } from 'next/font/google';
-// import { Analytics, AnalyticsConfig } from 'pliny/analytics';
-import { SearchProvider, SearchConfig } from 'pliny/search';
-import Footer from '@/components/Footer';
+import Footer from '@/components/layout/Footer';
 import siteMetadata from '@/data/blog/siteMetadata';
 import { ThemeProvider } from 'next-themes';
 import { Metadata } from 'next';
 import './globals.css';
-import ParticlesBackground from '@/components/particles';
+import ParticlesBackground from '@/components/layout/Particles';
 import Link from "next/link";
 import Image from "next/image";
 import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
-import { AuthButton } from "@/components/auth-button";
-import NavLinks from "@/components/nav-links";
-import MobileNav from "@/components/MobileNav";
+import { AuthButton } from "@/components/auth/AuthButton";
+import NavLinks from "@/components/layout/NavLinks";
+import MobileNav from "@/components/layout/MobileNav";
 import { hasEnvVars } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react';
 import Script from "next/script";
 import { GA_TRACKING_ID } from "@/lib/gtag";
-import GATracker from '@/components/GAtracker';
+import GATracker from '@/components/layout/GATracker';
+import ConsentBanner from '@/components/layout/ConsentBanner';
 
 
 const space_grotesk = Space_Grotesk({
@@ -49,6 +46,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <meta name="google-adsense-account" content="ca-pub-4817545358384465"></meta>
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
+  {/* Google Consent Mode v2: everything denied until the banner records a
+      choice (ConsentBanner applies stored/updated consent). Must run before
+      gtag.js loads. */}
+  <Script id="consent-default" strategy="beforeInteractive">
+    {`
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
+      });
+    `}
+  </Script>
          <Script
     strategy="afterInteractive"
     src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
@@ -69,10 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ParticlesBackground />
 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {/* <Analytics analyticsConfig={siteMetadata.analytics as typeof AnalyticsConfig} /> */}
-          <SearchProvider searchConfig={siteMetadata.search as typeof SearchConfig}>
-            
-            {/* Header */}
+          {/* Header */}
             <nav className="sticky top-0 w-full h-16 bg-white/5 backdrop-blur-md border-b border-white/10 z-[9999]" style={{ overflow: "visible" }}>
               <div className="w-full max-w-5xl flex items-center h-full px-5 mx-auto">
                 {/* Logo — left */}
@@ -107,9 +117,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             {/* Footer */}
             <Footer />
+            <ConsentBanner />
             <Analytics />
              <GATracker />
-          </SearchProvider>
         </ThemeProvider>
       </body>
     </html>

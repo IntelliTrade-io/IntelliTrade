@@ -1,6 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 import { fetchGdeltConflicts, filterBySeverity } from "@/lib/conflicts/gdelt";
 import {
   conflictFeatureCollectionSchema,
@@ -18,13 +19,6 @@ const CACHE_TTL_MS: Record<ConflictWindow, number> = {
   "30d": 6 * 60 * 60 * 1000,  // 6 hours
 };
 
-function supabase() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-}
-
 type CachedPayload = {
   geojson: ConflictFeatureCollection;
   fetched_at: string;
@@ -34,7 +28,7 @@ type CachedPayload = {
 
 async function readCache(windowValue: ConflictWindow): Promise<CachedPayload | null> {
   try {
-    const { data, error } = await supabase()
+    const { data, error } = await supabaseAdmin
       .from("conflict_cache")
       .select("fetched_at, source, geojson")
       .eq("window", windowValue)
@@ -62,7 +56,7 @@ function writeCache(
   source: string,
   geojson: ConflictFeatureCollection,
 ): void {
-  supabase()
+  supabaseAdmin
     .from("conflict_cache")
     .upsert({ window: windowValue, fetched_at, source, geojson })
     .then(({ error }) => {
@@ -71,6 +65,9 @@ function writeCache(
 }
 
 export async function GET(request: Request) {
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const url = new URL(request.url);
   const parsed = queryParamsSchema.safeParse({
     window:   url.searchParams.get("window")   ?? undefined,

@@ -20,10 +20,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Install dependencies
-        run: pip install requests supabase beautifulsoup4 lxml feedparser
+        run: pip install ".[scraper]" -c requirements-lock.txt
 
       - name: Run scraper and upload to Supabase
         env:

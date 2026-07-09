@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { apiPost } from "@/lib/api/client";
 
 export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [loading, setLoading] = useState(false);
@@ -14,9 +15,7 @@ export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const { url, error } = await res.json();
-      if (error) throw new Error(error);
+      const { url } = await apiPost<{ url?: string }>("/api/stripe/checkout");
       if (url) window.location.href = url;
     } finally {
       setLoading(false);
@@ -41,9 +40,7 @@ export function ManageBillingButton() {
   const handleClick = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const { url, error } = await res.json();
-      if (error) throw new Error(error);
+      const { url } = await apiPost<{ url?: string }>("/api/stripe/portal");
       if (url) window.location.href = url;
     } finally {
       setLoading(false);

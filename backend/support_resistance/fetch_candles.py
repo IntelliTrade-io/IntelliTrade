@@ -6,7 +6,7 @@ Clean interface: every fetch returns a pandas DataFrame with columns
     time (tz-aware UTC), open, high, low, close, volume
 
 Three sources, in priority order:
-  1. MT5  — reuses the existing VPS feed adapter (scripts/vps/feed_adapter.py)
+  1. MT5  — reuses the shared feed adapter (intellitrade_scanners/feed_adapter.py)
             if it is importable and MetaTrader5 is installed. This is the
             production path on the VPS.  [TODO: wire symbol_map / feed config
             from Supabase broker_feeds like the strength scanner does.]
@@ -57,10 +57,30 @@ def _shift_to_utc(df: pd.DataFrame) -> pd.DataFrame:
         log.info(f"Corrected broker->UTC offset of {offset:+d}h on candle timestamps")
     return df
 
-# Path to the existing VPS feed adapter so we don't duplicate MT5 plumbing.
-_VPS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "scripts", "vps")
-)
+# The MT5 feed adapter lives in the intellitrade_scanners package (repo root).
+# Fallback paths cover source checkouts without `pip install -e .` and the
+# pre-package VPS layout (flat scripts/vps) until the 6.7 git-based deploy.
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_VPS_DIR = os.path.join(_REPO_ROOT, "scripts", "vps")
+
+
+def _import_feed_adapter():
+    try:
+        from intellitrade_scanners import feed_adapter
+        return feed_adapter
+    except ImportError:
+        pass
+    if _REPO_ROOT not in sys.path:
+        sys.path.insert(0, _REPO_ROOT)
+    try:
+        from intellitrade_scanners import feed_adapter
+        return feed_adapter
+    except ImportError:
+        pass
+    if _VPS_DIR not in sys.path:
+        sys.path.insert(0, _VPS_DIR)
+    import feed_adapter  # type: ignore
+    return feed_adapter
 
 
 def _normalize(df: pd.DataFrame) -> pd.DataFrame:
@@ -96,14 +116,7 @@ def load_symbol_map() -> Optional[dict]:
         from . import supabase_writer
         if not supabase_writer.is_configured():
             return None
-        sb = supabase_writer.get_client()
-        res = (
-            sb.table("symbol_mapping")
-            .select("canonical_symbol, broker_symbol")
-            .eq("feed_name", feed)
-            .execute()
-        )
-        rows = res.data or []
+        rows = supabase_writer.fetch_symbol_map(feed)
         mapping = {r["canonical_symbol"]: r["broker_symbol"] for r in rows if r.get("canonical_symbol")}
         if mapping:
             log.info(f"symbol_map: loaded {len(mapping)} entries for feed '{feed}'")
@@ -122,12 +135,10 @@ def fetch_from_mt5(symbol: str = "EURUSD", bars: int = 1500,
     Raises RuntimeError if MT5 / the adapter is unavailable — callers should
     fall back to CSV/mock for local dev.
     """
-    if _VPS_DIR not in sys.path:
-        sys.path.insert(0, _VPS_DIR)
     try:
-        import feed_adapter  # type: ignore
+        feed_adapter = _import_feed_adapter()
     except ImportError as exc:  # pragma: no cover - depends on VPS env
-        raise RuntimeError(f"VPS feed_adapter not importable ({exc}). Use CSV/mock locally.") from exc
+        raise RuntimeError(f"feed_adapter not importable ({exc}). Use CSV/mock locally.") from exc
 
     mt5_server = os.environ.get("MT5_SERVER", "") or None
     mt5_login_str = os.environ.get("MT5_LOGIN", "") or None

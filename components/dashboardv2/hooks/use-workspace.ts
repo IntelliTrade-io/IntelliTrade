@@ -105,7 +105,7 @@ function normalizePanels(candidate: unknown, cols: number): Panel[] {
 
     const legacySize = (panel as unknown as Record<string, string>).size;
     const legacy =
-      LEGACY_DIMS[panel.type]?.[legacySize] ?? PANEL_DEFAULT_DIMENSIONS[panel.type as WidgetType];
+      LEGACY_DIMS[panel.type]?.[legacySize ?? ""] ?? PANEL_DEFAULT_DIMENSIONS[panel.type as WidgetType];
     acc.push(
       createPanel(id, panel.type as WidgetType, cols, {
         x: 0,

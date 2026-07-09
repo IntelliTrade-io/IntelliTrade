@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import GoldPriceTodayPage from "./GoldPriceTodayPage";
+import GoldPriceTodayPage from "./_components/GoldPriceTodayPage";
 
 export const metadata: Metadata = {
   title: "Gold Price Today (XAU/USD) · IntelliTrade",

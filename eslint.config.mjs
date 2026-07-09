@@ -10,6 +10,16 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    // Separate nested app (own tooling) + staging/generated dirs — not part of root lint
+    ignores: [
+      "IntelliConflict-Map/**",
+      "claudeLoad/**",
+      ".contentlayer/**",
+      ".next/**",
+      "public/**",
+    ],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 

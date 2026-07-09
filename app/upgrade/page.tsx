@@ -14,7 +14,7 @@ const FEATURES = [
   { icon: Radar,           label: "Currency strength meter",  soon: false },
   { icon: FileText,        label: "Trading journal",          soon: true  },
   { icon: BookOpen,        label: "Macro Mastery module",     soon: true  },
-  { icon: Gamepad2,        label: "Bull vs Bear game",        soon: true  },
+  { icon: Gamepad2,        label: "Bull vs Bear game",        soon: false },
   { icon: Globe2,          label: "Conflict map",             soon: true  },
 ];
 
@@ -94,7 +94,10 @@ export default async function UpgradePage({
               Everything included
             </p>
             <ul className="grid gap-3">
-              {FEATURES.map(({ label, soon }) => (
+              {/* `soon` items hidden from the public page: under-construction
+                  signals hurt ad-network/site reviews. Flip soon->false when
+                  a module ships to list it again. */}
+              {FEATURES.filter(({ soon }) => !soon).map(({ label, soon }) => (
                 <li key={label} className="flex items-center gap-3 text-sm">
                   {/* Blurred portion — icon + label */}
                   <span className={`flex items-center gap-3 flex-1 ${soon ? "blur-[2px] select-none text-white/40" : "text-white/80"}`}>

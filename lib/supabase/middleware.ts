@@ -57,8 +57,25 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Subscription gate: /dashboardv2 requires an active Stripe subscription
-  if (user && request.nextUrl.pathname.startsWith("/dashboardv2")) {
+  // Subscription gate: all premium surfaces require an active Stripe
+  // subscription — free tier is only the blog, lot size calculator, and
+  // prices-today pages (those never reach here; they're excluded in
+  // middleware.ts). Data APIs are gated separately via
+  // lib/auth/requireSubscription; this page gate exists for UX (redirect to
+  // /upgrade instead of a broken page). /currency-strength-meter covers the
+  // -intraday variant via startsWith; /dashboardv2 also matches legacy
+  // /dashboard requests after the next.config redirect.
+  const PREMIUM_PREFIXES = [
+    "/dashboardv2",
+    "/support-resistance",
+    "/conflict-map",
+    "/currency-strength-meter",
+  ];
+  const requiresSubscription = PREMIUM_PREFIXES.some((prefix) =>
+    request.nextUrl.pathname.startsWith(prefix),
+  );
+
+  if (user && requiresSubscription) {
     const { data: sub } = await supabase
       .from("subscriptions")
       .select("status")

@@ -1,8 +1,7 @@
 "use client";
 
 import { FileText } from "lucide-react";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { IntelliJournalSurface } = require("../modules/IntelliJournalModule.jsx");
+import { IntelliJournalSurface } from "../modules/IntelliJournalModule";
 import { WidgetShell } from "../ui/widget-shell";
 import { Pill } from "../ui/primitives";
 import { PanelActions } from "../ui/panel-actions";

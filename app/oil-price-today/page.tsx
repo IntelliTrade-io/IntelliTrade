@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import OilPriceTodayPage from "./OilPriceTodayPage";
+import OilPriceTodayPage from "./_components/OilPriceTodayPage";
 
 export const metadata: Metadata = {
   title: "Oil Price Today (Brent Crude) · IntelliTrade",

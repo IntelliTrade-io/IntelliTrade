@@ -10,7 +10,7 @@ describe("support resistance Alpha model", () => {
 
   it("sorts scanner rows by dynamic grade and keeps blocked context behind active rows", () => {
     const rows = buildScannerRows(supportResistanceMockZones);
-    expect(rows[0].id).toBe("sr-eurusd-bid-pocket");
+    expect(rows[0]!.id).toBe("sr-eurusd-bid-pocket");
     expect(rows.map((row) => row.status)).toEqual([
       "A+ review",
       "Elite review",
@@ -25,7 +25,7 @@ describe("support resistance Alpha model", () => {
   });
 
   it("maps the display zone into a Supabase-ready row with canonical asset metadata", () => {
-    const row = toSupabaseRow(supportResistanceMockZones[0]);
+    const row = toSupabaseRow(supportResistanceMockZones[0]!);
     expect(row.asset_id).toBe(supportResistanceAlphaScope.assetId);
     expect(row.provider_alias).toBe(supportResistanceAlphaScope.providerAlias);
     expect(row.dynamic_grade).toBe("elite_green");
@@ -35,7 +35,7 @@ describe("support resistance Alpha model", () => {
   });
 
   it("can hydrate a UI zone back from a Supabase row at the feature boundary", () => {
-    const row = toSupabaseRow(supportResistanceMockZones[0]);
+    const row = toSupabaseRow(supportResistanceMockZones[0]!);
     const hydrated = fromSupabaseRow(row, {
       zoneLabel: "Hydrated zone",
       educationalSummary: "Loaded from Supabase.",

@@ -14,7 +14,7 @@ import { WorkspaceHeader } from "./workspace/workspace-header";
 import { TradingViewPanel } from "./panels/trading-view-panel";
 import { CalendarPanel } from "./panels/calendar-panel";
 import { LotSizePanel } from "./panels/lot-size-panel";
-import { CurrencyStrengthPanelNative as CurrencyStrengthPanel, CurrencyStrengthIntradayPanelNative as CurrencyStrengthIntradayPanel } from "./panels/strength-panel-native";
+import { CurrencyStrengthPanelNative as CurrencyStrengthPanel, CurrencyStrengthIntradayPanelNative as CurrencyStrengthIntradayPanel } from "./panels/strength-panel";
 import { ConflictMapPanel } from "./panels/conflict-map-panel";
 import { JournalPanel } from "./panels/journal-panel";
 import { BullBearPanel } from "./panels/bull-bear-panel";

@@ -7,7 +7,7 @@ import {
   CalendarDays, Radar, Gamepad2,
   ArrowRight, Lock,
 } from "lucide-react";
-import { formatDate } from "@/node_modules/pliny/utils/formatDate";
+import { formatDate } from "@/lib/formatDate";
 import siteMetadata from "@/data/blog/siteMetadata";
 
 export const metadata: Metadata = {

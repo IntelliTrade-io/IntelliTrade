@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiGet, ApiError } from "@/lib/api/client";
 import { SupportResistanceAlphaModule } from "./SupportResistanceAlphaModule";
 import type { CandleData, SupportResistanceZone } from "./types";
 
@@ -27,17 +28,21 @@ export function SupportResistanceAlphaLive({ compact = false, refreshMs = 60_000
 
     async function load() {
       try {
-        const res = await fetch("/api/sr-alpha", { cache: "no-store" });
-        const json: ApiResponse = await res.json();
+        const json = await apiGet<ApiResponse>("/api/sr-alpha");
         if (cancelled) return;
-        if (!res.ok || json.error) {
-          setError(json.error ?? `Request failed (${res.status})`);
+        if (json.error) {
+          setError(json.error);
         } else {
           setData(json);
           setError(null);
         }
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load");
+        if (cancelled) return;
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError(err instanceof Error ? err.message : "Failed to load");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

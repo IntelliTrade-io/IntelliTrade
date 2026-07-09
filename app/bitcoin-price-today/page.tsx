@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import BitcoinPriceTodayPage from "./BitcoinPriceTodayPage";
+import BitcoinPriceTodayPage from "./_components/BitcoinPriceTodayPage";
 
 export const metadata: Metadata = {
   title: "Bitcoin Price Today (BTC/USD) · IntelliTrade",

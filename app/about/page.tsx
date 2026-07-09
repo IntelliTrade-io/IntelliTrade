@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import { motion } from "framer-motion";
-import NewsletterForm from "@/components/NewsletterForm";
+import NewsletterForm from "@/components/layout/NewsletterForm";
 
 
 type SectionBullet = {

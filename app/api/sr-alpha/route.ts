@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 import type { CandleData, SupportResistanceZone } from "@/components/support-resistance/types";
 
 export const dynamic = "force-dynamic";
@@ -28,14 +29,14 @@ const STRENGTH_LABEL: Record<string, string> = {
 function parseFirstR(text: string | null): number {
   if (!text) return 0;
   const m = text.match(/(\d+(?:\.\d+)?)/);
-  return m ? parseFloat(m[1]) : 0;
+  return m?.[1] ? parseFloat(m[1]) : 0;
 }
 
 /** Parse a second R multiple if the text is a range (e.g. "0.50R to 1.00R" -> 1.0). */
 function parseSecondR(text: string | null): number | undefined {
   if (!text) return undefined;
   const nums = text.match(/(\d+(?:\.\d+)?)/g);
-  return nums && nums.length > 1 ? parseFloat(nums[1]) : undefined;
+  return nums?.[1] !== undefined ? parseFloat(nums[1]) : undefined;
 }
 
 type ZoneJoin = {
@@ -127,6 +128,8 @@ function mapZone(row: OppRow): SupportResistanceZone {
 }
 
 export async function GET() {
+  const denied = await requireSubscription();
+  if (denied) return denied;
   try {
     // Active zones only — the worker's prune guarantees active == the latest run.
     const { data: oppData, error: oppErr } = await supabaseAdmin

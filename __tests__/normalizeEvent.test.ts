@@ -119,7 +119,7 @@ describe("normalizeEvent", () => {
         topArticles: [{ title: "Article without display", url: "https://example.com/a" }],
       })
     );
-    expect(result!.topArticles[0].displayTitle).toBe("Article without display");
+    expect(result!.topArticles[0]!.displayTitle).toBe("Article without display");
   });
 
   it("sourceUrl falls back to first topArticle url", () => {
@@ -171,7 +171,7 @@ describe("normalizeEvents", () => {
     (bad.geometry as unknown as { coordinates: [] }).coordinates = [];
     const result = normalizeEvents([good, bad]);
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe("test-id-1");
+    expect(result[0]!.id).toBe("test-id-1");
   });
 
   it("returns empty array for empty input", () => {

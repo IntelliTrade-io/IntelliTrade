@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, ArrowRight } from "lucide-react";
-import LotSizeCalculator from "@/components/lot-size-calculator-2";
-import ScrollRevealSection from "@/components/scroll-reveal-section";
+import LotSizeCalculator from "@/components/calculators/LotSizeCalculator";
+import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 
 export const metadata: Metadata = {
   title: "Lot Size Calculator | Position Size Calculator for Forex, Gold & Indices | IntelliTrade",

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
-import Main from "@/app/blog/Main";
+import Main from "@/app/blog/_components/Main";
 import { type SanityDocument } from "next-sanity";
+import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 
 export const metadata: Metadata = {
   title: "Macro Insights · IntelliTrade Blog",
@@ -65,8 +66,7 @@ export default async function BlogPage() {
     title: string;
     summary: string;
     tags: string[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    image?: any;
+    image?: SanityImageSource | null;
   }[] = [];
 
   try {

@@ -25,6 +25,7 @@ Run:
 
 import argparse
 import csv
+import logging
 import os
 import sys
 import bisect
@@ -39,6 +40,8 @@ from support_resistance import config  # noqa: E402
 from support_resistance import dynamic_score  # noqa: E402
 from support_resistance import indicators  # noqa: E402
 from support_resistance import zone_detector  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 _VALIDATION_DIR = os.path.join(_PKG_PARENT, "..", "claudeLoad", "validation")
 DEFAULT_FIXTURE = os.path.abspath(os.path.join(_VALIDATION_DIR, "phase39_zone_validation_fixture.csv"))
@@ -84,11 +87,11 @@ def validate_geometry(candles_path, fixture_path, max_show=10):
     match if any detected zone's mid is within tolerance of the fixture mid.
     Tolerance = max(0.00020, 0.10 * ATR) per the fixture config.
     """
-    print("\n== Zone GEOMETRY validation (real backend detector vs research zones) ==")
-    print(f"candles     : {candles_path}")
+    logger.info("== Zone GEOMETRY validation (real backend detector vs research zones) ==")
+    logger.info("candles     : %s", candles_path)
     cseq = _load_candles(candles_path)
     ctimes = cseq["time"]
-    print(f"candles bars: {len(ctimes)}  ({ctimes[0]} -> {ctimes[-1]})")
+    logger.info("candles bars: %s  (%s -> %s)", len(ctimes), ctimes[0], ctimes[-1])
 
     covered = matched = strength_ok = 0
     misses = []
@@ -121,16 +124,16 @@ def validate_geometry(candles_path, fixture_path, max_show=10):
             misses.append((str(t), round(fmid, 5), round(tol, 5), near))
 
     rate = 100 * matched / max(covered, 1)
-    print(f"fixture zones          : {len(rows)}")
-    print(f"covered (enough history): {covered}")
-    print(f"price-matched          : {matched}  ({rate:.1f}%)")
-    print(f"strength agreed (of matched): {strength_ok}/{matched}")
+    logger.info("fixture zones          : %s", len(rows))
+    logger.info("covered (enough history): %s", covered)
+    logger.info("price-matched          : %s  (%.1f%%)", matched, rate)
+    logger.info("strength agreed (of matched): %s/%s", strength_ok, matched)
     if misses:
-        print("sample misses (created_time, fixture_mid, tol, nearest detected mids):")
+        logger.info("sample misses (created_time, fixture_mid, tol, nearest detected mids):")
         for m in misses:
-            print("  ", m)
-    print("\nNOTE: the backend detector is an engineering RECONSTRUCTION, not the "
-          "research zone engine — a gap here is expected and quantifies the difference.")
+            logger.info("   %s", m)
+    logger.info("NOTE: the backend detector is an engineering RECONSTRUCTION, not the "
+                "research zone engine — a gap here is expected and quantifies the difference.")
 
 
 def _parse(ts: str):
@@ -183,7 +186,7 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     if not os.path.exists(args.fixture):
-        print(f"FATAL: fixture not found: {args.fixture}", file=sys.stderr)
+        logger.error("FATAL: fixture not found: %s", args.fixture)
         return 1
 
     cfg = config.load_locked_config()
@@ -256,16 +259,17 @@ def main(argv=None) -> int:
     def block(title, fails, fmt, hard=True):
         tag = "" if hard else " [info]"
         status = "PASS" if not fails else (f"FAIL ({len(fails)})" if hard else f"{len(fails)} outliers")
-        print(f"  {title:42}{tag} {status}")
+        logger.info("  %-42s%s %s", title, tag, status)
         for f in fails[: args.max_show]:
-            print(f"      {fmt(f)}")
+            logger.info("      %s", fmt(f))
 
-    print("== Phase 39 zone-fixture validation ==")
-    print(f"fixture     : {args.fixture}")
-    print(f"rows tested : {rows}")
-    print(f"windows     : max_confirm_wait_bars={max_confirm}, max_touch_wait_bars={max_touch_wait}, tol=+/-{TIME_TOL_BARS} bar")
-    print("")
-    print("HARD CHECKS:")
+    logger.info("== Phase 39 zone-fixture validation ==")
+    logger.info("fixture     : %s", args.fixture)
+    logger.info("rows tested : %s", rows)
+    logger.info("windows     : max_confirm_wait_bars=%s, max_touch_wait_bars=%s, tol=+/-%s bar",
+                max_confirm, max_touch_wait, TIME_TOL_BARS)
+    logger.info("")
+    logger.info("HARD CHECKS:")
     block("dynamic_opportunity_score reproduced", score_fail,
           lambda f: f"line {f[0]}: expected {f[1]} got {f[2]}")
     block("dynamic_grade reproduced", grade_fail,
@@ -275,14 +279,14 @@ def main(argv=None) -> int:
     block("model metadata matches locked config", meta_fail,
           lambda f: f"line {f[0]}: {f[1]}={f[2]!r}")
 
-    print("\nINFORMATIONAL (approx trading-bar counts; can't exclude holidays without candles):")
+    logger.info("INFORMATIONAL (approx trading-bar counts; can't exclude holidays without candles):")
     block("confirm within max_confirm_wait_bars", confirm_win_fail,
           lambda f: f"line {f[0]}: ~{f[1]} bars touch->confirm (Fri->weekend/holiday span)", hard=False)
     block("touch within max_touch_wait_bars", touch_win_fail,
           lambda f: f"line {f[0]}: ~{f[1]} bars created->touch", hard=False)
 
     failed = any([score_fail, grade_fail, order_fail, meta_fail])  # timing windows are informational
-    print("\nRESULT:", "FAIL" if failed else "ALL HARD CHECKS PASSED [PASS]")
+    logger.info("RESULT: %s", "FAIL" if failed else "ALL HARD CHECKS PASSED [PASS]")
 
     # Zone-geometry validation (separate, informational) — runs the real detector
     # on exported candles if a candle CSV is present.
@@ -290,11 +294,15 @@ def main(argv=None) -> int:
     if candles and os.path.exists(candles):
         validate_geometry(candles, args.fixture, max_show=args.max_show)
     else:
-        print("\n(zone geometry not validated — no candle CSV found under "
-              "claudeLoad/validation/; pass --candles PATH)")
+        logger.info("(zone geometry not validated — no candle CSV found under "
+                    "claudeLoad/validation/; pass --candles PATH)")
 
     return 1 if failed else 0
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+    )
     sys.exit(main())

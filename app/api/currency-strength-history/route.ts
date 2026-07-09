@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { requireSubscription } from "@/lib/auth/requireSubscription";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +11,9 @@ export type HistoryPoint = {
 } & Record<(typeof CURRENCIES)[number], number>;
 
 export async function GET(request: Request) {
+  const denied = await requireSubscription();
+  if (denied) return denied;
+
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") === "daily" ? "daily" : "intraday";
   const hoursStr = searchParams.get("hours");

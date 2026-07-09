@@ -55,8 +55,7 @@ type CountryMatcher = {
   coordinates: [number, number];
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const COUNTRY_MATCHERS: CountryMatcher[] = (countries as any[])
+const COUNTRY_MATCHERS: CountryMatcher[] = countries
   .flatMap((country) => {
     if (!country.latlng || country.latlng.length !== 2 || !country.name?.common) return [];
     const aliases = new Set(
