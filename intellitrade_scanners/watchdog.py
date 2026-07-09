@@ -15,6 +15,10 @@ Environment (INTELLITRADE_HOME\config\.env, default C:\IntelliTrade — see conf
     DISCORD_WEBHOOK_URL         (optional)
     TELEGRAM_BOT_TOKEN          (optional)
     TELEGRAM_CHAT_ID            (optional)
+    INTELLITRADE_MIN_SYMBOLS    (optional, default 28) — min pairs a healthy scan
+                                must process. Lower it for feeds that don't serve
+                                all 28 (e.g. MetaQuotes-Demo has no API history for
+                                6 crosses → set 22); keep 28 on the real broker.
 """
 
 import os
@@ -33,7 +37,10 @@ LOG_DIR = config.log_dir()
 
 STALE_INTRADAY_MINUTES = 30
 STALE_DAILY_HOURS = 5
-MIN_SYMBOLS = 28
+# Configurable per feed: MetaQuotes-Demo serves API history for only 22 of the 28
+# pairs, so 28 would false-alert every run there. config.load_env() (above) has
+# already loaded the .env, so this picks up INTELLITRADE_MIN_SYMBOLS if set.
+MIN_SYMBOLS = int(os.environ.get("INTELLITRADE_MIN_SYMBOLS", "28"))
 
 
 def setup_logging() -> None:

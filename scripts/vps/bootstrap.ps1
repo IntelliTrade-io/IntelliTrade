@@ -32,13 +32,24 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 # ── Locate Python ─────────────────────────────────────────────────────────────
+# Avoid the Microsoft Store app-execution alias under
+# %LOCALAPPDATA%\Microsoft\WindowsApps: it's a per-user stub that fails to
+# resolve in Session 0, so scheduled tasks set to "run whether logged in or not"
+# would die silently. Prefer a real interpreter; fall back to the py launcher.
 if (-not $PythonExe) {
-    $found = Get-Command python.exe -ErrorAction SilentlyContinue
-    if (-not $found) {
-        Write-Error "Python not found in PATH. Install Python and add it to PATH, then re-run."
+    $candidates = @(Get-Command python.exe -All -ErrorAction SilentlyContinue | ForEach-Object { $_.Source })
+    $PythonExe = $candidates | Where-Object { $_ -notmatch '\\WindowsApps\\' } | Select-Object -First 1
+    if (-not $PythonExe) {
+        $py = Get-Command py.exe -ErrorAction SilentlyContinue
+        if ($py) { $PythonExe = (& $py.Source -3 -c "import sys; print(sys.executable)" 2>$null) }
+    }
+    if (-not $PythonExe) {
+        Write-Error "No real python.exe found (only the WindowsApps alias, which fails in Session 0 scheduled tasks). Install Python properly or pass -PythonExe explicitly."
         exit 1
     }
-    $PythonExe = $found.Source
+}
+elseif ($PythonExe -match '\\WindowsApps\\') {
+    Write-Warning "The -PythonExe you passed is the WindowsApps alias; scheduled tasks may fail in Session 0. Point it at a real python.exe."
 }
 Write-Host "Using Python : $PythonExe"
 Write-Host "Repo         : $RepoDir"
