@@ -84,6 +84,12 @@ powershell -ExecutionPolicy Bypass -File C:\IntelliTrade\repo\scripts\vps\bootst
 - `-Ref <branch>` — deploy a branch other than `main` (e.g. to test the refactor
   branch before merge).
 - `-IntelliTradeHome <path>` — non-default install root.
+- `-TaskUser <user> -TaskPassword <pw>` — register tasks with **"run whether user
+  is logged in or not"** persisted (stored password). **Strongly recommended** —
+  without it, bootstrap registers tasks run-only-when-logged-on and you must set
+  that flag manually in Task Scheduler *and re-set it after every bootstrap run*
+  (it silently reverts, which re-breaks CSM on the next deploy). Example:
+  `...\bootstrap.ps1 -TaskUser "$env:COMPUTERNAME\trader" -TaskPassword '<pw>'`.
 
 Because the install is editable (`-e`), a routine code change is just
 `git pull` + task run — no reinstall unless dependencies changed.
@@ -92,10 +98,10 @@ Because the install is editable (`-e`), a routine code change is just
 
 ## Notes / scope
 
-- **S&R backend task** (`run_sr_alpha.py`, every 15 min per the backend README)
-  is not registered by this script yet — the old setup didn't either; it runs on
-  its own cron/task. Fold it into `bootstrap.ps1` once its schedule is confirmed
-  against the box.
+- **S&R backend task** (`IntelliTrade SR Alpha`, `python -m support_resistance.run_sr_alpha
+  --source mt5`, every 15 min) is now registered by `bootstrap.ps1`. (It was
+  repointed on the box first via `schtasks /change`; bootstrap now manages it so
+  future deploys keep it on the repo code.)
 - `setup_windows_tasks.ps1` (the old flat-file version) is intentionally left in
   place as the pre-git baseline until drift reconciliation is signed off; retire
   it afterwards.
