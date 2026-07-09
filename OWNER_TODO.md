@@ -13,7 +13,7 @@ Things only the owner can do (account access, credentials, external services). *
 
 ## Deploy / merge (closer to critical — security fixes aren't live until merged)
 
-- [ ] **Merge `refactor/phase1-security` → `main`** (PR). Until this deploys, production still runs pre-hardening code. Everything is build+test green on the branch.
+- [x] ~~**Merge `refactor/phase1-security` → `main`** (PR)~~ **DONE 2026-07-08** (PR #103, merge `de3342b`). Verified before merge: clean merge-tree (0 conflicts), merged tree byte-identical to the tested branch, rebuilt green (build 216 pages, pytest 395, tsc). CI caught + fixed one Windows-only path test (`3cea76d`). Security hardening now on `main` → deploys via Vercel.
 - [ ] **Merge `SRL-dev3` → `main`** for the S&R frontend on Vercel (if not already superseded by the branch above — verify diff first).
 - [ ] **VPS: redeploy the 4 updated S&R backend files + apply migration 004** (close-reclaim columns). Manual RDP copy for now; §6.7 replaces this workflow later.
 
