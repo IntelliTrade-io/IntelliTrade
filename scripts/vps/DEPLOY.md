@@ -54,6 +54,13 @@ deploy is just re-running it (or `git pull` + re-run).
    It sets `INTELLITRADE_HOME`, `pip install -e .[mt5]`, and (re)registers the
    three scheduled tasks to run `python -m intellitrade_scanners.*`.
 
+   **Interpreter note:** the script auto-skips the Microsoft Store
+   `...\WindowsApps\python.exe` alias (it fails in Session 0, so tasks set to
+   "run whether logged in or not" would die silently). If your box only exposes
+   that alias on PATH, pass the real one explicitly:
+   `...\bootstrap.ps1 -PythonExe "C:\Users\<user>\AppData\Local\Python\pythoncore-3.14-64\python.exe"`.
+   Confirm the `Using Python :` line in the output is NOT under `WindowsApps`.
+
 7. **Manual, unavoidable step:** in Task Scheduler, set each IntelliTrade task
    to **"Run whether user is logged in or not"** (enter the account password).
    This is the CSM-outage fix — tasks were running only while logged on.
