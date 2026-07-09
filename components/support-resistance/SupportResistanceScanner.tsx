@@ -1,6 +1,7 @@
 import React from "react";
 import { supportResistanceCopy } from "./copy";
 import { formatReactionRange, formatTypicalR, isGreenTierGrade } from "./model";
+import { gradeBadgeStyle } from "./gradeConfig";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
 import StaticStrengthMeter from "./StaticStrengthMeter";
 import type { ScannerRow } from "./types";
@@ -32,30 +33,6 @@ function getScannerRowTone(grade: ScannerRow["dynamicGrade"], selected: boolean)
   return "border-white/10 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.05]";
 }
 
-function getStatusPillTone(grade: ScannerRow["dynamicGrade"]): string {
-  if (grade === "blocked") {
-    return "border-rose-300/18 bg-rose-400/[0.08] text-rose-100";
-  }
-
-  if (grade === "watch") {
-    return "border-amber-300/18 bg-amber-300/[0.08] text-amber-100";
-  }
-
-  if (grade === "blue") {
-    return "border-sky-300/16 bg-sky-300/[0.07] text-sky-100";
-  }
-
-  if (grade === "a_plus") {
-    return "border-[#F7E38C]/24 bg-[#F7E38C]/[0.1] text-[#FFF1B1]";
-  }
-
-  if (grade === "elite_green") {
-    return "border-teal-300/20 bg-teal-300/[0.08] text-teal-100";
-  }
-
-  return "border-emerald-300/18 bg-emerald-300/[0.08] text-emerald-100";
-}
-
 export function SupportResistanceScanner({
   rows,
   selectedZoneId,
@@ -67,7 +44,7 @@ export function SupportResistanceScanner({
   if (!rows.length) {
     return (
       <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.95))] p-5 text-sm text-white/56">
-        {supportResistanceCopy.emptyStates.noneQualified}
+        {supportResistanceCopy.emptyStates.noZones}
       </section>
     );
   }
@@ -103,7 +80,10 @@ export function SupportResistanceScanner({
               </div>
               <div className="mt-3 flex items-center justify-between gap-3 text-sm text-white/70">
                 <StaticStrengthMeter strength={row.staticStrength} compact />
-                <span className={["rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em]", getStatusPillTone(row.dynamicGrade)].join(" ")}>
+                <span
+                  className="rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
+                  style={gradeBadgeStyle(row.dynamicGrade)}
+                >
                   {row.status}
                 </span>
               </div>
@@ -124,7 +104,9 @@ export function SupportResistanceScanner({
           <p className="mt-1 text-sm text-white/46">Static strength and dynamic opportunity grade are separated on every row.</p>
         </div>
         <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/68">
-          {alphaQualifiedCount ? `${alphaQualifiedCount} Green+ rows in the current Alpha snapshot.` : supportResistanceCopy.emptyStates.noneQualified}
+          {alphaQualifiedCount
+            ? `${alphaQualifiedCount} Green+ ${alphaQualifiedCount === 1 ? "row" : "rows"} in the latest EURUSD M15 snapshot.`
+            : supportResistanceCopy.emptyStates.noGreenPlus}
         </div>
       </div>
 
@@ -185,7 +167,10 @@ export function SupportResistanceScanner({
                   {formatTypicalR(row.typicalMinimumR, row.typicalMaximumR)}
                 </td>
                 <td className="px-4 py-4">
-                  <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em]", getStatusPillTone(row.dynamicGrade)].join(" ")}>
+                  <span
+                    className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
+                    style={gradeBadgeStyle(row.dynamicGrade)}
+                  >
                     {row.status}
                   </span>
                 </td>
@@ -218,7 +203,10 @@ export function SupportResistanceScanner({
                 Typical {formatTypicalR(row.typicalMinimumR, row.typicalMaximumR)}
               </div>
               <div>
-                <span className={["inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.16em]", getStatusPillTone(row.dynamicGrade)].join(" ")}>
+                <span
+                  className="inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]"
+                  style={gradeBadgeStyle(row.dynamicGrade)}
+                >
                   {row.status}
                 </span>
               </div>

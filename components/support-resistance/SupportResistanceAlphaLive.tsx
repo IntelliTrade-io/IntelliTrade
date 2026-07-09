@@ -82,14 +82,35 @@ export function SupportResistanceAlphaLive({ compact = false, refreshMs = 60_000
     );
   }
 
-  // Always pass the REAL candles (never fall back to mock ~1.08 prices, which
-  // would sit far from real EURUSD ~1.1x zones and render the bands off-screen).
+  // Snapshot freshness. The intraday worker writes every 15 min; flag stale > 30m.
+  const calcAt = data?.calculatedAt ? new Date(data.calculatedAt) : null;
+  const ageMinutes = calcAt ? (Date.now() - calcAt.getTime()) / 60000 : null;
+  const isStale = ageMinutes != null && ageMinutes > 30;
+  const snapshotLabel = calcAt
+    ? new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "UTC",
+      }).format(calcAt)
+    : null;
+
+  // Always pass the REAL candles (never mock — mock ~1.08 prices would sit far
+  // from real EURUSD ~1.1x zones and render the bands off-screen).
   return (
-    <SupportResistanceAlphaModule
-      zones={zones}
-      candles={data?.candles ?? []}
-      compact={compact}
-    />
+    <div className={compact ? "flex h-full min-h-0 flex-col gap-2" : "grid gap-2"}>
+      {isStale ? (
+        <div className="rounded-full border border-amber-300/30 bg-amber-400/[0.08] px-3 py-1.5 text-xs text-amber-100">
+          Data may be stale — last snapshot {snapshotLabel} UTC. The scoring worker refreshes every 15 minutes.
+        </div>
+      ) : snapshotLabel ? (
+        <div className="text-xs text-white/44">Latest EURUSD M15 snapshot · {snapshotLabel} UTC</div>
+      ) : null}
+      <div className={compact ? "min-h-0 flex-1 overflow-hidden" : ""}>
+        <SupportResistanceAlphaModule zones={zones} candles={data?.candles ?? []} compact={compact} />
+      </div>
+    </div>
   );
 }
 

@@ -34,7 +34,7 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
   if (!zone) {
     return (
       <aside className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.96))] p-5 text-sm text-white/56">
-        {supportResistanceCopy.emptyStates.noneQualified}
+        {supportResistanceCopy.emptyStates.noReclaim}
       </aside>
     );
   }

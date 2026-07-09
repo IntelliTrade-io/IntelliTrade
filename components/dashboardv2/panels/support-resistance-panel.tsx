@@ -11,15 +11,16 @@ interface SupportResistancePanelProps {
   panel: Panel;
   onToggleLock: () => void;
   onRemove: () => void;
+  focused?: boolean;
 }
 
-export function SupportResistancePanel({ panel, onToggleLock, onRemove }: SupportResistancePanelProps) {
+export function SupportResistancePanel({ panel, onToggleLock, onRemove, focused = false }: SupportResistancePanelProps) {
   return (
     <WidgetShell
       title="Support & Resistance Alpha"
       subtitle="EURUSD support-reclaim opportunity grading (research decision support)."
       className="h-full"
-      contentClassName="min-h-0 overflow-hidden"
+      contentClassName="min-h-0 overflow-y-auto"
       headerRight={
         <>
           <Pill active>
@@ -30,7 +31,7 @@ export function SupportResistancePanel({ panel, onToggleLock, onRemove }: Suppor
         </>
       }
     >
-      <SupportResistanceAlphaLive compact />
+      <SupportResistanceAlphaLive compact={!focused} />
     </WidgetShell>
   );
 }

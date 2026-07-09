@@ -314,7 +314,7 @@ export function SupportResistanceLightweightChart({
         <div>
           <div className="text-[11px] uppercase tracking-[0.22em] text-white/34">Lightweight chart overlay</div>
           <h3 className="mt-1 text-lg font-semibold text-white">EURUSD Support Reclaim Alpha</h3>
-          <p className="mt-1 text-sm text-white/44">Resistance zones, more pairs, and live Supabase scoring are coming later.</p>
+          <p className="mt-1 text-sm text-white/44">Live EURUSD M15 support-zone context. Resistance zones and more pairs are coming later.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/60">
@@ -371,6 +371,9 @@ export function SupportResistanceLightweightChart({
                   background: config.chartFill,
                   borderColor: selected ? selectedBorder : config.chartStroke,
                   borderStyle: selected ? "solid" : mutedGrade ? "dashed" : "solid",
+                  // Premium outer glow only for elite_green + a_plus (config.glow is
+                  // empty for the rest). Selection ring is handled by className.
+                  boxShadow: selected ? undefined : config.glow || undefined,
                   opacity: selected ? 1 : hovered ? 0.86 : lowPriorityGrade ? 0.42 : mutedGrade ? 0.54 : 0.64,
                 }}
               >

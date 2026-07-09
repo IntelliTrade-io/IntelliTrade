@@ -2,7 +2,10 @@ export const supportResistanceCopy = {
   disclaimer:
     "Research-backed ranges are based on historical testing and are for educational decision support only. They are not trading signals, financial advice, or guarantees of future results.",
   emptyStates: {
-    noneQualified: "No current EURUSD M15 support-only Alpha rows match the research filters.",
+    // Rows/zones can exist while none are Green+; wording must never imply "no data" then.
+    noGreenPlus: "No Green+ opportunities right now.",
+    noReclaim: "No active reclaim opportunity right now.",
+    noZones: "No active EURUSD support zones right now.",
     blueZones: "Blue zones are informational. They are not trade-ready by themselves.",
     roadmap: "More pairs and resistance zones coming later. Alpha v1 is limited to EURUSD M15 support zones.",
   },

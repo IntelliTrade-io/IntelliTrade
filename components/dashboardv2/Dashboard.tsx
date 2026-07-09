@@ -76,7 +76,7 @@ function renderPanel(
     case "macro":
       return <MacroMasteryPanel {...base} />;
     case "supportResistance":
-      return <SupportResistancePanel {...base} />;
+      return <SupportResistancePanel {...base} focused={focused} />;
     default:
       return null;
   }
@@ -120,6 +120,15 @@ export function Dashboard() {
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  // Deep-link: /dashboardv2?panel=supportResistance focuses that tab. Lets the
+  // /support-resistance redirect open the module inside the full dashboard shell.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("panel");
+    if (p && PANEL_TABS.some((tab) => tab.id === p && !tab.comingSoon)) {
+      setFocusedType(p as TabId);
+    }
   }, []);
 
   return (
