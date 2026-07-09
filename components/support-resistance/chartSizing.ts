@@ -4,7 +4,7 @@ export interface ChartLogicalRange {
 }
 
 export function getSupportResistanceChartMinHeight(compact: boolean): number {
-  return compact ? 270 : 620;
+  return compact ? 270 : 460;
 }
 
 export function getSupportResistanceChartViewportHeight(host: HTMLElement | null, fallbackHeight: number): number {
