@@ -10,10 +10,12 @@ def test_defaults_match_vps_convention(monkeypatch):
     for var in ("INTELLITRADE_HOME", "INTELLITRADE_CONFIG_ENV",
                 "INTELLITRADE_LOG_DIR", "INTELLITRADE_OUT_DIR"):
         monkeypatch.delenv(var, raising=False)
+    # Compose expected paths with os.path.join so the separator matches the
+    # running OS (VPS is Windows; CI is Linux) — config.py uses os.path.join too.
     assert config.home() == r"C:\IntelliTrade"
-    assert config.env_file() == r"C:\IntelliTrade\config\.env"
-    assert config.log_dir() == r"C:\IntelliTrade\logs"
-    assert config.out_dir() == r"C:\IntelliTrade\out"
+    assert config.env_file() == os.path.join(r"C:\IntelliTrade", "config", ".env")
+    assert config.log_dir() == os.path.join(r"C:\IntelliTrade", "logs")
+    assert config.out_dir() == os.path.join(r"C:\IntelliTrade", "out")
 
 
 def test_home_override_moves_everything(monkeypatch):
