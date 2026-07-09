@@ -24,6 +24,13 @@ param(
     [string]$IntelliTradeHome = "C:\IntelliTrade",
     [string]$Ref              = "main",
     [string]$PythonExe        = "",
+    # Provide BOTH to register tasks with "run whether user is logged in or not"
+    # persisted (stored password). Without them, tasks register interactive
+    # (run only when logged on) and you must set that flag manually in Task
+    # Scheduler — AND re-set it after every bootstrap run (it gets reset).
+    #   e.g. -TaskUser "$env:COMPUTERNAME\trader" -TaskPassword 'secret'
+    [string]$TaskUser         = "",
+    [string]$TaskPassword     = "",
     [switch]$SkipPull,
     [switch]$SkipInstall
 )
@@ -105,21 +112,28 @@ function Register-ScannerTask {
         [string]$TaskName,
         [string]$Module,          # e.g. intellitrade_scanners.scanner_d1h4
         [object]$Trigger,
-        [object]$Settings
+        [object]$Settings,
+        [string]$ExtraArgs = ""   # e.g. "--source mt5"
     )
     Remove-TaskIfExists $TaskName
+    $argument = "-m $Module"
+    if ($ExtraArgs) { $argument = "$argument $ExtraArgs" }
     $action = New-ScheduledTaskAction `
         -Execute $PythonExe `
-        -Argument "-m $Module" `
+        -Argument $argument `
         -WorkingDirectory $RepoDir
-    Register-ScheduledTask `
-        -TaskName $TaskName `
-        -Action $action `
-        -Trigger $Trigger `
-        -Settings $Settings `
-        -RunLevel Highest `
-        -Force | Out-Null
-    Write-Host "  Registered: $TaskName -> python -m $Module"
+    $reg = @{
+        TaskName = $TaskName; Action = $action; Trigger = $Trigger;
+        Settings = $Settings; RunLevel = "Highest"; Force = $true
+    }
+    # If creds supplied, persist "run whether user is logged in or not" (stored
+    # password) so a bootstrap re-run doesn't silently revert tasks to logged-on-only.
+    if ($TaskUser -and $TaskPassword) {
+        $reg["User"] = $TaskUser
+        $reg["Password"] = $TaskPassword
+    }
+    Register-ScheduledTask @reg | Out-Null
+    Write-Host "  Registered: $TaskName -> python $argument"
 }
 
 # ── D1/H4 scanner — six daily triggers ────────────────────────────────────────
@@ -156,21 +170,33 @@ $wdSettings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable -MultipleInstances IgnoreNew
 Register-ScannerTask "IntelliTrade Scanner Watchdog" "intellitrade_scanners.watchdog" $wdTrigger $wdSettings
 
+# ── SR Alpha (EURUSD support/resistance) — every 15 minutes ──────────────────
+$srTrigger = New-ScheduledTaskTrigger -Once -At "00:00" `
+    -RepetitionInterval (New-TimeSpan -Minutes 15) `
+    -RepetitionDuration (New-TimeSpan -Days 9999)
+$srSettings = New-ScheduledTaskSettingsSet `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 14) `
+    -StartWhenAvailable -MultipleInstances IgnoreNew
+Register-ScannerTask "IntelliTrade SR Alpha" "support_resistance.run_sr_alpha" $srTrigger $srSettings "--source mt5"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 Write-Host "`n=== Scheduled tasks ==="
 Get-ScheduledTask -TaskName "IntelliTrade*" | Select-Object TaskName, State | Format-Table
 
-Write-Host @"
+if ($TaskUser -and $TaskPassword) {
+    Write-Host "`nTasks registered with stored credentials for '$TaskUser' -> 'run whether user is logged in or not' is set and persists across bootstrap runs. No manual Task Scheduler step needed."
+} else {
+    Write-Host @"
 
-MANUAL STEP (unavoidable) — 'Run whether user is logged in or not':
-  This is the fix for the CSM outage (tasks currently run only when logged on).
-  Task Scheduler cannot set this non-interactively without storing the password.
-  1. Open Task Scheduler (taskschd.msc)
-  2. For each IntelliTrade task -> Properties -> General
-  3. Select 'Run whether user is logged in or not'
-  4. Enter the Windows account password when prompted -> OK
-
-Also confirm the MT5 terminal is logged in (demo account) before trusting output;
-the feed froze during the outage. Run one scan manually to verify:
-  $PythonExe -m intellitrade_scanners.scanner_h1m15
+MANUAL STEP — 'Run whether user is logged in or not':
+  No -TaskUser/-TaskPassword given, so tasks registered as run-only-when-logged-on.
+  This is the CSM-outage fix; set it, or re-run bootstrap WITH creds to persist it:
+     ...\bootstrap.ps1 -SkipPull -SkipInstall -TaskUser "`$env:COMPUTERNAME\trader" -TaskPassword '<pw>'
+  Manual route (must be redone after EVERY plain bootstrap run):
+  1. taskschd.msc -> each IntelliTrade task -> Properties -> General
+  2. Select 'Run whether user is logged in or not' -> enter the account password -> OK
 "@
+}
+
+Write-Host "`nConfirm the MT5 terminal is logged in (demo account), then verify a scan:"
+Write-Host "  $PythonExe -m intellitrade_scanners.scanner_h1m15"
