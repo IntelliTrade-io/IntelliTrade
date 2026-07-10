@@ -1,5 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Reference-only app: IntelliConflict-Map is the standalone reference build for the
+# in-app IntelliConflict module. Not part of this repo's build/lint/test (already
+# excluded in tsconfig/vitest/eslint/prettier). Untracked + ignored; kept on disk
+# for reference only, to be removed entirely once the in-app module is complete.
+/IntelliConflict-Map/
+
 # dependencies (any depth — the nested IntelliConflict-Map app has its own)
 node_modules/
 /.pnp

@@ -316,7 +316,7 @@ Target structure (owner 2026-07-04: "modern standards, use the official Next fil
 - Note:
 
 **7.2 — Wire the nested app's tests OR formally exclude**
-- [ ] `IntelliConflict-Map`'s 9 tests never run in root `npm test`. Since it's staying separate (decided), document that its tests run via its own runner; don't silently leave them dead.
+- [x] ~~`IntelliConflict-Map`'s 9 tests never run in root `npm test`.~~ **Resolved 2026-07-09 (owner): IntelliConflict-Map is reference-only** — the standalone build the in-app IntelliConflict module was ported from. It's untracked + gitignored (`/IntelliConflict-Map/`), already excluded from tsconfig/vitest/eslint/prettier, and will be deleted entirely once the in-app module is complete. Its tests are intentionally NOT wired — not part of this repo. Verified zero code imports from the root app before untracking (only config exclusion entries referenced it).
 - Note:
 
 **7.3 — CI pipeline**
@@ -388,7 +388,7 @@ Capture at start of each phase to show progress:
 
 ## 8. Backlog / deferred (not scheduled this refactor)
 
-- **Reconcile or retire the nested `IntelliConflict-Map/` app.** It duplicates root `lib/conflicts/*` and conflict tests. Decided to keep separate for now; revisit whether to merge its (possibly newer) logic into root or delete one copy.
+- **Retire the nested `IntelliConflict-Map/` app** *(owner decision 2026-07-09: reference-only)*. It's the standalone reference build the in-app IntelliConflict module was ported from — NOT to be reconciled/merged. Now untracked + gitignored (`/IntelliConflict-Map/`), kept on disk for reference only. **Delete entirely once the in-app IntelliConflict module is fully working.**
 - **Duplicate data assets** — `world.topo.json` and `conflicts.sample.geojson` exist in both `public/` and the nested app; `opengraph-image.png`/`twitter-image.png` identical size (possible dup). Dedup when the nested-app decision is made.
 - **`vercel.json` is empty (`{}`)** and `sanity/` has only a client (no schemas in-repo) — decide whether Studio/schemas should live here.
 - **`/protected` starter page** — decide if it stays; ties to tutorial-folder removal (4.4).
