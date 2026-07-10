@@ -7,7 +7,7 @@ import {
 
 describe("support resistance chart sizing", () => {
   it("uses a taller full-page chart while preserving the compact widget height", () => {
-    expect(getSupportResistanceChartMinHeight(false)).toBe(620);
+    expect(getSupportResistanceChartMinHeight(false)).toBe(460);
     expect(getSupportResistanceChartMinHeight(true)).toBe(270);
   });
 
