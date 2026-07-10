@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Terms of Service · IntelliTrade",
@@ -31,7 +32,7 @@ export default function TermsLayout({ children }: { children: React.ReactNode })
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(webPageSchema) }}
       />
       {children}
     </>

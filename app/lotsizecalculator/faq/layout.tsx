@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 
 export const metadata: Metadata = {
   title: "Lot Size Calculator Guide & FAQ · IntelliTrade",
@@ -53,7 +54,7 @@ export default function FaqLayout({ children }: { children: React.ReactNode }) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }}
       />
       {children}
     </>

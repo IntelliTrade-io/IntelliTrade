@@ -363,7 +363,7 @@ Full detail lives in Phase 1. Register for tracking:
 | M11 | MED | Open redirect via `next` param in `auth/confirm` | ✅ fixed 2026-07-04 |
 | M12 | MED | Supabase deps pinned to `latest` | ✅ fixed 2026-07-04 |
 | L13 | LOW | Reflected unencoded auth error string | ✅ fixed 2026-07-04 |
-| L14 | LOW | JSON-LD `dangerouslySetInnerHTML` from CMS without `</script>` escaping | ☐ open |
+| L14 | LOW | JSON-LD `dangerouslySetInnerHTML` from CMS without `</script>` escaping | ✅ fixed 2026-07-10 — `lib/jsonLd.ts` escapes `<` to `<`; all 13 JSON-LD sites use it (3 unit tests) |
 
 **Confirmed healthy (no action):** Stripe webhook signature verified; Stripe checkout/portal auth-checked, price from server env; no hardcoded secrets in git; `.env.local` gitignored; Python uses parameterized Supabase calls (no SQL injection surface); only 2 truly-bare Python excepts.
 

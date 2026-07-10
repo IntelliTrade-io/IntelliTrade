@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 import { client } from "@/sanity/client";
 import Main from "@/app/blog/_components/Main";
 import { type SanityDocument } from "next-sanity";
@@ -92,11 +93,11 @@ export default async function BlogPage() {
     <div className="w-full flex flex-col items-center px-4 pt-8 pb-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(blogSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
       <div className="w-full max-w-5xl">
         {posts.length > 0 ? (

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 import SilverPriceTodayPage from "./_components/SilverPriceTodayPage";
 
 export const metadata: Metadata = {
@@ -43,7 +44,7 @@ export default function Page() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
       />
       <SilverPriceTodayPage />
     </>

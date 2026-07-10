@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 import { PortableText, type SanityDocument } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
@@ -119,7 +120,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <div className="relative min-h-screen bg-black text-slate-100">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(blogPostingSchema) }}
       />
       {/* Scroll Progress Bar (Client Component) */}
       <ReadingProgressBar />

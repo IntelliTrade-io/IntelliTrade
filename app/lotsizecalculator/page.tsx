@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
 import { BookOpen, ArrowRight } from "lucide-react";
 import LotSizeCalculator from "@/components/calculators/LotSizeCalculator";
@@ -119,15 +120,15 @@ export default function Page() {
       {/* Structured data */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareAppSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(softwareAppSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchemaData) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchemaData) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
 
       <div className="mx-auto max-w-4xl px-4 pb-28 pt-10 sm:px-8">
