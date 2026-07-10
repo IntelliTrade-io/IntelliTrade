@@ -6,7 +6,9 @@ const { constructEvent, single, eq, select, upsert, from } = vi.hoisted(() => {
   const single = vi.fn();
   const eq = vi.fn(() => ({ single }));
   const select = vi.fn(() => ({ eq }));
-  const upsert = vi.fn(() => Promise.resolve({ error: null }));
+  const upsert = vi.fn((_payload: Record<string, unknown>, _opts: { onConflict: string }) =>
+    Promise.resolve({ error: null }),
+  );
   const from = vi.fn(() => ({ select, upsert }));
   return { constructEvent: vi.fn(), single, eq, select, upsert, from };
 });

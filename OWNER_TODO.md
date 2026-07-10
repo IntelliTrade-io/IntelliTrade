@@ -56,6 +56,14 @@ Things only the owner can do (account access, credentials, external services). *
 
 - [ ] **Currency-strength GitHub Actions healthy after merge?** The daily (22:15 UTC) and hourly intraday workflows now install the package (`pip install .`) and run `python -m intellitrade_scanners.scanner_oanda_{daily,intraday}` — same flags, same output, algorithm verified identical. This only takes effect once the refactor branch merges to `main` (scheduled workflows run from the default branch). After the next scheduled runs, glance at GitHub → Actions; if a run fails on `pip install .` or OANDA auth, paste Claude the error. (Claude couldn't check run history: no `gh` CLI on this machine.)
 
+## CI activation (Phase 7.3 — workflows landed, need repo config to fully arm)
+
+The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every push/PR **now** (no config needed). Two parts are gated until you add repo settings:
+
+- [ ] **Activate the `next build` CI gate** — add two repo **Actions *variables*** (Settings → Secrets and variables → Actions → *Variables*, NOT secrets — these are the public `NEXT_PUBLIC_` Sanity values that already ship to the browser): `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET` (usually `production`). Until set, the Build step is skipped (Vercel still builds on deploy, so nothing is unguarded — this just moves the catch earlier). Supabase/Stripe use placeholders in CI by design (no page hits them at build time).
+- [ ] **Arm the anon-key security regression check** — add two repo **secrets**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (the production project's public anon key). The `security-regression` job then verifies anon REST reads are denied on all 13 premium tables (guards audit finding C1). Until set, the check self-skips (green). It's read-only and only asserts *denial*.
+- [ ] **Enable branch protection on `main`** (Settings → Branches → add rule) — require the `frontend` + `security-regression` + `pytest` checks to pass before merge. This is what actually gates merges on green; the workflows only report status without it.
+
 ## External / accounts
 
 - [ ] **Check Supabase sign-up email redirect** — the sign-up flow passes `emailRedirectTo: <origin>/auth/callback`, but no `/auth/callback` route exists in the app (only `/auth/confirm`, which handles `token_hash` links). If the Supabase email template uses `{{ .ConfirmationURL }}`, new users may land on a 404 after confirming. Test one real sign-up; tell Claude "callback works" or "callback 404s" → then it's either left alone or repointed to `/auth/confirm`.
