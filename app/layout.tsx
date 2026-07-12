@@ -34,6 +34,9 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Analytics + AdSense only load in production. In dev they'd pollute GA4 with
+  // localhost traffic and fire ad requests against an unapproved site.
+  const isProd = process.env.NODE_ENV === "production";
   return (
     <html lang={siteMetadata.language} className={`${space_grotesk.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
@@ -46,36 +49,40 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)" />
         <meta name="google-adsense-account" content="ca-pub-4817545358384465"></meta>
         <link rel="alternate" type="application/rss+xml" href="/feed.xml" />
-  {/* Google Consent Mode v2: everything denied until the banner records a
-      choice (ConsentBanner applies stored/updated consent). Must run before
-      gtag.js loads. */}
-  <Script id="consent-default" strategy="beforeInteractive">
-    {`
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('consent', 'default', {
-        ad_storage: 'denied',
-        ad_user_data: 'denied',
-        ad_personalization: 'denied',
-        analytics_storage: 'denied',
-        wait_for_update: 500
-      });
-    `}
-  </Script>
-         <Script
-    strategy="afterInteractive"
-    src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
-  />
-  <Script id="gtag-init" strategy="afterInteractive">
-    {`
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '${GA_TRACKING_ID}', { page_path: window.location.pathname });
-    `}
-  </Script>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4817545358384465"
-     crossOrigin="anonymous"></script>
+  {isProd && (
+    <>
+      {/* Google Consent Mode v2: everything denied until the banner records a
+          choice (ConsentBanner applies stored/updated consent). Must run before
+          gtag.js loads. */}
+      <Script id="consent-default" strategy="beforeInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            wait_for_update: 500
+          });
+        `}
+      </Script>
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+      />
+      <Script id="gtag-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_TRACKING_ID}', { page_path: window.location.pathname });
+        `}
+      </Script>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4817545358384465"
+         crossOrigin="anonymous"></script>
+    </>
+  )}
       </head>
       <body className="relative min-h-screen bg-black">
         {/* Fixed background */}

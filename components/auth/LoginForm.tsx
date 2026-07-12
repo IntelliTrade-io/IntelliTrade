@@ -1,6 +1,8 @@
 "use client";
 
 import { signInWithPassword } from "@/lib/auth/client";
+import { trackEvent } from "@/lib/analytics";
+import { safeRelativePath } from "@/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -16,7 +18,12 @@ export function LoginForm() {
     setError(null);
     try {
       await signInWithPassword(email, password);
-      window.location.href = "/dashboardv2";
+      trackEvent("login", { method: "password" });
+      // Honor ?redirect= (relative-only, open-redirect safe); default dashboard.
+      const redirect = safeRelativePath(
+        new URLSearchParams(window.location.search).get("redirect"),
+      );
+      window.location.href = redirect ?? "/dashboardv2";
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

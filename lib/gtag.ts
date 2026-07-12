@@ -1,7 +1,9 @@
 export const GA_TRACKING_ID = 'G-EX1XMJTN0S';
 
-// Log pageviews
+// Log pageviews. Guarded: gtag.js only loads in production (see app/layout.tsx),
+// so in dev window.gtag is undefined and this must no-op instead of throwing.
 export const pageview = (url: string) => {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') return;
   window.gtag('config', GA_TRACKING_ID, { page_path: url });
 };
 

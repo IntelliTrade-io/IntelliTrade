@@ -1,6 +1,8 @@
 "use client";
 
 import { signUpWithPassword } from "@/lib/auth/client";
+import { trackEvent } from "@/lib/analytics";
+import { safeRelativePath } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,11 +26,19 @@ export function SignUpForm() {
       return;
     }
 
+    trackEvent("sign_up_start");
+
     try {
       const hasSession = await signUpWithPassword(email, password);
+      trackEvent("sign_up", { method: "password" });
       if (hasSession) {
         router.refresh();
-        router.push("/upgrade");
+        // Honor ?redirect= (relative-only) for immediate-session sign-ups; else
+        // continue to the upgrade offer.
+        const redirect = safeRelativePath(
+          new URLSearchParams(window.location.search).get("redirect"),
+        );
+        router.push(redirect ?? "/upgrade");
       } else {
         router.push("/auth/sign-up-success");
       }
