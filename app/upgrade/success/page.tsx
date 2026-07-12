@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { PurchaseBeacon } from "./_components/PurchaseBeacon";
 
 export default function UpgradeSuccessPage() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center px-4 text-white">
+      <PurchaseBeacon />
       <div className="relative w-full max-w-md overflow-hidden rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(12,12,16,0.82),rgba(7,7,10,0.88))] p-10 text-center shadow-[0_28px_72px_rgba(0,0,0,0.5)] backdrop-blur-2xl">
         <div className="radial-backdrop" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.1),transparent_60%)]" />

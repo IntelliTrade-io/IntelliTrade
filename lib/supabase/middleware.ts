@@ -45,18 +45,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (
-    request.nextUrl.pathname !== "/" &&
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
-  }
-
   // Subscription gate: all premium surfaces require an active Stripe
   // subscription — free tier is only the blog, lot size calculator, and
   // prices-today pages (those never reach here; they're excluded in
@@ -74,6 +62,27 @@ export async function updateSession(request: NextRequest) {
   const requiresSubscription = PREMIUM_PREFIXES.some((prefix) =>
     request.nextUrl.pathname.startsWith(prefix),
   );
+
+  if (
+    request.nextUrl.pathname !== "/" &&
+    !user &&
+    !request.nextUrl.pathname.startsWith("/login") &&
+    !request.nextUrl.pathname.startsWith("/auth")
+  ) {
+    // No user. Premium surfaces (dashboard etc.) send visitors to the Pro
+    // sell page with an explainer banner instead of a bare login wall — a
+    // logged-out product-curious visitor gets context, not a dead end. Other
+    // protected paths (e.g. /account) still go to login.
+    const url = request.nextUrl.clone();
+    if (requiresSubscription) {
+      url.pathname = "/pro";
+      url.search = "";
+      url.searchParams.set("from", "dashboard");
+    } else {
+      url.pathname = "/auth/login";
+    }
+    return NextResponse.redirect(url);
+  }
 
   if (user && requiresSubscription) {
     const { data: sub } = await supabase

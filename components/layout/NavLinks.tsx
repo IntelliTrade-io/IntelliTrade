@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Calculator, BookOpen, Info, TrendingUp, ChevronDown } from "lucide-react";
+import { Calculator, BookOpen, Info, TrendingUp, ChevronDown, Sparkles } from "lucide-react";
 
 const PRICE_LINKS = [
   { label: "Gold", href: "/gold-price-today", symbol: "XAU/USD" },
@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { label: "Lot size calculator", href: "/lotsizecalculator", icon: Calculator },
   { label: "Blog", href: "/blog", icon: BookOpen },
   { label: "About", href: "/about", icon: Info },
+  { label: "Pro", href: "/pro", icon: Sparkles },
 ];
 
 export default function NavLinks() {

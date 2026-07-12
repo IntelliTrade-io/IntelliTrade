@@ -1,12 +1,14 @@
 import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import { CheckCircle2, LayoutDashboard, CalendarDays, CandlestickChart, BookOpen, Gamepad2, FileText, Radar, Globe2, Calculator } from "lucide-react";
+import { CheckCircle2, LayoutDashboard, CalendarDays, CandlestickChart, BookOpen, Gamepad2, FileText, Radar, Globe2, Calculator, LineChart } from "lucide-react";
 import { UpgradeButton } from "./_components/UpgradeButton";
+import { PricingBeacon } from "@/components/pro/PricingBeacon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 const FEATURES = [
+  { icon: LineChart,       label: "Smart Support Zones (EURUSD)", soon: false },
   { icon: LayoutDashboard, label: "Custom Trading Dashboard", soon: false },
   { icon: CandlestickChart, label: "TradingView charts",      soon: false },
   { icon: CalendarDays,    label: "Economic calendar",        soon: false },
@@ -63,9 +65,11 @@ export default async function UpgradePage({
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(139,92,246,0.08),transparent_55%)]" />
 
           <div className="relative z-10">
+            <PricingBeacon page="upgrade" />
+
             {/* Badge */}
             <div className="mb-6 inline-flex items-center rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300">
-              IntelliTrade Pro
+              IntelliTrade Pro · Founding Member
             </div>
 
             {/* Price */}
@@ -76,6 +80,9 @@ export default async function UpgradePage({
               </span>
               <span className="mb-1.5 text-white/40">/month</span>
             </div>
+            <p className="mb-1 text-sm text-white/55">
+              Founding price for the first 100 members — keep it for as long as you stay subscribed.
+            </p>
             <p className="mb-8 text-sm text-white/40">
               Cancel anytime. No contracts.
             </p>

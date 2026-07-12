@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import SilverPriceTodayPage from "./_components/SilverPriceTodayPage";
+import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
   title: "Silver Price Today (XAG/USD) · IntelliTrade",
@@ -47,6 +48,17 @@ export default function Page() {
         dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
       />
       <SilverPriceTodayPage />
+      <section className="w-full px-4 pb-20">
+        <div className="mx-auto max-w-5xl">
+          <ProCtaCard
+            heading="The price is one input. Context is the rest."
+            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality — before you consider a trade."
+            href="/pro?src=silver"
+            ctaId="price_silver"
+            src="silver"
+          />
+        </div>
+      </section>
     </>
   );
 }

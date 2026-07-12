@@ -603,7 +603,7 @@ export default function Page() {
                   </Link>
 
                   <Link
-                    href="/terms"
+                    href="/termsOfService"
                     className="group rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.07]"
                   >
                     <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">

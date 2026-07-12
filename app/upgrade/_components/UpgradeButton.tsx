@@ -3,16 +3,19 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { apiPost } from "@/lib/api/client";
+import { trackEvent } from "@/lib/analytics";
 
 export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
     if (!isLoggedIn) {
-      window.location.href = "/auth/login?redirect=/upgrade";
+      // No account yet → create one, then return to the upgrade offer.
+      window.location.href = "/auth/sign-up?redirect=/upgrade";
       return;
     }
 
+    trackEvent("begin_checkout", { currency: "EUR", value: 15 });
     setLoading(true);
     try {
       const { url } = await apiPost<{ url?: string }>("/api/stripe/checkout");
@@ -29,7 +32,7 @@ export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
       className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-600 px-8 py-4 text-base font-semibold text-white shadow-[0_0_32px_rgba(139,92,246,0.35)] transition-all hover:bg-violet-500 hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] disabled:opacity-60"
     >
       {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : null}
-      {loading ? "Redirecting to checkout…" : isLoggedIn ? "Subscribe now" : "Sign in to subscribe"}
+      {loading ? "Redirecting to checkout…" : isLoggedIn ? "Subscribe now" : "Create your account to subscribe"}
     </button>
   );
 }

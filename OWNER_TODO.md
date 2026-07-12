@@ -82,6 +82,15 @@ The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every p
 - [ ] **Arm the anon-key security regression check** — add two repo **secrets**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (the production project's public anon key). The `security-regression` job then verifies anon REST reads are denied on all 13 premium tables (guards audit finding C1). Until set, the check self-skips (green). It's read-only and only asserts *denial*.
 - [ ] **Enable branch protection on `main`** (Settings → Branches → add rule) — require the `frontend` + `security-regression` + `pytest` checks to pass before merge. This is what actually gates merges on green; the workflows only report status without it.
 
+## Conversion launch (CONVERSION_PLAN.md / OPUS_HANDOFF.md, 2026-07-12)
+
+- [x] ~~**Verify `STRIPE_PRICE_ID` (prod env) is a €15.00 EUR/month recurring price**~~ — owner confirmed 2026-07-12: prod price is already €15/mo EUR. Founding copy is safe as-is.
+- [x] ~~**Approve Phase D middleware change**~~ — approved + implemented 2026-07-12: logged-out visits to premium pages now redirect to `/pro?from=dashboard` (explainer banner) instead of `/auth/login`. Non-premium protected paths (e.g. /account) still go to login. No access loosened.
+- [ ] **Decide standard price after member 100** (recommend before ~member 70; no code needed now — copy says "standard price" without a number).
+- [ ] **VAT presentation** — owner decision 2026-07-12: keep copy VAT-silent for now. Before EU launch, enable Stripe Tax and decide inclusive/exclusive €15, then add "VAT included" under the price on /pro + /upgrade.
+- [ ] **GA4 console tasks** (events now live in prod build): mark `sign_up`, `begin_checkout`, `purchase` as key events; Admin → Data streams → unwanted referrals: add `checkout.stripe.com`; define internal-traffic filter for your IPs; build funnel exploration `page_view → cta_click → sign_up → begin_checkout → purchase`. Event names shipped: `cta_click`, `founding_cta_click`, `view_pricing`, `preview_interact`, `calculator_result`, `sign_up_start`, `sign_up`, `login`, `begin_checkout`, `purchase`.
+- [ ] **Founding-member cap watch** — count paid members with `select count(*) from subscriptions where status in ('active','trialing')`; automate enforcement when approaching ~80 (backlogged in IMPROVEMENTS.md).
+
 ## External / accounts
 
 - [ ] **Check Supabase sign-up email redirect** — the sign-up flow passes `emailRedirectTo: <origin>/auth/callback`, but no `/auth/callback` route exists in the app (only `/auth/confirm`, which handles `token_hash` links). If the Supabase email template uses `{{ .ConfirmationURL }}`, new users may land on a 404 after confirming. Test one real sign-up; tell Claude "callback works" or "callback 404s" → then it's either left alone or repointed to `/auth/confirm`.
