@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
+import { cleanPostTitle } from "@/lib/blog";
 import { type SanityDocument } from "next-sanity";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import BlogClientPage from "./_components/BlogClientPage";
@@ -50,7 +51,7 @@ export default async function AllBlogsPage() {
       slug: post.slug || "",
       // Fallback to today if date is missing
       date: post.date || new Date().toISOString(),
-      title: post.title || "",
+      title: cleanPostTitle(post.title),
       summary: post.summary || "",
       tags: post.tags || [],
       // 2. THIS IS THE KEY: Pass the image object to the map

@@ -20,7 +20,8 @@ The remaining explanation that fits: **the blog pattern-matches Google's "scaled
 Fixes, in order of expected impact:
 
 - [ ] **Inject proprietary data into posts** — our strongest and cheapest originality lever. We run pipelines nobody else has (currency-strength snapshots, S&R zone data, economic-calendar aggregation). Embedding real charts/tables from our own Supabase data makes posts demonstrably unique — the one thing templated-content detection can't hold against us. (Also a product showcase → subscription funnel.)
-- [ ] **Break the template**: vary titles (drop the fixed "| Daily Forex Market Update |" suffix pattern), vary length (a focused 1,500-word update beats a padded 10k one), vary structure. If posts are AI-assisted, that's fine by current Google guidance — *helpful* is the bar — but they must stop looking stamped out.
+- [x] **Break the template** — title suffix: DONE 2026-07-12 (Claude). Three-part fix: (a) all 108 suffixed titles cleaned in Sanity and republished (backup `claudeLoad/adsense/post_titles_backup_2026-07-12.json`; slugs/URLs untouched); (b) frontend strips the suffix defensively at every render point (`lib/blog.ts cleanPostTitle` — metadata, h1, OG, JSON-LD, listings, RSS) so future suffixed posts can't leak it; (c) also fixed the **double brand suffix** (`… | IntelliTrade · IntelliTrade` in `<title>`). Bonus finds fixed same day: every post's meta description was the identical fallback sentence (no post has `summary`) → now derived per-post from body text; `/feed.xml` was a dead link in layout.tsx → real RSS route added. **Remaining (owner, pipeline-side):** stop generating the suffix at the source, fill `summary`, vary length/structure — see OWNER_TODO.
+  - Correction to the audit above: posts are ~1,500–2,000 words (9–12k *chars*), not 10k words — length itself is fine; uniform titling/description was the stamped-out signal.
 - [ ] **Add evergreen pillar content**: guides that answer real searches (risk management, session timing, pair characteristics) and get linked from the daily posts. A blog that is 100% dailies has no lasting spine.
 - [ ] **Text-rich tool pages**: replicate the lot-size-calculator SEO upgrade (explanations, worked examples, FAQ) on every public calculator/price page.
 - [ ] **prices-today enrichment** (already in IMPROVEMENTS.md): historical context, related links.
@@ -39,7 +40,7 @@ Fixes, in order of expected impact:
 
 ## 3. Technical checks
 
-- [ ] `robots.txt` + sitemap: Googlebot must reach the public pages (verify the middleware never blocks/gates crawlers on public routes).
+- [x] `robots.txt` + sitemap: verified 2026-07-12 — middleware matcher excludes all public routes (incl. `/pro`, `/smart-support-zones`, `.xml`/`.txt` paths); `app/robots.ts` allow-list updated with the two new pages; sitemap already lists them. `/feed.xml` RSS added (was an advertised dead link).
 - [ ] Site verified in Search Console, sitemap submitted, no manual actions.
 - [ ] After approval: add `ads.txt` at domain root with the pub ID (AdSense shows the exact line). Not needed for approval itself.
 - [ ] EEA serving: enable **Privacy & messaging** in AdSense (Google's own certified CMP) — required to actually serve ads to EEA visitors. Our banner handles GA consent; the AdSense GDPR message handles TCF for ads. No code needed beyond the existing script.
@@ -67,5 +68,6 @@ AdSense pays per impression/click — meaningful revenue needs serious traffic. 
 ---
 
 *Changelog*
+- 2026-07-12 (session 2) — **templated-content signal attacked directly**: 108 post titles de-suffixed in Sanity (published; backup in `claudeLoad/adsense/`), render-time strip added (`lib/blog.ts`), double `| IntelliTrade · IntelliTrade` title fixed, per-post meta descriptions derived from body (all `summary` fields were empty → identical description on ~180 pages), `/feed.xml` RSS route added (dead link before), robots allow-list updated. Build + 142 tests green; verified live on local prod server. Owner items moved to OWNER_TODO: pipeline suffix/summary fix, Search Console indexing check.
 - 2026-07-05 — doc created as GOOGLE_ADS_APPROVAL.md assuming advertiser denials; corrected same day: denials are AdSense (owner confirmed), renamed + rewritten. Consent Mode v2, footer legal block, refund link shipped (commit 04f0bd7).
 - 2026-07-12 — conversion-system build (Phases A–E) advanced several items: two new text-rich public pages (`/smart-support-zones`, `/pro`) added §6.3 teaser + originality surface; homepage "Coming Soon" cards removed (§1 no-under-construction); new public copy written to the non-signal standard (§2, partial — existing surfaces like /support-resistance not yet re-scrubbed). Analytics now production-only (dev/localhost no longer pollutes GA4), which improves data quality but is orthogonal to the low-value-content blocker. Still outstanding for AdSense: §1 proprietary-data-in-posts + title/template break, §2 full copy scrub, owner Search Console indexing check.

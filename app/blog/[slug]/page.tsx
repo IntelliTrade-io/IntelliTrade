@@ -4,6 +4,7 @@ import { PortableText, type SanityDocument } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
+import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
 import Link from "next/link";
 import Image from "next/image";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
@@ -31,15 +32,19 @@ export async function generateMetadata({
     ? urlFor(post.image)?.width(1200).height(675).url()
     : null;
 
+  const title = cleanPostTitle(post.title);
+  const description =
+    post.summary ||
+    excerptFromPortableText(post.body) ||
+    `${title} — educational macro and market analysis from IntelliTrade.`;
+
   return {
-    title: `${post.title} · IntelliTrade`,
-    description:
-      post.summary ||
-      `${post.title} — educational macro and market analysis from IntelliTrade.`,
+    title: `${title} · IntelliTrade`,
+    description,
     alternates: { canonical: `https://intellitrade.tech/blog/${slug}` },
     openGraph: {
-      title: post.title,
-      description: post.summary || "",
+      title,
+      description,
       url: `https://intellitrade.tech/blog/${slug}`,
       type: "article",
       publishedTime: post.publishedAt,
@@ -48,8 +53,8 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.summary || "",
+      title,
+      description,
       images: postImageUrl ? [postImageUrl] : [],
     },
   };
@@ -90,12 +95,13 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   );
 
   const postImageUrl = post.image ? urlFor(post.image)?.width(1200).height(675).url() : null;
+  const title = cleanPostTitle(post.title);
 
   const blogPostingSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
-    headline: post.title,
-    description: post.summary || "",
+    headline: title,
+    description: post.summary || excerptFromPortableText(post.body),
     url: `https://intellitrade.tech/blog/${slug}`,
     datePublished: post.publishedAt,
     dateModified: post._updatedAt || post.publishedAt,
@@ -151,7 +157,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 leading-tight">
-            {post.title}
+            {title}
           </h1>
 
           <div className="flex items-center justify-center gap-4 text-sm text-slate-400">
@@ -170,7 +176,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
           <div className="relative aspect-video w-full mb-16 overflow-hidden rounded-3xl border border-white/10 shadow-2xl">
             <Image
               src={postImageUrl}
-              alt={post.title}
+              alt={title}
               fill
               className="object-cover"
               priority

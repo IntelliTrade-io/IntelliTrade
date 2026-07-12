@@ -47,9 +47,11 @@ Everything below is the detail for these plus lower-priority owner items (AdSens
 
 ## Google AdSense (see GOOGLE_ADSENSE_APPROVAL.md)
 
-- [ ] **Record the exact rejection wording**: AdSense dashboard → Sites → intellitrade.tech → paste the reason into `GOOGLE_ADSENSE_APPROVAL.md` §0 (most likely "Low value content"). Fixes are sequenced off this.
+- [x] ~~**Record the exact rejection wording**~~ done 2026-07-05 — "Low value content", recorded in doc §0.
+- [ ] **Fix the blog-generation pipeline** (2026-07-12): stop appending "| Daily Forex Market Update | IntelliTrade" / "| Week Ahead Forex Market Outlook | IntelliTrade" to titles, stop baking that suffix into slugs, and start filling the `summary` field (1–2 unique sentences) — every existing post had `summary` empty. Claude cleaned all 108 suffixed titles in Sanity (backup: `claudeLoad/adsense/post_titles_backup_2026-07-12.json`) and the frontend now strips the suffix defensively + derives descriptions from the body, but the pipeline is the source and Claude has no access to it.
+- [ ] **Search Console indexing check**: how many of the ~180 posts are actually indexed? Few indexed = corroborates the low-value-content signal. Also confirm site verified + sitemap submitted (doc §3).
 - [ ] **Fill `lib/company.ts`** with legal entity name, KvK number, business address (footer identity block renders automatically once set; email default is info@intellitrade.tech — correct if wrong).
-- [ ] **Don't re-request review** until the doc's §1 content work is live on production. Fix → deploy → wait → request.
+- [ ] **Don't re-request review** until the doc's §1 content work is live on production. Fix → deploy → wait → request. Note: the title cleanup in Sanity is live immediately (CMS-served), but the frontend changes (title strip, meta descriptions, /feed.xml) only count once merged + deployed.
 - [ ] Later, post-approval: enable Privacy & messaging (GDPR message) in AdSense + add `ads.txt` (doc §3).
 
 ## Quick checks

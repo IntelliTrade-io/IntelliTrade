@@ -9,6 +9,7 @@ import {
   ArrowRight, LineChart,
 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
+import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
 import siteMetadata from "@/data/blog/siteMetadata";
 import { TrackedLink } from "@/components/layout/TrackedLink";
 import { ZoneOverlayShowcase } from "@/components/support-resistance/ZoneOverlayShowcase";
@@ -56,7 +57,7 @@ const webSiteSchema = {
 
 const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
   | order(coalesce(publishedAt, "1970-01-01") desc)[0...3]{
-    _id, title, slug, publishedAt, summary, tags
+    _id, title, slug, publishedAt, summary, tags, body
   }`;
 
 // ─── Tool cards ───────────────────────────────────────────────────────────────
@@ -187,8 +188,8 @@ export default async function HomePage() {
     posts = raw.map((p) => ({
       slug: p.slug?.current ?? "",
       date: p.publishedAt ?? new Date().toISOString(),
-      title: p.title ?? "",
-      summary: p.summary ?? "",
+      title: cleanPostTitle(p.title),
+      summary: p.summary || excerptFromPortableText(p.body),
       tags: p.tags ?? [],
     }));
   } catch {
