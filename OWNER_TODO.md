@@ -82,6 +82,15 @@ The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every p
 - [ ] **Arm the anon-key security regression check** — add two repo **secrets**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (the production project's public anon key). The `security-regression` job then verifies anon REST reads are denied on all 13 premium tables (guards audit finding C1). Until set, the check self-skips (green). It's read-only and only asserts *denial*.
 - [ ] **Enable branch protection on `main`** (Settings → Branches → add rule) — require the `frontend` + `security-regression` + `pytest` checks to pass before merge. This is what actually gates merges on green; the workflows only report status without it.
 
+## Conversion launch (CONVERSION_PLAN.md / OPUS_HANDOFF.md, 2026-07-12)
+
+- [ ] **🔴 Verify `STRIPE_PRICE_ID` (prod env) is a €15.00 EUR/month recurring price** — the whole Founding Member offer copy states €15/mo. Check Stripe dashboard → Products. If it isn't: create the €15 monthly price, swap the env var in Vercel (no code change), keep the old price ID until existing subs (if any) are confirmed unaffected.
+- [ ] **Decide standard price after member 100** (recommend before ~member 70; no code needed now — copy says "standard price" without a number).
+- [ ] **VAT presentation** — recommended: enable Stripe Tax, tax-inclusive €15, show "VAT included" under the price. Until decided, site copy omits VAT claims.
+- [ ] **GA4 console tasks** (after Opus ships Phase A–C): mark `sign_up`, `begin_checkout`, `purchase` as key events; Admin → Data streams → unwanted referrals: add `checkout.stripe.com`; define internal-traffic filter for your IPs; build funnel exploration `page_view → cta_click → sign_up → begin_checkout → purchase`.
+- [ ] **Approve Phase D middleware change** — logged-out visits to premium pages redirect to `/pro?from=dashboard` (product explainer) instead of `/auth/login`. Redirect-target-only change in `lib/supabase/middleware.ts`; no access is loosened.
+- [ ] **Founding-member cap watch** — count paid members with `select count(*) from subscriptions where status in ('active','trialing')`; automate enforcement when approaching ~80 (backlogged in IMPROVEMENTS.md).
+
 ## External / accounts
 
 - [ ] **Check Supabase sign-up email redirect** — the sign-up flow passes `emailRedirectTo: <origin>/auth/callback`, but no `/auth/callback` route exists in the app (only `/auth/confirm`, which handles `token_hash` links). If the Supabase email template uses `{{ .ConfirmationURL }}`, new users may land on a 404 after confirming. Test one real sign-up; tell Claude "callback works" or "callback 404s" → then it's either left alone or repointed to `/auth/confirm`.

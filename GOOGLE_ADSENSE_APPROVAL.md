@@ -54,6 +54,8 @@ Fixes, in order of expected impact:
 
 AdSense pays per impression/click — meaningful revenue needs serious traffic. This site's model is subscriptions; banner ads on tool pages can *hurt* conversion and look cheap next to a premium product. Worth deciding deliberately: is AdSense worth it at current traffic, or is the same content work better spent purely on SEO → subscriptions? (The §1 work is identical either way, so nothing is wasted by deferring the AdSense decision.)
 
+> **Cross-reference (2026-07-12):** the conversion-funnel work planned in `CONVERSION_PLAN.md` / `OPUS_HANDOFF.md` directly advances §1 and §6: `/smart-support-zones` is the §6.3 premium-module teaser page (text-rich, ~600+ words + FAQ), `/pro` is another substantive public page, the homepage "Coming Soon" blurred cards are removed (§1 "no under-construction signals"), and all new copy follows the non-signal scrub (§2). Opus updates the checkboxes here when that work ships.
+
 ## 6. Session-sized work items (Claude)
 
 1. Public-surface crawl + gap report (broken links, thin pages, gated nav share). (One session)
