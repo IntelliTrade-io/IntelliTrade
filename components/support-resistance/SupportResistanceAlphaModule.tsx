@@ -194,22 +194,26 @@ export function SupportResistanceAlphaModule({
         </aside>
       </div>
 
-      <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(14,14,20,0.88),rgba(8,9,13,0.92))] p-3">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Research profile</div>
-            <h3 className="mt-0.5 text-sm font-semibold text-white">Historical validation sample</h3>
+      {/* Research profiles carry historical win-rate figures — subscriber-only.
+          Public surfaces pass profiles={[]}, which hides this section entirely. */}
+      {profiles.length > 0 && (
+        <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(14,14,20,0.88),rgba(8,9,13,0.92))] p-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Research profile</div>
+              <h3 className="mt-0.5 text-sm font-semibold text-white">Historical validation sample</h3>
+            </div>
+            <p className="max-w-xl text-xs leading-relaxed text-white/44">
+              Supporting context only. Primary workflow stays chart, details, scanner, then research profile.
+            </p>
           </div>
-          <p className="max-w-xl text-xs leading-relaxed text-white/44">
-            Supporting context only. Primary workflow stays chart, details, scanner, then research profile.
-          </p>
-        </div>
-        <div className="mt-2 grid gap-2 lg:grid-cols-3">
-          {profiles.map((profile) => (
-            <ResearchProfileCard key={profile.id} profile={profile} />
-          ))}
-        </div>
-      </section>
+          <div className="mt-2 grid gap-2 lg:grid-cols-3">
+            {profiles.map((profile) => (
+              <ResearchProfileCard key={profile.id} profile={profile} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

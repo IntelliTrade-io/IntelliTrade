@@ -6,29 +6,31 @@ import { type SanityDocument } from "next-sanity";
 import {
   Calculator, TrendingUp, BookOpen,
   CalendarDays, Radar, Gamepad2,
-  ArrowRight, Lock,
+  ArrowRight, LineChart,
 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import siteMetadata from "@/data/blog/siteMetadata";
+import { TrackedLink } from "@/components/layout/TrackedLink";
+import { ZoneOverlayShowcase } from "@/components/support-resistance/ZoneOverlayShowcase";
 
 export const metadata: Metadata = {
-  title: "IntelliTrade — Where Smarter Trading Starts",
+  title: "IntelliTrade — Stop Trading Blind. Start With Context.",
   description:
-    "Professional-grade trading tools, macro analysis and market context for disciplined traders. Free lot size calculator, live asset prices, and weekly macro insights.",
+    "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing. Free lot size calculator, live asset prices, and macro insights.",
   alternates: { canonical: "https://intellitrade.tech/" },
   openGraph: {
-    title: "IntelliTrade — Where Smarter Trading Starts",
+    title: "IntelliTrade — Stop Trading Blind. Start With Context.",
     description:
-      "Professional-grade trading tools, macro analysis and market context for disciplined traders.",
+      "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing.",
     url: "https://intellitrade.tech/",
     siteName: "IntelliTrade",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "IntelliTrade — Where Smarter Trading Starts",
+    title: "IntelliTrade — Stop Trading Blind. Start With Context.",
     description:
-      "Professional-grade trading tools, macro analysis and market context for disciplined traders.",
+      "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing.",
   },
 };
 
@@ -92,7 +94,16 @@ const FREE_TOOLS = [
 
 const PRO_TOOLS = [
   {
-    href: "/dashboardv2",
+    href: "/smart-support-zones",
+    icon: LineChart,
+    label: "Smart Support Zones",
+    desc: "Most tools draw zones. IntelliTrade scores them — weak, medium or strong — for EURUSD, with reclaim confirmation and an explained opportunity score.",
+    tag: "PRO",
+    cta: "Preview",
+    isPro: true,
+  },
+  {
+    href: "/pro",
     icon: CalendarDays,
     label: "Economic Calendar",
     desc: "Avoid unpleasant surprises. Plan ahead with a clean view of the economic events that can move markets.",
@@ -101,7 +112,7 @@ const PRO_TOOLS = [
     isPro: true,
   },
   {
-    href: "/dashboardv2",
+    href: "/pro",
     icon: Radar,
     label: "Currency Strength Meter",
     desc: "Don't trade noise. Quickly spot which currencies are strong or weak across daily and intraday trends.",
@@ -110,7 +121,7 @@ const PRO_TOOLS = [
     isPro: true,
   },
   {
-    href: "/dashboardv2",
+    href: "/pro",
     icon: Gamepad2,
     label: "Bull vs Bear",
     desc: "A fast-paced trading minigame for the moments between setups. Simple, addictive and exclusive to IntelliTrade members.",
@@ -166,39 +177,6 @@ function ToolCard({ tool }: { tool: typeof FREE_TOOLS[number] & { meta?: string 
   );
 }
 
-function ComingSoonCard() {
-  return (
-    <div className="relative overflow-hidden rounded-[24px] border border-violet-500/20 bg-violet-500/[0.04] p-5">
-      {/* Purple glow */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(139,92,246,0.12),transparent_60%)]" />
-      {/* Blurred mock content */}
-      <div className="relative z-10 blur-[3px] select-none pointer-events-none">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10">
-            <Lock className="h-4 w-4 text-violet-300/60" />
-          </div>
-          <span className="rounded-full border border-violet-400/20 bg-violet-500/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-violet-300">
-            PRO
-          </span>
-        </div>
-        <div className="h-3 w-24 rounded-full bg-white/10 mb-2" />
-        <div className="space-y-1.5">
-          <div className="h-2 w-full rounded-full bg-white/[0.06]" />
-          <div className="h-2 w-4/5 rounded-full bg-white/[0.06]" />
-          <div className="h-2 w-3/5 rounded-full bg-white/[0.06]" />
-        </div>
-      </div>
-      {/* Coming Soon overlay */}
-      <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2">
-        <span className="rounded-full border border-violet-400/30 bg-violet-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-violet-200">
-          PRO
-        </span>
-        <span className="text-sm font-semibold text-violet-100/80">Coming Soon</span>
-      </div>
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function HomePage() {
@@ -235,30 +213,61 @@ export default async function HomePage() {
             INTELLITRADE
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight mb-6">
-            Where smarter<br className="hidden sm:block" /> trading starts.
+            Stop trading blind.<br className="hidden sm:block" /> Start with context.
           </h1>
           <p className="text-base sm:text-lg text-white/50 max-w-xl mx-auto mb-10 leading-relaxed">
-            Professional-grade trading tools, macro analysis and market context to help you make disciplined, informed decisions.
+            IntelliTrade is your pre-trade routine: support-zone quality, currency strength, event risk and position sizing — checked in minutes, before you consider a trade.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            <Link
-              href="/lotsizecalculator"
+            <TrackedLink
+              href="/pro"
+              event="cta_click"
+              params={{ cta_id: "home_hero_pro", destination: "/pro" }}
               className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand to-brandLight px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/35 transition-all hover:opacity-90"
             >
-              Try the calculator
+              Explore IntelliTrade Pro
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </TrackedLink>
             <Link
-              href="/blog"
+              href="/lotsizecalculator"
               className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-white/10"
             >
-              Read insights
+              Try the free calculator
             </Link>
           </div>
         </section>
 
-        {/* ── Platform ── */}
+        {/* ── Flagship: Smart Support Zones ── */}
         <section className="mb-20">
+          <div className="grid items-center gap-8 lg:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
+                Flagship · Smart Support Zones
+              </p>
+              <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white mb-4 leading-tight">
+                Most tools draw zones. IntelliTrade scores them.
+              </h2>
+              <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-6">
+                Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
+                medium or strong — zone behaviour, reclaim confirmation, and an opportunity score you can
+                actually interpret. Educational decision support, not signals.
+              </p>
+              <TrackedLink
+                href="/smart-support-zones"
+                event="cta_click"
+                params={{ cta_id: "home_ssz_section", destination: "/smart-support-zones" }}
+                className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-5 py-2.5 text-sm font-semibold text-violet-200 transition-all hover:bg-violet-500/20"
+              >
+                See how zone scoring works
+                <ArrowRight className="h-4 w-4" />
+              </TrackedLink>
+            </div>
+            <ZoneOverlayShowcase compact />
+          </div>
+        </section>
+
+        {/* ── Platform ── */}
+        <section className="mb-16">
           <div className="mb-8">
             <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/36 mb-2">Platform</p>
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-2">Everything in one place</h2>
@@ -273,18 +282,37 @@ export default async function HomePage() {
           </div>
 
           {/* Pro tools row */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {PRO_TOOLS.map((tool) => <ToolCard key={tool.label} tool={tool} />)}
           </div>
+        </section>
 
-          {/* Coming Soon row */}
-          <p className="text-[11px] text-white/28 text-center mb-4 uppercase tracking-[0.2em]">
-            More Pro tools are being built for the IntelliTrade workspace
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <ComingSoonCard />
-            <ComingSoonCard />
-            <ComingSoonCard />
+        {/* ── Founding Member strip ── */}
+        <section className="mb-20">
+          <div className="relative overflow-hidden rounded-[28px] border border-violet-500/20 bg-violet-500/[0.05] p-6 sm:p-8">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(139,92,246,0.14),transparent_55%)]" />
+            <div className="relative z-10 flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300 mb-2">
+                  Founding Member · First 100
+                </p>
+                <p className="text-lg sm:text-xl font-semibold text-white">
+                  €15/month for the first 100 members.
+                </p>
+                <p className="mt-1 text-sm text-white/55">
+                  Keep the price for as long as you stay subscribed. Cancel anytime — no contracts.
+                </p>
+              </div>
+              <TrackedLink
+                href="/pro#pricing"
+                event="founding_cta_click"
+                params={{ location: "home_strip" }}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_32px_rgba(139,92,246,0.35)] transition-all hover:bg-violet-500"
+              >
+                Become a Founding Member
+                <ArrowRight className="h-4 w-4" />
+              </TrackedLink>
+            </div>
           </div>
         </section>
 
