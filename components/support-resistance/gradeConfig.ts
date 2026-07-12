@@ -9,7 +9,41 @@ export const DYNAMIC_GRADE_ORDER: DynamicOpportunityGrade[] = [
   "a_plus",
 ];
 
+/**
+ * User-facing rank order, highest first: A+ → Elite Green → Green → Watch →
+ * Informational → Blocked. Every legend, chip row, card list and comparison
+ * must render in this order (semantic DOM order, not CSS reordering).
+ */
+export const GRADE_DISPLAY_ORDER: DynamicOpportunityGrade[] = [...DYNAMIC_GRADE_ORDER].reverse();
+
+/**
+ * Validated historical 0.50R reaction rates per grade tier — the SINGLE source
+ * for every promotional percentage. Exact values from the locked validation
+ * run; never round them for display. Watch/Informational/Blocked carry no rate
+ * (not research-qualified).
+ */
+export const HISTORICAL_REACTION_RATE: Partial<Record<DynamicOpportunityGrade, number>> = {
+  green: 81.94,
+  elite_green: 84.4,
+  a_plus: 86.57,
+};
+
+export function formatHistoricalReactionRate(grade: DynamicOpportunityGrade): string | null {
+  const rate = HISTORICAL_REACTION_RATE[grade];
+  return rate === undefined ? null : `${rate.toFixed(2)}%`;
+}
+
 export const STATIC_STRENGTH_ORDER: StaticZoneStrength[] = ["weak", "medium", "strong"];
+
+/**
+ * Zone-band opacity by static strength: weak subdued, medium clearer, strong
+ * brightest — one coherent hierarchy instead of six unrelated-looking boxes.
+ */
+export const STRENGTH_BAND_OPACITY: Record<StaticZoneStrength, number> = {
+  weak: 0.45,
+  medium: 0.7,
+  strong: 0.95,
+};
 
 /**
  * SINGLE SOURCE OF TRUTH for grade colours. Every grade-coloured surface —
@@ -64,45 +98,45 @@ export const dynamicOpportunityGradeConfig: Record<
   }
 > = {
   blue: {
-    label: "Blue",
-    shortLabel: "Blue",
-    description: "Informational. Not trade-ready by itself.",
+    label: "Informational",
+    shortLabel: "Info",
+    description: "Support zone only. No validated historical edge is currently attached to this zone.",
     tokens: GRADE_TOKENS.blue,
     chartFill: GRADE_TOKENS.blue.fill,
     chartStroke: GRADE_TOKENS.blue.border,
     glow: "",
     panelClassName: "border-sky-400/18 bg-sky-500/[0.06]",
     emphasisClassName: "text-sky-200",
-    scannerStatus: "Monitor only",
+    scannerStatus: "Informational",
   },
   watch: {
     label: "Watch",
     shortLabel: "Watch",
-    description: "Caution. Quality not clean enough yet.",
+    description: "Below activation threshold. Potential context is present, but the setup is not yet qualified.",
     tokens: GRADE_TOKENS.watch,
     chartFill: GRADE_TOKENS.watch.fill,
     chartStroke: GRADE_TOKENS.watch.border,
     glow: "",
     panelClassName: "border-[#4169E1]/22 bg-[#4169E1]/[0.08]",
     emphasisClassName: "text-[#93b4ff]",
-    scannerStatus: "Monitor only",
+    scannerStatus: "Below threshold",
   },
   blocked: {
     label: "Blocked",
     shortLabel: "Blocked",
-    description: "Poor context. Avoid prioritizing.",
+    description: "Conditions not qualified. One or more required model conditions were not met.",
     tokens: GRADE_TOKENS.blocked,
     chartFill: GRADE_TOKENS.blocked.fill,
     chartStroke: GRADE_TOKENS.blocked.border,
     glow: "",
     panelClassName: "border-rose-400/16 bg-rose-500/[0.06]",
     emphasisClassName: "text-rose-100",
-    scannerStatus: "Blocked",
+    scannerStatus: "Not qualified",
   },
   green: {
     label: "Green",
     shortLabel: "Green",
-    description: "Valid short-term reaction opportunity.",
+    description: "81.94% historical 0.50R reaction rate, based on comparable resolved setups.",
     tokens: GRADE_TOKENS.green,
     chartFill: GRADE_TOKENS.green.fill,
     chartStroke: GRADE_TOKENS.green.border,
@@ -114,7 +148,7 @@ export const dynamicOpportunityGradeConfig: Record<
   elite_green: {
     label: "Elite Green",
     shortLabel: "Elite",
-    description: "Higher-quality opportunity with stronger context.",
+    description: "84.40% historical 0.50R reaction rate, based on comparable resolved setups.",
     tokens: GRADE_TOKENS.elite_green,
     chartFill: GRADE_TOKENS.elite_green.fill,
     chartStroke: GRADE_TOKENS.elite_green.border,
@@ -126,7 +160,8 @@ export const dynamicOpportunityGradeConfig: Record<
   a_plus: {
     label: "A+",
     shortLabel: "A+",
-    description: "Short-term first reaction, not reversal call.",
+    description:
+      "86.57% historical 0.50R reaction rate, based on comparable resolved setups. Short-term first reaction, not a reversal call.",
     tokens: GRADE_TOKENS.a_plus,
     chartFill: GRADE_TOKENS.a_plus.fill,
     chartStroke: GRADE_TOKENS.a_plus.border,
@@ -136,6 +171,22 @@ export const dynamicOpportunityGradeConfig: Record<
     scannerStatus: "A+ review",
   },
 };
+
+/**
+ * Compact one-liner under a grade name in chips/legends/cards.
+ * Qualified tiers get their exact historical rate; the rest get their
+ * qualification status. `precise` adds the 0.50R target wording for
+ * surfaces with room.
+ */
+export function gradeSummaryLine(grade: DynamicOpportunityGrade, precise = false): string {
+  const rate = formatHistoricalReactionRate(grade);
+  if (rate) {
+    return precise ? `${rate} historical 0.50R reaction rate` : `${rate} historical reaction rate`;
+  }
+  if (grade === "watch") return "Below activation threshold";
+  if (grade === "blue") return "Support zone only";
+  return "Conditions not qualified";
+}
 
 /**
  * Inline style for any grade badge / pill. Single source — never hardcode grade

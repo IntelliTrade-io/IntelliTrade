@@ -7,36 +7,10 @@ import {
   RadialBackdrop,
   getChartTabClassName,
 } from "@/components/price-pages/PricePageBrand";
-import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
-
-// ─── Market context from Sanity ───────────────────────────────────────────────
-
-type MarketContextData = {
-  heading: string;
-  paragraphs: Array<{ text: string }>;
-} | null;
-
-function useMarketContext(asset: string): MarketContextData {
-  const [data, setData] = useState<MarketContextData>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    client
-      .fetch<MarketContextData>(
-        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
-          heading,
-          paragraphs
-        }`,
-        { asset }
-      )
-      .then((result) => { if (!cancelled) setData(result ?? null); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [asset]);
-
-  return data;
-}
+import type { MarketContext } from "@/lib/api/marketContext";
+import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -408,26 +382,14 @@ function MiniPriceWidget({ quote }: { quote: SilverQuote | null }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const FAQ_ITEMS = [
-  {
-    question: "What factors affect the silver price today?",
-    answer: "Silver typically moves with a mix of macro and industrial forces. Key drivers include the US dollar, real yields, inflation expectations, global growth sentiment, industrial demand (electronics, solar, manufacturing), and shifts in safe-haven positioning. Because silver has both precious metal and industrial characteristics, it can behave differently from gold during risk-on or risk-off phases.",
-  },
-  {
-    question: "What is XAG/USD in silver trading?",
-    answer: "XAG/USD is the market symbol for silver priced in US dollars, usually quoted per troy ounce. XAG is the standard code used to represent silver in financial markets, and USD is the pricing currency.",
-  },
-  {
-    question: "Why does the silver price differ slightly between websites, brokers, or apps?",
-    answer: "Small differences are normal. Platforms can display different pricing streams (spot reference vs. derivatives), different refresh speeds, and different spreads. A broker quote may include a bid/ask spread, while a data site may show a mid-price reference. The result is minor variation even when markets are moving in the same direction.",
-  },
-];
-
-export default function SilverPriceTodayPage() {
+export default function SilverPriceTodayPage({
+  marketContext,
+}: {
+  marketContext: MarketContext | null;
+}) {
   const silverQuote = useSilverPrice();
   const marketData = useMarketData();
   const dxy = useDxy();
-  const marketContext = useMarketContext("silver");
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
   const activeLargeChartTab = LARGE_CHART_TABS.find((t) => t.value === selectedRange) ?? LARGE_CHART_TABS[0];
@@ -473,7 +435,7 @@ export default function SilverPriceTodayPage() {
               {marketContext?.heading ?? "What\u2019s moving silver today"}
             </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              {marketContext ? (
+              {marketContext?.paragraphs?.length ? (
                 marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
               ) : (
                 <>
@@ -482,6 +444,7 @@ export default function SilverPriceTodayPage() {
                 </>
               )}
             </div>
+            <MarketContextExtras context={marketContext} />
           </div>
         </motion.section>
 

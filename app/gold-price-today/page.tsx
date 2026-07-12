@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import GoldPriceTodayPage from "./_components/GoldPriceTodayPage";
+import { FAQ_ITEMS } from "./_components/faqData";
+import { fetchMarketContext } from "@/lib/api/marketContext";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -40,14 +42,29 @@ const schema = {
   },
 };
 
-export default function Page() {
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
+export default async function Page() {
+  const marketContext = await fetchMarketContext("gold");
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
       />
-      <GoldPriceTodayPage />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
+      />
+      <GoldPriceTodayPage marketContext={marketContext} />
       <section className="w-full px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <ProCtaCard

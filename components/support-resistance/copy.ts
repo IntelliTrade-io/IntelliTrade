@@ -6,19 +6,21 @@ export const supportResistanceCopy = {
     noGreenPlus: "No Green+ opportunities right now.",
     noReclaim: "No active reclaim opportunity right now.",
     noZones: "No active EURUSD support zones right now.",
-    blueZones: "Blue zones are informational. They are not trade-ready by themselves.",
+    blueZones:
+      "Informational zones are support zones without a validated historical edge. They are not trade-ready by themselves.",
     roadmap: "More pairs and resistance zones coming later. Alpha v1 is limited to EURUSD M15 support zones.",
   },
   tooltips: {
     staticVsDynamic:
       "Static strength measures the underlying support shelf itself. Dynamic grade measures the current reclaim context around that shelf. They should not be read as the same input.",
-    blueZones: "Informational. Not trade-ready by itself.",
+    blueZones:
+      "Informational means a basic support zone has been identified, but no validated historical edge or qualified opportunity is attached to it. It is the neutral baseline, not a negative setup.",
     watchBlocked:
-      "Watch means caution and quality is not clean enough yet. Blocked means poor context and should be avoided.",
+      "Watch means the setup is below the activation threshold — potential context is present, but it has not qualified yet. Blocked means one or more required model conditions were not met.",
     aPlusMeaning:
-      "Short-term first reaction, not reversal call.",
+      "A+ is the highest grade tier: 86.57% of comparable resolved historical setups reached the model's 0.50R reaction target. Short-term first reaction, not a reversal call.",
     notSignal:
-      "This module is educational research context. It summarizes historical EURUSD support-only reaction ranges and related filters, not execution instructions.",
+      "This module is educational research context. It summarizes historical EURUSD support-only reaction rates and related filters, not execution instructions.",
   },
   scopeNotes: [
     "Alpha v1 scope: EURUSD only.",
@@ -34,3 +36,11 @@ export const supportResistanceCopy = {
     "The current reaction_range_low and reaction_range_high fields are structured for direct sr_opportunities mapping.",
   ],
 } as const;
+
+/**
+ * Shared tooltip template for any surface that shows a historical reaction
+ * rate. Never phrase the rate as a probability for the current live zone.
+ */
+export function reactionRateTooltip(rate: number): string {
+  return `${rate.toFixed(2)}% of comparable resolved historical setups reached the model's 0.50R reaction target. Historical results do not guarantee future performance.`;
+}

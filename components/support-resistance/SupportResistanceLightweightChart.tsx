@@ -5,9 +5,9 @@ import {
   getSupportResistanceChartMinHeight,
   getSupportResistanceChartViewportHeight,
 } from "./chartSizing";
-import { dynamicOpportunityGradeConfig } from "./gradeConfig";
+import { STRENGTH_BAND_OPACITY, dynamicOpportunityGradeConfig } from "./gradeConfig";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
-import type { CandleData, SupportResistanceZone } from "./types";
+import type { CandleData, StaticZoneStrength, SupportResistanceZone } from "./types";
 
 interface SupportResistanceLightweightChartProps {
   candles: CandleData[];
@@ -21,6 +21,7 @@ interface ZoneOverlay {
   id: string;
   label: string;
   grade: SupportResistanceZone["dynamicGrade"];
+  strength: StaticZoneStrength;
   left: number;
   top: number;
   width: number;
@@ -239,6 +240,7 @@ export function SupportResistanceLightweightChart({
               id: zone.id,
               label: zone.zoneLabel,
               grade: zone.dynamicGrade,
+              strength: zone.staticStrength,
               left: boxLeft,
               top: boxTop,
               width,
@@ -374,7 +376,13 @@ export function SupportResistanceLightweightChart({
                   // Premium outer glow only for elite_green + a_plus (config.glow is
                   // empty for the rest). Selection ring is handled by className.
                   boxShadow: selected ? undefined : config.glow || undefined,
-                  opacity: selected ? 1 : hovered ? 0.86 : lowPriorityGrade ? 0.42 : mutedGrade ? 0.54 : 0.64,
+                  // Static strength sets the base visibility (weak subdued → strong
+                  // bright); unqualified grades are further muted on top of that.
+                  opacity: selected
+                    ? 1
+                    : hovered
+                      ? 0.9
+                      : STRENGTH_BAND_OPACITY[overlay.strength] * (lowPriorityGrade ? 0.55 : mutedGrade ? 0.7 : 0.85),
                 }}
               >
                 {selected ? (

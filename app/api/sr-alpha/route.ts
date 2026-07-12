@@ -15,7 +15,7 @@ const GRADE_LABEL: Record<string, string> = {
   elite_green: "Elite Green",
   green: "Green",
   watch: "Watch",
-  blue: "Blue",
+  blue: "Informational",
   blocked: "Blocked",
 };
 

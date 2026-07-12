@@ -9,6 +9,7 @@ import {
   ArrowRight, LineChart,
 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
+import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
 import siteMetadata from "@/data/blog/siteMetadata";
 import { TrackedLink } from "@/components/layout/TrackedLink";
 import { ZoneOverlayShowcase } from "@/components/support-resistance/ZoneOverlayShowcase";
@@ -56,7 +57,7 @@ const webSiteSchema = {
 
 const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
   | order(coalesce(publishedAt, "1970-01-01") desc)[0...3]{
-    _id, title, slug, publishedAt, summary, tags
+    _id, title, slug, publishedAt, summary, tags, body
   }`;
 
 // ─── Tool cards ───────────────────────────────────────────────────────────────
@@ -187,8 +188,8 @@ export default async function HomePage() {
     posts = raw.map((p) => ({
       slug: p.slug?.current ?? "",
       date: p.publishedAt ?? new Date().toISOString(),
-      title: p.title ?? "",
-      summary: p.summary ?? "",
+      title: cleanPostTitle(p.title),
+      summary: p.summary || excerptFromPortableText(p.body),
       tags: p.tags ?? [],
     }));
   } catch {
@@ -237,12 +238,12 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Flagship: Smart Support Zones ── */}
+        {/* ── Spotlight: Smart Support Zones ── */}
         <section className="mb-20">
           <div className="grid items-center gap-8 lg:grid-cols-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
-                Flagship · Smart Support Zones
+                IntelliTrade Pro · Smart Support Zones
               </p>
               <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white mb-4 leading-tight">
                 Most tools draw zones. IntelliTrade scores them.

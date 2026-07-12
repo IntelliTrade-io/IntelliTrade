@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
+import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
 import { client } from "@/sanity/client";
 import Main from "@/app/blog/_components/Main";
 import { type SanityDocument } from "next-sanity";
@@ -58,7 +59,8 @@ export default async function BlogPage() {
       publishedAt,
       summary,
       tags,
-      image
+      image,
+      body
   }`;
 
   let posts: {
@@ -80,8 +82,8 @@ export default async function BlogPage() {
     posts = rawPosts.map((post) => ({
       slug: post.slug?.current || "",
       date: post.publishedAt || new Date().toISOString(),
-      title: post.title || "",
-      summary: post.summary || "",
+      title: cleanPostTitle(post.title),
+      summary: post.summary || excerptFromPortableText(post.body),
       tags: post.tags || [],
       image: post.image || null,
     }));

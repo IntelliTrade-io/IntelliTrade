@@ -8,36 +8,10 @@ import {
 
   getChartTabClassName
 } from "@/components/price-pages/PricePageBrand";
-import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
-
-// ─── Market context from Sanity ───────────────────────────────────────────────
-
-type MarketContextData = {
-  heading: string;
-  paragraphs: Array<{ text: string }>;
-} | null;
-
-function useMarketContext(asset: string): MarketContextData {
-  const [data, setData] = useState<MarketContextData>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    client
-      .fetch<MarketContextData>(
-        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
-          heading,
-          paragraphs
-        }`,
-        { asset }
-      )
-      .then((result) => { if (!cancelled) setData(result ?? null); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [asset]);
-
-  return data;
-}
+import type { MarketContext } from "@/lib/api/marketContext";
+import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -533,30 +507,14 @@ function MiniPriceWidget({ quote }: { quote: GoldQuote | null }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const FAQ_ITEMS = [
-  {
-    question: "What factors affect the gold price today?",
-    answer:
-      "The gold price is influenced by several major market drivers, including the strength of the US dollar, Treasury yields, inflation expectations, central bank policy, geopolitical uncertainty, and overall risk sentiment. Because these factors can shift throughout the day, the gold price can move frequently even when the broader trend remains the same.",
-  },
-  {
-    question: "What is XAU/USD in gold trading?",
-    answer:
-      'XAU/USD is the financial market symbol for gold priced in US dollars. "XAU" represents one troy ounce of gold, while "USD" is the US dollar. When traders search for the live gold price, spot gold, or gold price today, they are often referring to the XAU/USD market.',
-  },
-  {
-    question:
-      "Why does the gold price differ slightly between websites, brokers, or apps?",
-    answer:
-      "Gold prices can vary slightly across platforms because not every source uses the exact same feed, update speed, or pricing method. Some websites display the live spot XAU/USD price, while others may show futures-based pricing, delayed data, or broker quotes that include a spread. Small differences are normal and do not necessarily mean one price is wrong. On IntelliTrade, the displayed price is intended as a live market reference for XAU/USD.",
-  },
-];
-
-export default function GoldPriceTodayPage() {
+export default function GoldPriceTodayPage({
+  marketContext,
+}: {
+  marketContext: MarketContext | null;
+}) {
   const goldQuote = useGoldPrice();
   const marketData = useMarketData();
   const dxy = useDxy();
-  const marketContext = useMarketContext("gold");
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
 
@@ -623,7 +581,7 @@ export default function GoldPriceTodayPage() {
               {marketContext?.heading ?? "What\u2019s moving gold today"}
             </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              {marketContext ? (
+              {marketContext?.paragraphs?.length ? (
                 marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
               ) : (
                 <>
@@ -641,6 +599,7 @@ export default function GoldPriceTodayPage() {
                 </>
               )}
             </div>
+            <MarketContextExtras context={marketContext} />
           </div>
         </motion.section>
 

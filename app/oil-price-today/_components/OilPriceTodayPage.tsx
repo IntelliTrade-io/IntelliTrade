@@ -7,36 +7,10 @@ import {
   RadialBackdrop,
   getChartTabClassName,
 } from "@/components/price-pages/PricePageBrand";
-import { client } from "@/sanity/client";
 import { fetchDxy } from "@/lib/api/market";
-
-// ─── Market context from Sanity ───────────────────────────────────────────────
-
-type MarketContextData = {
-  heading: string;
-  paragraphs: Array<{ text: string }>;
-} | null;
-
-function useMarketContext(asset: string): MarketContextData {
-  const [data, setData] = useState<MarketContextData>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    client
-      .fetch<MarketContextData>(
-        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
-          heading,
-          paragraphs
-        }`,
-        { asset }
-      )
-      .then((result) => { if (!cancelled) setData(result ?? null); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [asset]);
-
-  return data;
-}
+import type { MarketContext } from "@/lib/api/marketContext";
+import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── DXY ─────────────────────────────────────────────────────────────────────
 
@@ -270,23 +244,11 @@ function MiniPriceWidget() {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const FAQ_ITEMS = [
-  {
-    question: "What is Brent crude and why is it a global benchmark?",
-    answer: "Brent crude is a widely used benchmark for pricing global oil. It's especially important for Europe, Africa, and much of Asia, and is commonly referenced in news headlines and institutional pricing models.",
-  },
-  {
-    question: "What factors move the Brent oil price today?",
-    answer: "Brent prices are influenced by supply and demand expectations, OPEC+ policy, geopolitical risk and shipping disruptions, inventory data, refinery demand, global growth expectations, and the US dollar. Because oil is a globally transported commodity, changes in logistics and risk premia can matter as much as pure consumption trends.",
-  },
-  {
-    question: "Why can the Brent oil price differ between websites or brokers?",
-    answer: "Different platforms may show different instruments. Some display a Brent futures contract, others show a CFD or a spot reference, and prices can vary by contract month (front-month vs next-month) and how rollovers are handled. Broker quotes also include spreads, which can widen during volatility or outside peak liquidity.",
-  },
-];
-
-export default function OilPriceTodayPage() {
-  const marketContext = useMarketContext("oil");
+export default function OilPriceTodayPage({
+  marketContext,
+}: {
+  marketContext: MarketContext | null;
+}) {
   const dxy = useDxy();
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
@@ -333,7 +295,7 @@ export default function OilPriceTodayPage() {
               {marketContext?.heading ?? "What\u2019s moving oil today"}
             </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              {marketContext ? (
+              {marketContext?.paragraphs?.length ? (
                 marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
               ) : (
                 <>
@@ -342,6 +304,7 @@ export default function OilPriceTodayPage() {
                 </>
               )}
             </div>
+            <MarketContextExtras context={marketContext} />
           </div>
         </motion.section>
 

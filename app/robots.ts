@@ -12,6 +12,8 @@ export default function robots(): MetadataRoute.Robots {
           "/blog/",
           "/lotsizecalculator",
           "/lotsizecalculator/faq",
+          "/pro",
+          "/smart-support-zones",
           "/gold-price-today",
           "/silver-price-today",
           "/oil-price-today",
