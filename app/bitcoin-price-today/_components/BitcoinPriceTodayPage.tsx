@@ -9,6 +9,7 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -382,21 +383,6 @@ function MiniPriceWidget({ quote }: { quote: BitcoinQuote | null }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-const FAQ_ITEMS = [
-  {
-    question: "Why does the bitcoin price differ between exchanges?",
-    answer: "Bitcoin doesn't have one single 'official' global price. Exchanges are separate marketplaces with different liquidity, order books, and spreads, so their last-traded prices can vary slightly. During fast markets or low-liquidity periods, those differences can widen before arbitrage brings them closer again.",
-  },
-  {
-    question: "Is bitcoin traded 24/7?",
-    answer: "Yes. Bitcoin trades continuously, including weekends and holidays. Because crypto markets never fully close, price moves can happen at any time, and liquidity conditions can change across hours and days.",
-  },
-  {
-    question: "What factors affect the bitcoin price today?",
-    answer: "Bitcoin is often driven by overall risk sentiment, macro liquidity conditions, major regulatory or market-structure headlines, leverage and liquidation dynamics, and shifts in demand across regions and venues. Short-term moves can be amplified by volatility, spreads, and rapid changes in order-book depth.",
-  },
-];
 
 export default function BitcoinPriceTodayPage() {
   const bitcoinQuote = useBitcoinPrice();

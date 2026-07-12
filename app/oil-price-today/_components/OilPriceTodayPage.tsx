@@ -9,6 +9,7 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { client } from "@/sanity/client";
 import { fetchDxy } from "@/lib/api/market";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -269,21 +270,6 @@ function MiniPriceWidget() {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-const FAQ_ITEMS = [
-  {
-    question: "What is Brent crude and why is it a global benchmark?",
-    answer: "Brent crude is a widely used benchmark for pricing global oil. It's especially important for Europe, Africa, and much of Asia, and is commonly referenced in news headlines and institutional pricing models.",
-  },
-  {
-    question: "What factors move the Brent oil price today?",
-    answer: "Brent prices are influenced by supply and demand expectations, OPEC+ policy, geopolitical risk and shipping disruptions, inventory data, refinery demand, global growth expectations, and the US dollar. Because oil is a globally transported commodity, changes in logistics and risk premia can matter as much as pure consumption trends.",
-  },
-  {
-    question: "Why can the Brent oil price differ between websites or brokers?",
-    answer: "Different platforms may show different instruments. Some display a Brent futures contract, others show a CFD or a spot reference, and prices can vary by contract month (front-month vs next-month) and how rollovers are handled. Broker quotes also include spreads, which can widen during volatility or outside peak liquidity.",
-  },
-];
 
 export default function OilPriceTodayPage() {
   const marketContext = useMarketContext("oil");

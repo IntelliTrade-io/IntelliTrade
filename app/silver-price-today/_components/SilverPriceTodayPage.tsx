@@ -9,6 +9,7 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -407,21 +408,6 @@ function MiniPriceWidget({ quote }: { quote: SilverQuote | null }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-const FAQ_ITEMS = [
-  {
-    question: "What factors affect the silver price today?",
-    answer: "Silver typically moves with a mix of macro and industrial forces. Key drivers include the US dollar, real yields, inflation expectations, global growth sentiment, industrial demand (electronics, solar, manufacturing), and shifts in safe-haven positioning. Because silver has both precious metal and industrial characteristics, it can behave differently from gold during risk-on or risk-off phases.",
-  },
-  {
-    question: "What is XAG/USD in silver trading?",
-    answer: "XAG/USD is the market symbol for silver priced in US dollars, usually quoted per troy ounce. XAG is the standard code used to represent silver in financial markets, and USD is the pricing currency.",
-  },
-  {
-    question: "Why does the silver price differ slightly between websites, brokers, or apps?",
-    answer: "Small differences are normal. Platforms can display different pricing streams (spot reference vs. derivatives), different refresh speeds, and different spreads. A broker quote may include a bid/ask spread, while a data site may show a mid-price reference. The result is minor variation even when markets are moving in the same direction.",
-  },
-];
 
 export default function SilverPriceTodayPage() {
   const silverQuote = useSilverPrice();

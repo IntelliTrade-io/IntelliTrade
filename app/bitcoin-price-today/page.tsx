@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import BitcoinPriceTodayPage from "./_components/BitcoinPriceTodayPage";
+import { FAQ_ITEMS } from "./_components/faqData";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -40,12 +41,26 @@ const schema = {
   },
 };
 
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+
 export default function Page() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
       <BitcoinPriceTodayPage />
       <section className="w-full px-4 pb-20">
