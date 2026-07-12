@@ -24,7 +24,7 @@ Fixes, in order of expected impact:
 - [ ] **Add evergreen pillar content**: guides that answer real searches (risk management, session timing, pair characteristics) and get linked from the daily posts. A blog that is 100% dailies has no lasting spine.
 - [ ] **Text-rich tool pages**: replicate the lot-size-calculator SEO upgrade (explanations, worked examples, FAQ) on every public calculator/price page.
 - [ ] **prices-today enrichment** (already in IMPROVEMENTS.md): historical context, related links.
-- [ ] **No under-construction signals**: remove/hide "coming soon" items on public pages (upgrade page lists "Macro Mastery — soon").
+- [x] **No under-construction signals**: DONE 2026-07-12 — removed the three blurred "Coming Soon" cards from the homepage (conversion Phase B); the public /upgrade page already filters `soon` features out of view. New public pages /pro and /smart-support-zones ship no "coming soon" surfaces.
 - [ ] **Owner: Search Console check** — how many of the 172 posts are actually indexed? If Google indexes few, that's corroborating evidence of the quality-signal problem (and fixing indexing is part of the same work).
 
 ## 2. Site compliance (mostly DONE 2026-07-05)
@@ -60,7 +60,7 @@ AdSense pays per impression/click — meaningful revenue needs serious traffic. 
 
 1. Public-surface crawl + gap report (broken links, thin pages, gated nav share). (One session)
 2. Tool-page content upgrades, one page per session, lot-size pattern. (Repeatable)
-3. Premium-module public teaser pages. (One session)
+3. ~~Premium-module public teaser pages.~~ DONE 2026-07-12 — `/smart-support-zones` is a substantive (~600-word + 6-Q FAQ) public teaser for the flagship Pro module, and `/pro` is a full product-overview page. Both text-rich, both in the sitemap with WebPage + FAQPage schema.
 4. Copy scrub public surfaces. (One session)
 5. robots/sitemap/middleware crawler verification. (Small)
 
@@ -68,3 +68,4 @@ AdSense pays per impression/click — meaningful revenue needs serious traffic. 
 
 *Changelog*
 - 2026-07-05 — doc created as GOOGLE_ADS_APPROVAL.md assuming advertiser denials; corrected same day: denials are AdSense (owner confirmed), renamed + rewritten. Consent Mode v2, footer legal block, refund link shipped (commit 04f0bd7).
+- 2026-07-12 — conversion-system build (Phases A–E) advanced several items: two new text-rich public pages (`/smart-support-zones`, `/pro`) added §6.3 teaser + originality surface; homepage "Coming Soon" cards removed (§1 no-under-construction); new public copy written to the non-signal standard (§2, partial — existing surfaces like /support-resistance not yet re-scrubbed). Analytics now production-only (dev/localhost no longer pollutes GA4), which improves data quality but is orthogonal to the low-value-content blocker. Still outstanding for AdSense: §1 proprietary-data-in-posts + title/template break, §2 full copy scrub, owner Search Console indexing check.

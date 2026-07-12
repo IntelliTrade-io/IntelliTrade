@@ -62,6 +62,19 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **Alpha demo accounts (free premium access)** *(2026-07-05, owner)*
   Founders will hand out free demo accounts for alpha testing soon. Gating today = `subscriptions` table row with status `active`/`trialing` (checked by `lib/auth/requireSubscription` + middleware), populated by Stripe webhooks. Cleanest options: (a) Stripe promotion code for a 100%-off trial — zero code, testers walk the real checkout, webhook keeps the row in sync; (b) manual `subscriptions` rows with status `active` and no Stripe customer — fastest but verify the webhook/portal code paths don't choke on a row without a Stripe subscription id (cancel/upgrade flows). Decide before invites go out; (a) preferred.
 
+## Conversion funnel — phase 2 *(2026-07-12)*
+
+Deferred from the conversion-system build (Phases A–E shipped; see `CONVERSION_PLAN.md` / `OPUS_HANDOFF.md`). Ordered rough-highest-value first.
+
+- **Server-side purchase tracking** — the `purchase` event currently fires client-side on `/upgrade/success` (sessionStorage-guarded). The authoritative signal is the Stripe webhook; send a GA4 Measurement Protocol `purchase` from `app/api/stripe/webhook/route.ts` on `customer.subscription.created` for accurate, un-blockable conversion counts. Permission-gated (touches webhook). Do once volume justifies attribution accuracy.
+- **Founding-member cap auto-enforcement** — at ~80 active members, add a count check so `/pro` + `/upgrade` flip to standard-price state (and checkout blocks a 101st founding sub) automatically. Until then the cap is watched manually (OWNER_TODO). Needs the post-100 standard price decided first.
+- **Locked free-account dashboard preview** — launch shipped a *thin* free tier (public previews sell; account = subscribe). Phase 2: after sign-up, show the dashboard shell with locked Pro cards + the SSZ static preview, so free users experience the product surface before upgrading. Touches entitlement/UX — scope carefully.
+- **Founder credibility section** on `/pro` — short "who's behind this" block; needs the owner's personal-info decision (ties to `lib/company.ts`).
+- **SSZ preview: per-zone `preview_interact` detail** — current beacon fires once per session on first interaction (`tool: "ssz"`). Could emit `zone_grade` per selection for richer engagement analytics if the data proves useful.
+- **A/B tests** — deferred until traffic supports it (≥ ~200 sign-up-page sessions/month). Measure the funnel first; don't test on noise.
+- **Segment landing pages** (forex / gold / prop) — rejected at launch (no traffic to segment; "prop" invites compliance drift). Revisit only if a specific channel justifies one.
+- **Blog → product conversion** — the blog is intentionally out of the funnel. If authorized later, a contextual (non-popup) in-article Pro card is the lowest-risk experiment.
+
 ## Ops
 
 - **No repo-linked migration flow** *(2026-07-04)*
