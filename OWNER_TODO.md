@@ -4,9 +4,23 @@ Things only the owner can do (account access, credentials, external services). *
 
 ---
 
+## ★ Post-refactor launch checklist (start here)
+
+The refactor is **code-complete** (all 7 phases; only owner/external-gated items remain). These are the things standing between "refactor done" and "safe to launch", newest-blocking first. Each links to its detail section below.
+
+- [ ] **🔴 Move production off demo FX feeds → licensed data provider** *(launch-blocking, legal)*. Prod runs on MetaQuotes-Demo (MT5 VPS) + OANDA demo. Not a refactor item, but the biggest real risk before public launch. See "External / accounts → data licensing" and `claudeLoad/TRADING_CORRECTNESS_AUDIT.md`.
+- [ ] **🟠 Rotate the CurrencyFreaks key (H7)** *(was blocked till ~2026-07-06 — now unblocked)*. Last open security-register item. Steps in "Unblocks on a date" below. Tell Claude "key rotated" → fallback stripped from `api/rates` + `api/dxy`, H7 closes.
+- [ ] **🟠 Arm CI (Phase 7.3)** — workflows report but don't *gate* until: 2 Sanity Actions **variables**, 2 Supabase **secrets**, branch protection on `main` requiring `frontend` + `security-regression` + `pytest`. Full steps in "CI activation" below.
+- [ ] **🟡 Merge to `main` + verify Vercel/Actions** — merge the refactor branch, then confirm the scheduled currency-strength GitHub Actions run green from the new default branch (see "Currency-strength GitHub Actions healthy after merge?").
+- [ ] **🟡 Retire the old VPS flat files** after a rollback window — `C:\IntelliTrade\scanner\*.py` + `setup_windows_tasks.ps1` are superseded by the git deploy (`bootstrap.ps1`); delete once the git tasks are proven. See "Retire the old flat files" below.
+
+Everything below is the detail for these plus lower-priority owner items (AdSense, research validation, email redirect check).
+
+---
+
 ## Unblocks on a date
 
-- [ ] **Rotate the CurrencyFreaks key** *(unblocks ~2026-07-06 when co-founder is back)*
+- [ ] **Rotate the CurrencyFreaks key** *(unblock date ~2026-07-06 has passed — actionable now)*
   1. Rotate the key in the CurrencyFreaks dashboard (old one was browser-exposed pre-refactor).
   2. In Vercel: set new value on `CURRENCYFREAKS_API_KEY`, **delete** `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY`.
   3. Tell Claude: "key rotated" → code fallback in `app/api/rates` + `app/api/dxy` gets stripped, H7 closes in the security register.
@@ -29,7 +43,7 @@ Things only the owner can do (account access, credentials, external services). *
 - [x] ~~**6 non-USD crosses fail to fetch**~~ **RESOLVED 2026-07-09 — was cold history-sync latency on MetaQuotes-Demo, NOT a feed limitation.** GBPAUD, AUDJPY, AUDCAD, NZDCAD, CHFJPY, CADCHF initially returned `-1 Terminal: Call failed` on ALL timeframes. Probing proved the symbols exist with live ticks; the terminal just hadn't downloaded their bar history yet. It finished syncing in the background (minutes) and cached to disk → **both scanners now run 28/28, 0 failed** (h1m15 id=121, d1h4 id=122). **`MIN_SYMBOLS` stays 28 — do NOT set it to 22** (that would sacrifice functionality; see memory rule). The `INTELLITRADE_MIN_SYMBOLS` env knob exists (default 28) only as legit per-feed config, not to mask this. Cold-start note: MT5 persists history to disk, so reboots should keep the 6 warm; if a reboot ever makes them `-1` again, tell Claude and we harden `feed_adapter` warmup patience (don't lower the threshold).
 - [ ] **Don't hand-edit files on the VPS from now on** — the box now pulls from git; any fix must land in the repo, or the next `git pull` overwrites it.
 - [ ] **Retire the old flat files** once the git tasks are proven: `C:\IntelliTrade\scanner\*.py` + its `setup_windows_tasks.ps1` are now unused (tasks point at the repo). Leave for rollback for a few days, then delete.
-- [ ] **S&R backend task** (`IntelliTrade SR Alpha`, already registered separately) isn't managed by `bootstrap.ps1` yet — still runs its old way. Tell Claude its current Execute path + schedule to fold it into the bootstrap (and repoint it at the repo `python -m`/`run_sr_alpha`).
+- [x] ~~**S&R backend task** isn't managed by `bootstrap.ps1` yet~~ **Folded in** — `bootstrap.ps1` registers `IntelliTrade SR Alpha` → `python -m support_resistance.run_sr_alpha --source mt5`, 15-min trigger (line ~180), same as the other scanners; it was among the 4 tasks set to "run whether logged in or not" on 2026-07-09. **Remaining verify (owner, quick):** confirm the SR Alpha task actually writes fresh `sr_*` rows to Supabase after a run — only the D1H4/H1M15 strength scans were row-verified on 2026-07-09; the SR scan wasn't. If it errors, paste Claude the task's last-run log.
 
 ## Google AdSense (see GOOGLE_ADSENSE_APPROVAL.md)
 
