@@ -1,6 +1,8 @@
 # Sanity Studio schema upgrade — `marketContext` enrichment
 
-For the cofounder's Sanity Studio project (the studio code is not in this repo). Written 2026-07-12 alongside the price-page enrichment (AdSense plan §1 "prices-today enrichment").
+**STATUS 2026-07-12: DONE in code.** The fields below were added directly to `C:\studio-intellitrade\schemaTypes\marketPrices.ts` (typecheck clean). Remaining step: **deploy the Studio** (`npx sanity deploy` from `C:\studio-intellitrade`, or restart the local studio) so the fields appear in the editing UI. The snippet below is kept for reference.
+
+Written 2026-07-12 alongside the price-page enrichment (AdSense plan §1 "prices-today enrichment").
 
 ## What changed on the site
 

@@ -1,6 +1,7 @@
 import React from "react";
-import { Clock3, Waves } from "lucide-react";
-import { supportResistanceCopy } from "./copy";
+import { Waves } from "lucide-react";
+import { reactionRateTooltip, supportResistanceCopy } from "./copy";
+import { HISTORICAL_REACTION_RATE } from "./gradeConfig";
 import { buildZoneDetails, formatReactionRange, formatTypicalR } from "./model";
 import EducationalTooltip from "./EducationalTooltip";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
@@ -40,9 +41,10 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
   }
 
   const details = buildZoneDetails(zone);
+  const gradeRate = HISTORICAL_REACTION_RATE[details.dynamicGrade];
 
   return (
-    <aside className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.96))] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+    <aside className="h-full rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.96))] p-3 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-white/8 pb-2.5">
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Zone details</div>
@@ -71,7 +73,10 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
         <div className="rounded-xl border border-white/8 bg-white/[0.03] px-2.5 py-2">
           <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-white/34">
             Dynamic opportunity grade
-            <EducationalTooltip label={supportResistanceCopy.tooltips.aPlusMeaning} align="right" />
+            <EducationalTooltip
+              label={gradeRate !== undefined ? reactionRateTooltip(gradeRate) : supportResistanceCopy.tooltips.watchBlocked}
+              align="right"
+            />
           </div>
           <div className="mt-2">
             <OpportunityGradeBadge grade={details.dynamicGrade} />
@@ -83,7 +88,7 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
         </div>
 
         <div className="pt-0.5 text-[9px] uppercase tracking-[0.18em] text-white/34">Context quality</div>
-        <DetailItem label="Research reaction range" value={formatReactionRange(details.reactionRange)} />
+        <DetailItem label="Historical reaction range" value={formatReactionRange(details.reactionRange)} />
         <DetailItem
           label="Typical minimum reaction"
           value={formatTypicalR(details.typicalMinimumR, details.typicalMaximumR)}
@@ -102,17 +107,12 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
         <DetailItem label="Last updated" value={`${formatTimestamp(details.lastUpdated)} UTC`} />
       </div>
 
-      <div className="mt-2 rounded-[14px] border border-amber-300/16 bg-amber-300/[0.06] px-3 py-2.5">
-        <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-amber-100">
-          <Clock3 className="h-3 w-3" />
-          Educational disclaimer
-        </div>
-        <p className="mt-1 text-xs leading-relaxed text-amber-50/80">{supportResistanceCopy.disclaimer}</p>
-      </div>
+      {/* Module shows one educational disclaimer for the whole tool — it applies
+          to every zone, so it does not belong inside the per-zone panel. */}
 
       {details.dynamicGrade === "a_plus" ? (
         <div className="mt-2 rounded-[14px] border border-[#F7E38C]/18 bg-[#F7E38C]/[0.06] px-3 py-2.5 text-xs leading-relaxed text-[#FFF1B1]">
-          A+ = highest-quality short-term first-reaction setup, not a reversal call.
+          A+ = highest grade tier. Short-term first reaction, not a reversal call.
         </div>
       ) : null}
 

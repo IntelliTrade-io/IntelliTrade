@@ -50,6 +50,10 @@ const FAQ: { q: string; a: string }[] = [
     a: "The interactive preview on this page uses illustrative sample data so you can explore how zones, scores and explanations are presented. Live EURUSD zones, refreshed throughout the session, are available inside IntelliTrade Pro.",
   },
   {
+    q: "What does a percentage like “86.57% historical reaction rate” mean?",
+    a: "It means 86.57% of comparable resolved historical setups in that grade tier reached the model's 0.50R first-reaction target during testing. It is a historical measurement over a bucket of similar setups — not a calibrated probability forecast for any specific live zone. Historical results do not guarantee future performance.",
+  },
+  {
     q: "How is the opportunity score calculated?",
     a: "The score combines the zone's static strength (structure and history of the shelf) with dynamic context: reclaim status, approach quality, and session timing. Each component is shown with the score, so you can see why a zone is graded the way it is — and disagree with it if your own analysis says otherwise.",
   },
@@ -109,11 +113,11 @@ export default function SmartSupportZonesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(softwareAppSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
 
-      <div className="mx-auto max-w-5xl">
+      <div className="mx-auto max-w-7xl">
         {/* ── Hero ── */}
         <section className="mb-14 text-center">
           <div className="inline-flex items-center rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300 mb-6">
-            Flagship · Smart Support Zones
+            IntelliTrade Pro · Smart Support Zones
           </div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white leading-tight mb-6">
             Know how strong a support<br className="hidden sm:block" /> zone really is.
@@ -194,8 +198,8 @@ export default function SmartSupportZonesPage() {
             <ul className="space-y-2">
               <li><span className="text-white/90 font-medium">Strong / medium / weak</span> describe the underlying shelf — its structure and history.</li>
               <li><span className="text-white/90 font-medium">The dynamic grade</span> describes the current situation around that shelf, including reclaim confirmation and session timing. A structurally strong shelf can still grade poorly if the current approach is messy or the timing filter fails.</li>
-              <li><span className="text-white/90 font-medium">Blue zones</span> are informational only: they exist, but the context is incomplete.</li>
-              <li><span className="text-white/90 font-medium">Watch</span> means quality is not clean enough yet; <span className="text-white/90 font-medium">Blocked</span> means poor context.</li>
+              <li><span className="text-white/90 font-medium">Informational zones</span> are the neutral baseline: a support zone exists, but no validated historical edge is attached to it.</li>
+              <li><span className="text-white/90 font-medium">Watch</span> means the setup is below the activation threshold; <span className="text-white/90 font-medium">Blocked</span> means one or more required conditions were not met.</li>
             </ul>
           </div>
 

@@ -1,6 +1,14 @@
 import React from "react";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
-import { dynamicOpportunityGradeConfig } from "./gradeConfig";
+import GradeLegend from "./GradeLegend";
+import {
+  HISTORICAL_REACTION_RATE,
+  STRENGTH_BAND_OPACITY,
+  dynamicOpportunityGradeConfig,
+  formatHistoricalReactionRate,
+  gradeSummaryLine,
+} from "./gradeConfig";
+import { compareZonesByPriority } from "./model";
 import type { OverlayPoint, SupportResistanceZone } from "./types";
 
 interface ZoneOverlayPreviewProps {
@@ -39,7 +47,10 @@ export function ZoneOverlayPreview({
     );
   }
 
-  const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? zones[0] ?? null;
+  // Rank order (A+ first) drives DOM + chip order everywhere in this preview.
+  const rankedZones = [...zones].sort(compareZonesByPriority);
+  const selectedZone = rankedZones.find((zone) => zone.id === selectedZoneId) ?? rankedZones[0] ?? null;
+  const selectedRate = selectedZone ? HISTORICAL_REACTION_RATE[selectedZone.dynamicGrade] : undefined;
   const allValues = [
     ...points.map((point) => point.close),
     ...zones.flatMap((zone) => [zone.zoneLow, zone.zoneHigh]),
@@ -64,11 +75,26 @@ export function ZoneOverlayPreview({
         </div>
         {selectedZone ? (
           <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Selected context</div>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Selected zone</div>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <OpportunityGradeBadge grade={selectedZone.dynamicGrade} compact />
               <span className="text-sm text-white/74">{selectedZone.zoneLabel}</span>
             </div>
+            <div className="mt-2 text-sm text-white/82">
+              {selectedRate !== undefined ? (
+                <>
+                  <span className="text-lg font-semibold text-white">
+                    {formatHistoricalReactionRate(selectedZone.dynamicGrade)}
+                  </span>{" "}
+                  historical 0.50R reaction rate
+                </>
+              ) : (
+                gradeSummaryLine(selectedZone.dynamicGrade)
+              )}
+            </div>
+            {selectedRate !== undefined ? (
+              <div className="mt-0.5 text-[11px] text-white/40">Based on comparable resolved setups</div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -89,7 +115,7 @@ export function ZoneOverlayPreview({
                 return <line key={index} x1="0" x2="100" y1={y} y2={y} stroke="rgba(255,255,255,0.08)" strokeDasharray="2 3" />;
               })}
 
-              {zones.map((zone, index) => {
+              {rankedZones.map((zone, index) => {
                 const gradeConfig = dynamicOpportunityGradeConfig[zone.dynamicGrade];
                 const span = zone.previewSpan ?? { start: 0.08 + index * 0.08, end: 0.38 + index * 0.08 };
                 const yTop = 100 - ((zone.zoneHigh - minValue) / valueRange) * 100;
@@ -109,7 +135,7 @@ export function ZoneOverlayPreview({
                       fill={gradeConfig.chartFill}
                       stroke={gradeConfig.chartStroke}
                       strokeWidth={selected ? 0.9 : 0.45}
-                      opacity={selected ? 1 : 0.78}
+                      opacity={selected ? 1 : STRENGTH_BAND_OPACITY[zone.staticStrength]}
                     />
                     {selected ? (
                       <rect
@@ -154,7 +180,7 @@ export function ZoneOverlayPreview({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          {zones.map((zone) => (
+          {rankedZones.map((zone) => (
             <button
               key={zone.id}
               type="button"
@@ -174,7 +200,13 @@ export function ZoneOverlayPreview({
 
         {selectedZone?.dynamicGrade === "a_plus" ? (
           <div className="mt-4 rounded-[18px] border border-[#F7E38C]/18 bg-[#F7E38C]/[0.06] px-4 py-3 text-sm text-[#FFF1B1]">
-            Highest-quality short-term first-reaction setup, not a reversal call.
+            Highest grade tier — short-term first reaction, not a reversal call.
+          </div>
+        ) : null}
+
+        {!compact ? (
+          <div className="mt-4">
+            <GradeLegend compact />
           </div>
         ) : null}
       </div>

@@ -23,7 +23,7 @@ function getScannerRowTone(grade: ScannerRow["dynamicGrade"], selected: boolean)
   }
 
   if (grade === "watch") {
-    return "border-amber-300/12 bg-amber-950/[0.08] opacity-75 hover:border-amber-300/20 hover:opacity-90";
+    return "border-blue-400/12 bg-blue-950/[0.08] opacity-75 hover:border-blue-400/20 hover:opacity-90";
   }
 
   if (grade === "blue") {
@@ -55,7 +55,7 @@ export function SupportResistanceScanner({
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-[0.2em] text-white/34">Scanner</div>
-            <div className="mt-1 text-sm text-white/46">EURUSD support-only Alpha rows ordered by current context quality.</div>
+            <div className="mt-1 text-sm text-white/46">EURUSD support zones ranked by opportunity grade.</div>
           </div>
           <div className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/60">
             {alphaQualifiedCount} Green+
@@ -99,8 +99,8 @@ export function SupportResistanceScanner({
     <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.95))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
       <div className="flex flex-col gap-3 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.22em] text-white/34">Support resistance scanner</div>
-          <h3 className="mt-2 text-xl font-semibold text-white">EURUSD support-only Alpha rows</h3>
+          <div className="text-[11px] uppercase tracking-[0.22em] text-white/34">Support zone scanner</div>
+          <h3 className="mt-2 text-xl font-semibold text-white">EURUSD support zones, ranked by grade</h3>
           <p className="mt-1 text-sm text-white/46">Static strength and dynamic opportunity grade are separated on every row.</p>
         </div>
         <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/68">
@@ -110,7 +110,7 @@ export function SupportResistanceScanner({
         </div>
       </div>
 
-      <div className="mt-4 hidden overflow-hidden rounded-[24px] border border-white/10 lg:block">
+      <div className="mt-4 hidden overflow-x-auto rounded-[24px] border border-white/10 lg:block">
         <table className="min-w-full border-collapse">
           <thead className="bg-white/[0.03] text-left text-[10px] uppercase tracking-[0.22em] text-white/34">
             <tr>
@@ -119,7 +119,7 @@ export function SupportResistanceScanner({
               <th className="px-4 py-3 font-medium">Zone side</th>
               <th className="px-4 py-3 font-medium">Static strength</th>
               <th className="px-4 py-3 font-medium">Opportunity grade</th>
-              <th className="px-4 py-3 font-medium">Research reaction range</th>
+              <th className="px-4 py-3 font-medium">Historical reaction range</th>
               <th className="px-4 py-3 font-medium">Typical minimum R</th>
               <th className="px-4 py-3 font-medium">Status</th>
             </tr>
@@ -143,7 +143,7 @@ export function SupportResistanceScanner({
                   row.id === selectedZoneId
                     ? "bg-white/[0.1]"
                     : row.dynamicGrade === "watch"
-                      ? "bg-amber-950/[0.04] opacity-80 hover:bg-amber-950/[0.08]"
+                      ? "bg-blue-950/[0.04] opacity-80 hover:bg-blue-950/[0.08]"
                       : row.dynamicGrade === "blocked"
                         ? "bg-rose-950/[0.04] opacity-70 hover:bg-rose-950/[0.08]"
                         : row.dynamicGrade === "blue"

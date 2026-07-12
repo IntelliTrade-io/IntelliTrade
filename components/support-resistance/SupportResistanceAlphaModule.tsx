@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Clock3, Radar, Shield, Target } from "lucide-react";
+import { ChevronDown, Clock3, Radar, Shield, Target } from "lucide-react";
 import { supportResistanceCopy } from "./copy";
 import { buildScannerRows, compareZonesByPriority, formatReactionRange, selectFeaturedZone } from "./model";
 import { supportResistanceAlphaScope, supportResistanceMockCandles, supportResistanceMockZones, supportResistanceResearchProfiles } from "./mockData";
-import EducationalTooltip from "./EducationalTooltip";
+import GradeLegend from "./GradeLegend";
 import ResearchProfileCard from "./ResearchProfileCard";
 import SupportResistanceScanner from "./SupportResistanceScanner";
 import ZoneDetailsPanel from "./ZoneDetailsPanel";
@@ -16,6 +16,23 @@ interface SupportResistanceAlphaModuleProps {
   profiles?: ResearchTierProfile[];
   candles?: CandleData[];
   compact?: boolean;
+}
+
+// FAQ-style header disclosure: a small pill that opens a floating panel, so
+// reference material (scope, interpretation help) lives in the header instead
+// of occupying a whole sidebar column.
+function HeaderDisclosure({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <details className="group relative">
+      <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] uppercase tracking-[0.16em] text-white/60 transition-colors hover:border-white/20 hover:text-white">
+        {title}
+        <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="absolute left-0 top-[calc(100%+0.5rem)] z-30 w-80 max-w-[min(20rem,calc(100vw-2rem))] rounded-2xl border border-white/12 bg-[#0b0e14]/[0.98] p-3 shadow-[0_24px_60px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        {children}
+      </div>
+    </details>
+  );
 }
 
 function StatCard({ label, value, note, icon: Icon }: { label: string; value: string; note?: string; icon: React.ComponentType<{ className?: string }> }) {
@@ -59,13 +76,9 @@ export function SupportResistanceAlphaModule({
     }
     return ranked;
   })();
+  // Always the full list in priority order — selecting a low-ranked row must
+  // never lift it above higher grades (rank order is a product invariant).
   const scannerRows = buildScannerRows(zones);
-  const selectedScannerRow = scannerRows.find((row) => row.id === selectedZoneId) ?? null;
-  const baseScannerRows = scannerRows.slice(0, 4);
-  const visibleScannerRows =
-    selectedScannerRow && !baseScannerRows.some((row) => row.id === selectedScannerRow.id)
-      ? [selectedScannerRow, ...baseScannerRows.filter((row) => row.id !== selectedScannerRow.id)].slice(0, 4)
-      : baseScannerRows;
 
   if (compact) {
     return (
@@ -112,7 +125,7 @@ export function SupportResistanceAlphaModule({
           />
         </div>
 
-        <SupportResistanceScanner rows={visibleScannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} compact />
+        <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} compact />
 
         <div className="rounded-[22px] border border-amber-300/16 bg-amber-300/[0.06] px-4 py-4 text-sm leading-relaxed text-amber-50/80">
           {supportResistanceCopy.disclaimer}
@@ -129,6 +142,33 @@ export function SupportResistanceAlphaModule({
             Alpha: EURUSD support only
           </span>
           <span className="text-xs text-white/48">Support-zone opportunity grading · short-term first reactions</span>
+          <HeaderDisclosure title="Alpha scope">
+            <div className="grid gap-1.5">
+              {supportResistanceCopy.scopeNotes.map((note) => (
+                <div key={note} className="rounded-[12px] border border-white/8 bg-white/[0.03] px-2.5 py-1.5 text-xs normal-case tracking-normal text-white/64">
+                  {note}
+                </div>
+              ))}
+            </div>
+          </HeaderDisclosure>
+          <HeaderDisclosure title="How to read this">
+            <div className="grid gap-2">
+              {(
+                [
+                  ["Static strength vs dynamic grade", supportResistanceCopy.tooltips.staticVsDynamic],
+                  ["Informational zones", supportResistanceCopy.tooltips.blueZones],
+                  ["Watch and Blocked states", supportResistanceCopy.tooltips.watchBlocked],
+                  ["A+ meaning", supportResistanceCopy.tooltips.aPlusMeaning],
+                  ["Research-only framing", supportResistanceCopy.tooltips.notSignal],
+                ] as const
+              ).map(([label, tip]) => (
+                <div key={label} className="rounded-[12px] border border-white/8 bg-white/[0.03] px-2.5 py-2 normal-case tracking-normal">
+                  <div className="text-xs font-medium text-white/85">{label}</div>
+                  <p className="mt-1 text-xs leading-relaxed text-white/55">{tip}</p>
+                </div>
+              ))}
+            </div>
+          </HeaderDisclosure>
         </div>
         <div className="grid grid-cols-3 gap-2 sm:min-w-[360px]">
           <StatCard icon={Shield} label="Stop" value={`${supportResistanceAlphaScope.stopBufferAtr.toFixed(2)} ATR`} note="Buffer" />
@@ -144,55 +184,23 @@ export function SupportResistanceAlphaModule({
           selectedZoneId={selectedZoneId}
           onSelectZone={setSelectedZoneId}
         />
-        <div className="max-h-[520px] overflow-y-auto">
-          <ZoneDetailsPanel zone={selectedZone} />
+        {/* h-full: the details column must match the chart section's height in
+            the xl row; the panel stretches and its content scrolls if taller. */}
+        <div className="relative min-h-0 xl:h-full">
+          <div className="h-full overflow-y-auto xl:absolute xl:inset-0">
+            <ZoneDetailsPanel zone={selectedZone} />
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
-        <SupportResistanceScanner rows={visibleScannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} />
+      <GradeLegend />
 
-        <aside className="grid gap-3">
-          <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.95))] p-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Alpha scope</div>
-            <div className="mt-2 grid gap-1.5">
-              {supportResistanceCopy.scopeNotes.map((note) => (
-                <div key={note} className="rounded-[12px] border border-white/8 bg-white/[0.03] px-2.5 py-1.5 text-xs text-white/56">
-                  {note}
-                </div>
-              ))}
-            </div>
-          </section>
+      <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} />
 
-          <section className="rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(17,17,23,0.92),rgba(10,10,15,0.95))] p-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Interpretation help</div>
-            <div className="mt-2 grid gap-1.5">
-              {(
-                [
-                  ["Static strength vs dynamic grade", supportResistanceCopy.tooltips.staticVsDynamic],
-                  ["Blue zones", supportResistanceCopy.tooltips.blueZones],
-                  ["Watch and Blocked states", supportResistanceCopy.tooltips.watchBlocked],
-                  ["A+ meaning", supportResistanceCopy.tooltips.aPlusMeaning],
-                  ["Research-only framing", supportResistanceCopy.tooltips.notSignal],
-                ] as const
-              ).map(([label, tip]) => (
-                <div
-                  key={label}
-                  className="flex items-center justify-between gap-2 rounded-[12px] border border-white/8 bg-white/[0.03] px-2.5 py-1.5 text-xs text-white/64"
-                >
-                  <span>{label}</span>
-                  <EducationalTooltip label={tip} align="right" />
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="rounded-[18px] border border-amber-300/16 bg-amber-300/[0.06] p-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100">Decision-support framing</div>
-            <p className="mt-1.5 text-xs leading-relaxed text-amber-50/82">{supportResistanceCopy.disclaimer}</p>
-          </section>
-        </aside>
-      </div>
+      <section className="rounded-[18px] border border-amber-300/16 bg-amber-300/[0.06] p-3">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100">Decision-support framing</div>
+        <p className="mt-1.5 text-xs leading-relaxed text-amber-50/82">{supportResistanceCopy.disclaimer}</p>
+      </section>
 
       {/* Research profiles carry historical win-rate figures — subscriber-only.
           Public surfaces pass profiles={[]}, which hides this section entirely. */}
