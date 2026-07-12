@@ -8,6 +8,7 @@ import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
 import Link from "next/link";
 import Image from "next/image";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
+import { StrengthSnapshot } from "./_components/StrengthSnapshot";
 import { ArrowLeft } from "lucide-react";
 
 
@@ -209,6 +210,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
             />
           )}
         </article>
+
+        <StrengthSnapshot publishedAt={post.publishedAt} />
 
         {/* Footer CTA */}
         <footer className=" pt-12 border-t border-white/10 text-center">

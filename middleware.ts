@@ -15,6 +15,6 @@ export const config = {
   // /data/current/*.json is matched by the extension exclusion, so that API
   // relies on its own requireSubscription check, not middleware.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|ads.txt|app-ads.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|txt|xml)$|lotsizecalculator|api|blog|privacyStatement|cookieStatement|upgrade|termsOfService|about|pro|smart-support-zones|gold-price-today|silver-price-today|oil-price-today|bitcoin-price-today|data/current).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|ads.txt|app-ads.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json|txt|xml|webmanifest)$|lotsizecalculator|api|blog|privacyStatement|cookieStatement|upgrade|termsOfService|about|pro|smart-support-zones|gold-price-today|silver-price-today|oil-price-today|bitcoin-price-today|data/current).*)",
   ],
 };
