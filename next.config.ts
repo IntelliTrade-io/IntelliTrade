@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Overridable so `npm run build` can use a separate output dir while the
+  // always-running dev server holds .next — sharing the dir corrupts route
+  // manifests (phantom 404s / "Cannot find module for page").
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   transpilePackages: ["recharts"],
   images: {
     domains: ["cdn.sanity.io"], // add Sanity CDN here

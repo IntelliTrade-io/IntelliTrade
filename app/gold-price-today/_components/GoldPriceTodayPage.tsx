@@ -8,37 +8,10 @@ import {
 
   getChartTabClassName
 } from "@/components/price-pages/PricePageBrand";
-import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
+import type { MarketContext } from "@/lib/api/marketContext";
+import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
 import { FAQ_ITEMS } from "./faqData";
-
-// ─── Market context from Sanity ───────────────────────────────────────────────
-
-type MarketContextData = {
-  heading: string;
-  paragraphs: Array<{ text: string }>;
-} | null;
-
-function useMarketContext(asset: string): MarketContextData {
-  const [data, setData] = useState<MarketContextData>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    client
-      .fetch<MarketContextData>(
-        `*[_type == "marketContext" && asset == $asset] | order(date desc)[0] {
-          heading,
-          paragraphs
-        }`,
-        { asset }
-      )
-      .then((result) => { if (!cancelled) setData(result ?? null); })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, [asset]);
-
-  return data;
-}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -534,11 +507,14 @@ function MiniPriceWidget({ quote }: { quote: GoldQuote | null }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function GoldPriceTodayPage() {
+export default function GoldPriceTodayPage({
+  marketContext,
+}: {
+  marketContext: MarketContext | null;
+}) {
   const goldQuote = useGoldPrice();
   const marketData = useMarketData();
   const dxy = useDxy();
-  const marketContext = useMarketContext("gold");
   const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
 
@@ -605,7 +581,7 @@ export default function GoldPriceTodayPage() {
               {marketContext?.heading ?? "What\u2019s moving gold today"}
             </h2>
             <div className="mt-5 max-w-4xl space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-              {marketContext ? (
+              {marketContext?.paragraphs?.length ? (
                 marketContext.paragraphs.map((p, i) => <p key={i}>{p.text}</p>)
               ) : (
                 <>
@@ -623,6 +599,7 @@ export default function GoldPriceTodayPage() {
                 </>
               )}
             </div>
+            <MarketContextExtras context={marketContext} />
           </div>
         </motion.section>
 

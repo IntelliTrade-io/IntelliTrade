@@ -23,6 +23,7 @@ node_modules/
 
 # next.js
 /.next/
+/.next-build/
 /out/
 
 # production

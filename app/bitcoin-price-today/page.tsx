@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import BitcoinPriceTodayPage from "./_components/BitcoinPriceTodayPage";
 import { FAQ_ITEMS } from "./_components/faqData";
+import { fetchMarketContext } from "@/lib/api/marketContext";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -51,7 +52,8 @@ const faqSchema = {
   })),
 };
 
-export default function Page() {
+export default async function Page() {
+  const marketContext = await fetchMarketContext("bitcoin");
   return (
     <>
       <script
@@ -62,7 +64,7 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
-      <BitcoinPriceTodayPage />
+      <BitcoinPriceTodayPage marketContext={marketContext} />
       <section className="w-full px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <ProCtaCard
