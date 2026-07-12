@@ -1,7 +1,8 @@
 import React from "react";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
-import GradeLegend from "./GradeLegend";
+import { reactionRateTooltip } from "./copy";
 import {
+  GRADE_TOKENS,
   HISTORICAL_REACTION_RATE,
   STRENGTH_BAND_OPACITY,
   dynamicOpportunityGradeConfig,
@@ -47,7 +48,7 @@ export function ZoneOverlayPreview({
     );
   }
 
-  // Rank order (A+ first) drives DOM + chip order everywhere in this preview.
+  // Rank order (A+ first) drives DOM + card order everywhere in this preview.
   const rankedZones = [...zones].sort(compareZonesByPriority);
   const selectedZone = rankedZones.find((zone) => zone.id === selectedZoneId) ?? rankedZones[0] ?? null;
   const selectedRate = selectedZone ? HISTORICAL_REACTION_RATE[selectedZone.dynamicGrade] : undefined;
@@ -58,14 +59,15 @@ export function ZoneOverlayPreview({
   const minValue = Math.min(...allValues) - 0.0004;
   const maxValue = Math.max(...allValues) + 0.0004;
   const valueRange = Math.max(0.0001, maxValue - minValue);
-  const plotWidth = 100;
-  const plotHeight = 100;
-  const linePath = buildLinePath(points, plotWidth, plotHeight, minValue, maxValue);
+  const linePath = buildLinePath(points, 100, 100, minValue, maxValue);
   const latestPoint = points[points.length - 1];
+  const latestY = latestPoint ? 100 - ((latestPoint.close - minValue) / valueRange) * 100 : 0;
+  const tickCount = 5;
+  const ticks = Array.from({ length: tickCount }, (_, i) => minValue + ((tickCount - 1 - i) * valueRange) / (tickCount - 1));
 
   return (
-    <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(13,13,18,0.94),rgba(8,8,12,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
-      <div className="flex flex-col gap-3 border-b border-white/8 pb-4 sm:flex-row sm:items-end sm:justify-between">
+    <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(13,13,18,0.94),rgba(8,8,12,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.32)] sm:p-5">
+      <div className="flex flex-col gap-3 border-b border-white/8 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="text-[11px] uppercase tracking-[0.22em] text-white/34">Zone overlay preview</div>
           <h3 className="mt-2 text-xl font-semibold text-white">EURUSD support structure concept</h3>
@@ -74,139 +76,174 @@ export function ZoneOverlayPreview({
           </p>
         </div>
         {selectedZone ? (
-          <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3">
+          <div className="min-w-[240px] rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3">
             <div className="text-[10px] uppercase tracking-[0.18em] text-white/34">Selected zone</div>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-2">
               <OpportunityGradeBadge grade={selectedZone.dynamicGrade} compact />
-              <span className="text-sm text-white/74">{selectedZone.zoneLabel}</span>
             </div>
             <div className="mt-2 text-sm text-white/82">
               {selectedRate !== undefined ? (
                 <>
-                  <span className="text-lg font-semibold text-white">
+                  <span
+                    className="text-2xl font-semibold tracking-tight"
+                    style={{ color: GRADE_TOKENS[selectedZone.dynamicGrade].text }}
+                  >
                     {formatHistoricalReactionRate(selectedZone.dynamicGrade)}
                   </span>{" "}
-                  historical 0.50R reaction rate
+                  <span className="text-white/74">historical 0.50R reaction rate</span>
                 </>
               ) : (
                 gradeSummaryLine(selectedZone.dynamicGrade)
               )}
             </div>
-            {selectedRate !== undefined ? (
-              <div className="mt-0.5 text-[11px] text-white/40">Based on comparable resolved setups</div>
-            ) : null}
+            <div className="mt-1 text-[11px] text-white/40">
+              {selectedRate !== undefined ? "Based on comparable resolved setups" : selectedZone.zoneLabel}
+            </div>
           </div>
         ) : null}
       </div>
 
       <div className={compact ? "mt-4" : "mt-5"}>
-        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,11,20,0.98),rgba(5,8,14,0.98))] p-3">
-          <div className={compact ? "h-[250px]" : "h-[340px]"}>
-            <svg viewBox="0 0 100 100" className="h-full w-full overflow-visible" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="sr-line-fill" x1="0%" x2="0%" y1="0%" y2="100%">
-                  <stop offset="0%" stopColor="rgba(116,199,255,0.18)" />
-                  <stop offset="100%" stopColor="rgba(116,199,255,0)" />
-                </linearGradient>
-              </defs>
+        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,11,20,0.98),rgba(5,8,14,0.98))] p-3 pr-1">
+          <div className={["relative", compact ? "h-[300px]" : "h-[380px]"].join(" ")}>
+            {/* Price axis + dotted gridlines */}
+            {ticks.map((tick, index) => {
+              const y = (index / (tickCount - 1)) * 100;
+              return (
+                <React.Fragment key={tick}>
+                  <div
+                    aria-hidden
+                    className="absolute left-0 right-14 border-t border-dashed border-white/[0.08]"
+                    style={{ top: `${y}%` }}
+                  />
+                  <span
+                    className="absolute right-0 w-12 -translate-y-1/2 text-right font-mono text-[10px] text-white/38"
+                    style={{ top: `${y}%` }}
+                  >
+                    {tick.toFixed(4)}
+                  </span>
+                </React.Fragment>
+              );
+            })}
 
-              {Array.from({ length: 5 }).map((_, index) => {
-                const y = 10 + index * 20;
-                return <line key={index} x1="0" x2="100" y1={y} y2={y} stroke="rgba(255,255,255,0.08)" strokeDasharray="2 3" />;
-              })}
-
-              {rankedZones.map((zone, index) => {
-                const gradeConfig = dynamicOpportunityGradeConfig[zone.dynamicGrade];
-                const span = zone.previewSpan ?? { start: 0.08 + index * 0.08, end: 0.38 + index * 0.08 };
-                const yTop = 100 - ((zone.zoneHigh - minValue) / valueRange) * 100;
-                const yBottom = 100 - ((zone.zoneLow - minValue) / valueRange) * 100;
-                const x = span.start * 100;
-                const width = (span.end - span.start) * 100;
+            {/* Plot area (leaves room for the axis labels) */}
+            <div className="absolute inset-y-0 left-0 right-14">
+              {/* Zone bands: slim glowing pills, HTML so glows don't distort */}
+              {rankedZones.map((zone) => {
+                const tokens = GRADE_TOKENS[zone.dynamicGrade];
+                const span = zone.previewSpan ?? { start: 0.1, end: 0.6 };
+                const mid = (zone.zoneLow + zone.zoneHigh) / 2;
+                const top = 100 - ((mid - minValue) / valueRange) * 100;
                 const selected = zone.id === selectedZone?.id;
+                const baseOpacity = STRENGTH_BAND_OPACITY[zone.staticStrength];
 
                 return (
-                  <g key={zone.id} onClick={() => onSelectZone?.(zone.id)} className={onSelectZone ? "cursor-pointer" : undefined}>
-                    <rect
-                      x={x}
-                      y={Math.min(yTop, yBottom)}
-                      width={width}
-                      height={Math.max(2.8, Math.abs(yBottom - yTop))}
-                      rx="2"
-                      fill={gradeConfig.chartFill}
-                      stroke={gradeConfig.chartStroke}
-                      strokeWidth={selected ? 0.9 : 0.45}
-                      opacity={selected ? 1 : STRENGTH_BAND_OPACITY[zone.staticStrength]}
-                    />
-                    {selected ? (
-                      <rect
-                        x={x - 0.4}
-                        y={Math.min(yTop, yBottom) - 0.5}
-                        width={width + 0.8}
-                        height={Math.max(3.6, Math.abs(yBottom - yTop) + 1)}
-                        rx="2.6"
-                        fill="none"
-                        stroke="rgba(255,255,255,0.9)"
-                        strokeWidth="0.5"
-                        opacity="0.85"
-                      />
-                    ) : null}
-                  </g>
+                  <button
+                    key={zone.id}
+                    type="button"
+                    onClick={() => onSelectZone?.(zone.id)}
+                    aria-label={`Select ${zone.zoneLabel}`}
+                    aria-pressed={selected}
+                    className="absolute h-[18px] -translate-y-1/2 rounded-full border transition-all duration-200 hover:opacity-100"
+                    style={{
+                      left: `${span.start * 100}%`,
+                      width: `${(span.end - span.start) * 100}%`,
+                      top: `${top}%`,
+                      background: `linear-gradient(180deg, ${tokens.fill}, rgba(0,0,0,0.25)), ${tokens.fill}`,
+                      borderColor: tokens.border,
+                      boxShadow: selected
+                        ? `0 0 26px ${tokens.border}, inset 0 0 14px ${tokens.fill}`
+                        : `0 0 14px ${tokens.fill}, inset 0 0 10px ${tokens.fill}`,
+                      opacity: selected ? 1 : baseOpacity,
+                      zIndex: selected ? 3 : 2,
+                    }}
+                  />
                 );
               })}
 
-              <path d={`${linePath} L 100 100 L 0 100 Z`} fill="url(#sr-line-fill)" opacity="0.8" />
-              <path d={linePath} fill="none" stroke="#BEE4FF" strokeWidth="1.2" strokeLinejoin="round" strokeLinecap="round" />
-
+              {/* Price line above the bands */}
+              <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 z-[4] h-full w-full overflow-visible" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="sr-line-fill" x1="0%" x2="0%" y1="0%" y2="100%">
+                    <stop offset="0%" stopColor="rgba(232,244,255,0.14)" />
+                    <stop offset="100%" stopColor="rgba(232,244,255,0)" />
+                  </linearGradient>
+                </defs>
+                <path d={`${linePath} L 100 100 L 0 100 Z`} fill="url(#sr-line-fill)" opacity="0.7" />
+                <path
+                  d={linePath}
+                  fill="none"
+                  stroke="#F2F8FF"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </svg>
               {latestPoint ? (
-                <>
-                  <line
-                    x1="0"
-                    x2="100"
-                    y1={100 - ((latestPoint.close - minValue) / valueRange) * 100}
-                    y2={100 - ((latestPoint.close - minValue) / valueRange) * 100}
-                    stroke="rgba(190,228,255,0.34)"
-                    strokeDasharray="1.8 2.4"
-                  />
-                  <circle
-                    cx="100"
-                    cy={100 - ((latestPoint.close - minValue) / valueRange) * 100}
-                    r="1.4"
-                    fill="#BEE4FF"
-                  />
-                </>
+                <span
+                  aria-hidden
+                  className="absolute z-[5] h-3 w-3 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-white bg-[#0a1626] shadow-[0_0_12px_rgba(255,255,255,0.65)]"
+                  style={{ right: 0, top: `${latestY}%` }}
+                />
               ) : null}
-            </svg>
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {rankedZones.map((zone) => (
-            <button
-              key={zone.id}
-              type="button"
-              onClick={() => onSelectZone?.(zone.id)}
-              className={[
-                "inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs transition-all",
-                zone.id === selectedZone?.id
-                  ? "border-white/20 bg-white/[0.07] text-white"
-                  : "border-white/10 bg-white/[0.03] text-white/62 hover:border-white/18 hover:text-white",
-              ].join(" ")}
-            >
-              <OpportunityGradeBadge grade={zone.dynamicGrade} compact />
-              <span>{zone.zoneLabel}</span>
-            </button>
-          ))}
+        {/* Grade cards double as the legend AND the zone selector — rank order,
+            exact historical rates, qualification status for unrated grades. */}
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {rankedZones.map((zone) => {
+            const tokens = GRADE_TOKENS[zone.dynamicGrade];
+            const rate = HISTORICAL_REACTION_RATE[zone.dynamicGrade];
+            const selected = zone.id === selectedZone?.id;
+
+            return (
+              <button
+                key={zone.id}
+                type="button"
+                onClick={() => onSelectZone?.(zone.id)}
+                aria-pressed={selected}
+                title={rate !== undefined ? reactionRateTooltip(rate) : zone.notes}
+                className={[
+                  "flex flex-col gap-1 rounded-2xl border px-3 py-2.5 text-left transition-all",
+                  selected ? "bg-white/[0.06]" : "bg-white/[0.02] hover:bg-white/[0.05]",
+                ].join(" ")}
+                style={{
+                  borderColor: selected ? tokens.border : "rgba(255,255,255,0.1)",
+                  boxShadow: selected ? `0 0 18px ${tokens.fill}` : undefined,
+                }}
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ background: tokens.text, boxShadow: `0 0 8px ${tokens.border}` }}
+                  />
+                  <span
+                    className="min-w-0 text-[10px] font-semibold uppercase leading-tight tracking-[0.12em]"
+                    style={{ color: tokens.text }}
+                  >
+                    {dynamicOpportunityGradeConfig[zone.dynamicGrade].label}
+                  </span>
+                </span>
+                {rate !== undefined ? (
+                  <>
+                    <span className="text-base font-semibold text-white">{formatHistoricalReactionRate(zone.dynamicGrade)}</span>
+                    <span className="text-[10px] leading-snug text-white/44">historical reaction rate</span>
+                  </>
+                ) : (
+                  <span className="text-[11px] leading-snug text-white/56">{gradeSummaryLine(zone.dynamicGrade)}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
         {selectedZone?.dynamicGrade === "a_plus" ? (
           <div className="mt-4 rounded-[18px] border border-[#F7E38C]/18 bg-[#F7E38C]/[0.06] px-4 py-3 text-sm text-[#FFF1B1]">
             Highest grade tier — short-term first reaction, not a reversal call.
-          </div>
-        ) : null}
-
-        {!compact ? (
-          <div className="mt-4">
-            <GradeLegend compact />
           </div>
         ) : null}
       </div>

@@ -238,12 +238,12 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* ── Flagship: Smart Support Zones ── */}
+        {/* ── Spotlight: Smart Support Zones ── */}
         <section className="mb-20">
           <div className="grid items-center gap-8 lg:grid-cols-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
-                Flagship · Smart Support Zones
+                IntelliTrade Pro · Smart Support Zones
               </p>
               <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white mb-4 leading-tight">
                 Most tools draw zones. IntelliTrade scores them.
