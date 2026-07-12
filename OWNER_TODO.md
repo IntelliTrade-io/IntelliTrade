@@ -84,11 +84,11 @@ The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every p
 
 ## Conversion launch (CONVERSION_PLAN.md / OPUS_HANDOFF.md, 2026-07-12)
 
-- [ ] **🔴 Verify `STRIPE_PRICE_ID` (prod env) is a €15.00 EUR/month recurring price** — the whole Founding Member offer copy states €15/mo. Check Stripe dashboard → Products. If it isn't: create the €15 monthly price, swap the env var in Vercel (no code change), keep the old price ID until existing subs (if any) are confirmed unaffected.
+- [x] ~~**Verify `STRIPE_PRICE_ID` (prod env) is a €15.00 EUR/month recurring price**~~ — owner confirmed 2026-07-12: prod price is already €15/mo EUR. Founding copy is safe as-is.
+- [x] ~~**Approve Phase D middleware change**~~ — approved + implemented 2026-07-12: logged-out visits to premium pages now redirect to `/pro?from=dashboard` (explainer banner) instead of `/auth/login`. Non-premium protected paths (e.g. /account) still go to login. No access loosened.
 - [ ] **Decide standard price after member 100** (recommend before ~member 70; no code needed now — copy says "standard price" without a number).
-- [ ] **VAT presentation** — recommended: enable Stripe Tax, tax-inclusive €15, show "VAT included" under the price. Until decided, site copy omits VAT claims.
-- [ ] **GA4 console tasks** (after Opus ships Phase A–C): mark `sign_up`, `begin_checkout`, `purchase` as key events; Admin → Data streams → unwanted referrals: add `checkout.stripe.com`; define internal-traffic filter for your IPs; build funnel exploration `page_view → cta_click → sign_up → begin_checkout → purchase`.
-- [ ] **Approve Phase D middleware change** — logged-out visits to premium pages redirect to `/pro?from=dashboard` (product explainer) instead of `/auth/login`. Redirect-target-only change in `lib/supabase/middleware.ts`; no access is loosened.
+- [ ] **VAT presentation** — owner decision 2026-07-12: keep copy VAT-silent for now. Before EU launch, enable Stripe Tax and decide inclusive/exclusive €15, then add "VAT included" under the price on /pro + /upgrade.
+- [ ] **GA4 console tasks** (events now live in prod build): mark `sign_up`, `begin_checkout`, `purchase` as key events; Admin → Data streams → unwanted referrals: add `checkout.stripe.com`; define internal-traffic filter for your IPs; build funnel exploration `page_view → cta_click → sign_up → begin_checkout → purchase`. Event names shipped: `cta_click`, `founding_cta_click`, `view_pricing`, `preview_interact`, `calculator_result`, `sign_up_start`, `sign_up`, `login`, `begin_checkout`, `purchase`.
 - [ ] **Founding-member cap watch** — count paid members with `select count(*) from subscriptions where status in ('active','trialing')`; automate enforcement when approaching ~80 (backlogged in IMPROVEMENTS.md).
 
 ## External / accounts

@@ -126,8 +126,13 @@ function CtaButton({ cta, location, size = "lg" }: { cta: Awaited<ReturnType<typ
   );
 }
 
-export default async function ProPage() {
-  const cta = await resolveCta();
+export default async function ProPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
+  const [cta, { from }] = await Promise.all([resolveCta(), searchParams]);
+  const fromDashboard = from === "dashboard";
 
   return (
     <div className="w-full px-4 pb-24 pt-16 sm:px-6">
@@ -135,6 +140,11 @@ export default async function ProPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />
 
       <div className="mx-auto max-w-5xl">
+        {fromDashboard && (
+          <div className="mb-8 rounded-2xl border border-violet-400/20 bg-violet-500/[0.07] px-5 py-4 text-sm text-violet-100/85">
+            The Pro workspace requires an account and an active plan. Here is what is inside it.
+          </div>
+        )}
         {/* ── Hero ── */}
         <section className="mb-20 text-center">
           <div className="inline-flex items-center rounded-full border border-violet-400/30 bg-violet-500/10 px-4 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-300 mb-6">
