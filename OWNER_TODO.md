@@ -4,9 +4,23 @@ Things only the owner can do (account access, credentials, external services). *
 
 ---
 
+## ★ Post-refactor launch checklist (start here)
+
+The refactor is **code-complete** (all 7 phases; only owner/external-gated items remain). These are the things standing between "refactor done" and "safe to launch", newest-blocking first. Each links to its detail section below.
+
+- [ ] **🔴 Move production off demo FX feeds → licensed data provider** *(launch-blocking, legal)*. Prod runs on MetaQuotes-Demo (MT5 VPS) + OANDA demo. Not a refactor item, but the biggest real risk before public launch. See "Legal / data licensing" below and `claudeLoad/TRADING_CORRECTNESS_AUDIT.md`.
+- [ ] **🟠 Rotate the CurrencyFreaks key (H7)** *(was blocked till ~2026-07-06 — now unblocked)*. Last open security-register item. Steps in "Unblocks on a date" below. Tell Claude "key rotated" → fallback stripped from `api/rates` + `api/dxy`, H7 closes.
+- [ ] **🟠 Arm CI (Phase 7.3)** — workflows report but don't *gate* until: 2 Sanity Actions **variables**, 2 Supabase **secrets**, branch protection on `main` requiring `frontend` + `security-regression` + `pytest`. Full steps in "CI activation" below.
+- [ ] **🟡 Merge to `main` + verify Vercel/Actions** — merge the refactor branch, then confirm the scheduled currency-strength GitHub Actions run green from the new default branch (see "Currency-strength GitHub Actions healthy after merge?").
+- [ ] **🟡 Retire the old VPS flat files** after a rollback window — `C:\IntelliTrade\scanner\*.py` + `setup_windows_tasks.ps1` are superseded by the git deploy (`bootstrap.ps1`); delete once the git tasks are proven. See "Retire the old flat files" below.
+
+Everything below is the detail for these plus lower-priority owner items (AdSense, research validation, email redirect check).
+
+---
+
 ## Unblocks on a date
 
-- [ ] **Rotate the CurrencyFreaks key** *(unblocks ~2026-07-06 when co-founder is back)*
+- [ ] **Rotate the CurrencyFreaks key** *(unblock date ~2026-07-06 has passed — actionable now)*
   1. Rotate the key in the CurrencyFreaks dashboard (old one was browser-exposed pre-refactor).
   2. In Vercel: set new value on `CURRENCYFREAKS_API_KEY`, **delete** `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY`.
   3. Tell Claude: "key rotated" → code fallback in `app/api/rates` + `app/api/dxy` gets stripped, H7 closes in the security register.
@@ -29,7 +43,7 @@ Things only the owner can do (account access, credentials, external services). *
 - [x] ~~**6 non-USD crosses fail to fetch**~~ **RESOLVED 2026-07-09 — was cold history-sync latency on MetaQuotes-Demo, NOT a feed limitation.** GBPAUD, AUDJPY, AUDCAD, NZDCAD, CHFJPY, CADCHF initially returned `-1 Terminal: Call failed` on ALL timeframes. Probing proved the symbols exist with live ticks; the terminal just hadn't downloaded their bar history yet. It finished syncing in the background (minutes) and cached to disk → **both scanners now run 28/28, 0 failed** (h1m15 id=121, d1h4 id=122). **`MIN_SYMBOLS` stays 28 — do NOT set it to 22** (that would sacrifice functionality; see memory rule). The `INTELLITRADE_MIN_SYMBOLS` env knob exists (default 28) only as legit per-feed config, not to mask this. Cold-start note: MT5 persists history to disk, so reboots should keep the 6 warm; if a reboot ever makes them `-1` again, tell Claude and we harden `feed_adapter` warmup patience (don't lower the threshold).
 - [ ] **Don't hand-edit files on the VPS from now on** — the box now pulls from git; any fix must land in the repo, or the next `git pull` overwrites it.
 - [ ] **Retire the old flat files** once the git tasks are proven: `C:\IntelliTrade\scanner\*.py` + its `setup_windows_tasks.ps1` are now unused (tasks point at the repo). Leave for rollback for a few days, then delete.
-- [ ] **S&R backend task** (`IntelliTrade SR Alpha`, already registered separately) isn't managed by `bootstrap.ps1` yet — still runs its old way. Tell Claude its current Execute path + schedule to fold it into the bootstrap (and repoint it at the repo `python -m`/`run_sr_alpha`).
+- [x] ~~**S&R backend task** isn't managed by `bootstrap.ps1` yet~~ **Folded in** — `bootstrap.ps1` registers `IntelliTrade SR Alpha` → `python -m support_resistance.run_sr_alpha --source mt5`, 15-min trigger (line ~180), same as the other scanners; it was among the 4 tasks set to "run whether logged in or not" on 2026-07-09. **Remaining verify (owner, quick):** confirm the SR Alpha task actually writes fresh `sr_*` rows to Supabase after a run — only the D1H4/H1M15 strength scans were row-verified on 2026-07-09; the SR scan wasn't. If it errors, paste Claude the task's last-run log.
 
 ## Google AdSense (see GOOGLE_ADSENSE_APPROVAL.md)
 
@@ -55,6 +69,18 @@ Things only the owner can do (account access, credentials, external services). *
 - [ ] **PMI config JSONs are missing from the repo** (found during the 6.3 scraper split, 2026-07-06). The scraper's S&P Global PMI source expects `PMI_FEEDS_CATALOG.json`, `PMI_ESTIMATOR_RULES.json`, `PMI_OVERRIDES.json` next to the scraper (or in a `PMI Research/` folder) — none exist anywhere in the repo, so the PMI estimator has been failing into its broad-except fallback on every run (GitHub Actions included; it fails the same way before and after the split). If you have these files somewhere (old machine, "PMI Research" folder?), drop them in `scripts/` and PMI events start flowing; if not, tell Claude and the dead path gets removed or the catalog rebuilt in a later 6.3 session.
 
 - [ ] **Currency-strength GitHub Actions healthy after merge?** The daily (22:15 UTC) and hourly intraday workflows now install the package (`pip install .`) and run `python -m intellitrade_scanners.scanner_oanda_{daily,intraday}` — same flags, same output, algorithm verified identical. This only takes effect once the refactor branch merges to `main` (scheduled workflows run from the default branch). After the next scheduled runs, glance at GitHub → Actions; if a run fails on `pip install .` or OANDA auth, paste Claude the error. (Claude couldn't check run history: no `gh` CLI on this machine.)
+
+## Legal / data licensing (LAUNCH-BLOCKING — full dive scheduled)
+
+- [ ] **🔴 Market-data licensing for the commercial product.** The CSM/scanners currently run on **MetaQuotes-Demo** (and we evaluated a Switch Markets demo). **Demo/broker feeds are dev-only** — demo-account ToS are almost always "evaluation only," and even funded-account ToS restrict commercial use + redistribution of the price data. The strength meter shows *derived* analytics (lower risk than republishing raw quotes) but commercial use of the underlying data is still governed by the source's terms. **Before commercial launch, move production to a licensed FX data provider with explicit commercial/redistribution rights.** Shortlist to evaluate (coverage of all 28 pairs, history depth, commercial pricing, fits the existing `fetch_df`/`make_fetch_fn` adapter pattern): **Polygon.io, Twelve Data, TraderMade, Databento, Finnhub**, or a commercial data agreement with a broker/OANDA (separate from free-practice terms). Read each ToS for "commercial use"/"redistribution"; confirm with counsel given IntelliTrade's analytics-not-signals positioning + AdSense sensitivity. **Owner said: keep this noted now, do a full dive later.** (Claude to research provider comparison on request.) Not a code problem — a licensing one; cheap to fix now, expensive post-launch.
+
+## CI activation (Phase 7.3 — workflows landed, need repo config to fully arm)
+
+The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every push/PR **now** (no config needed). Two parts are gated until you add repo settings:
+
+- [ ] **Activate the `next build` CI gate** — add two repo **Actions *variables*** (Settings → Secrets and variables → Actions → *Variables*, NOT secrets — these are the public `NEXT_PUBLIC_` Sanity values that already ship to the browser): `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET` (usually `production`). Until set, the Build step is skipped (Vercel still builds on deploy, so nothing is unguarded — this just moves the catch earlier). Supabase/Stripe use placeholders in CI by design (no page hits them at build time).
+- [ ] **Arm the anon-key security regression check** — add two repo **secrets**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` (the production project's public anon key). The `security-regression` job then verifies anon REST reads are denied on all 13 premium tables (guards audit finding C1). Until set, the check self-skips (green). It's read-only and only asserts *denial*.
+- [ ] **Enable branch protection on `main`** (Settings → Branches → add rule) — require the `frontend` + `security-regression` + `pytest` checks to pass before merge. This is what actually gates merges on green; the workflows only report status without it.
 
 ## External / accounts
 

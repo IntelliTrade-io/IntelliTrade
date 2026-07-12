@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
 import { client } from "@/sanity/client";
 import { type SanityDocument } from "next-sanity";
@@ -220,11 +221,11 @@ export default async function HomePage() {
     <div className="w-full px-4 pb-24 pt-16 sm:px-6">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(organizationSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(webSiteSchema) }}
       />
       <div className="mx-auto max-w-5xl">
 
