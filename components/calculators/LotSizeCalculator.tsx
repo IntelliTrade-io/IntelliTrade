@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, ChevronDown, X } from "lucide-react";
 import { apiGet } from "@/lib/api/client";
 import { trackEvent } from "@/lib/analytics";
+import { ProCtaCard } from "@/components/pro/ProCtaCard";
 // Domain math (pip/contract sizes, pair composition, rate orientation, lot
 // sizing) lives in lib/lot-size.ts since plan 5.5.
 import {
@@ -563,6 +564,20 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
           </div>
         </div>
       </div>
+
+      {/* Post-result CTA — highest-intent moment on the free calculator. */}
+      {positionSize && (
+        <div className="mt-4">
+          <ProCtaCard
+            heading="Position sized. Now check the context."
+            body="IntelliTrade Pro adds support-zone quality, currency strength and event risk to your pre-trade routine."
+            ctaLabel="See IntelliTrade Pro"
+            href="/pro?src=calc"
+            ctaId="calc_result"
+            src="calc"
+          />
+        </div>
+      )}
     </div>
   );
 }

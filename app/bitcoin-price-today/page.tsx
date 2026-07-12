@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import BitcoinPriceTodayPage from "./_components/BitcoinPriceTodayPage";
+import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
   title: "Bitcoin Price Today (BTC/USD) · IntelliTrade",
@@ -47,6 +48,17 @@ export default function Page() {
         dangerouslySetInnerHTML={{ __html: jsonLd(schema) }}
       />
       <BitcoinPriceTodayPage />
+      <section className="w-full px-4 pb-20">
+        <div className="mx-auto max-w-5xl">
+          <ProCtaCard
+            heading="The price is one input. Context is the rest."
+            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality — before you consider a trade."
+            href="/pro?src=btc"
+            ctaId="price_btc"
+            src="btc"
+          />
+        </div>
+      </section>
     </>
   );
 }
