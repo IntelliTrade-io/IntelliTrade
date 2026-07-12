@@ -10,6 +10,7 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { client } from "@/sanity/client";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
+import { FAQ_ITEMS } from "./faqData";
 
 // ─── Market context from Sanity ───────────────────────────────────────────────
 
@@ -532,25 +533,6 @@ function MiniPriceWidget({ quote }: { quote: GoldQuote | null }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-
-const FAQ_ITEMS = [
-  {
-    question: "What factors affect the gold price today?",
-    answer:
-      "The gold price is influenced by several major market drivers, including the strength of the US dollar, Treasury yields, inflation expectations, central bank policy, geopolitical uncertainty, and overall risk sentiment. Because these factors can shift throughout the day, the gold price can move frequently even when the broader trend remains the same.",
-  },
-  {
-    question: "What is XAU/USD in gold trading?",
-    answer:
-      'XAU/USD is the financial market symbol for gold priced in US dollars. "XAU" represents one troy ounce of gold, while "USD" is the US dollar. When traders search for the live gold price, spot gold, or gold price today, they are often referring to the XAU/USD market.',
-  },
-  {
-    question:
-      "Why does the gold price differ slightly between websites, brokers, or apps?",
-    answer:
-      "Gold prices can vary slightly across platforms because not every source uses the exact same feed, update speed, or pricing method. Some websites display the live spot XAU/USD price, while others may show futures-based pricing, delayed data, or broker quotes that include a spread. Small differences are normal and do not necessarily mean one price is wrong. On IntelliTrade, the displayed price is intended as a live market reference for XAU/USD.",
-  },
-];
 
 export default function GoldPriceTodayPage() {
   const goldQuote = useGoldPrice();
