@@ -4,7 +4,7 @@ import { jsonLd } from "@/lib/jsonLd";
 export const metadata: Metadata = {
   title: "Cookie Statement · IntelliTrade",
   description:
-    "IntelliTrade cookie statement — how we use cookies and similar tracking technologies on our platform.",
+    "IntelliTrade cookie statement: how we use cookies and similar tracking technologies on our platform.",
   alternates: { canonical: "https://intellitrade.tech/cookieStatement" },
   openGraph: {
     title: "Cookie Statement · IntelliTrade",

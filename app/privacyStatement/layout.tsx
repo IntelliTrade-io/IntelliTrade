@@ -4,7 +4,7 @@ import { jsonLd } from "@/lib/jsonLd";
 export const metadata: Metadata = {
   title: "Privacy Statement · IntelliTrade",
   description:
-    "IntelliTrade privacy statement — how we collect, use, and protect your personal data.",
+    "IntelliTrade privacy statement: how we collect, use, and protect your personal data.",
   alternates: { canonical: "https://intellitrade.tech/privacyStatement" },
   openGraph: {
     title: "Privacy Statement · IntelliTrade",

@@ -20,16 +20,16 @@ export const FAQ_ITEMS = [
   {
     question: "What does BTC/USD mean?",
     answer:
-      "BTC/USD is the price of one bitcoin expressed in US dollars — the most widely quoted bitcoin pair. Like an FX pair, it is a ratio: it can move because bitcoin repriced, because the dollar repriced, or both. Bitcoin also trades against other currencies (EUR, GBP, JPY) and against stablecoins such as USDT, whose prices track the dollar pair closely but not perfectly.",
+      "BTC/USD is the price of one bitcoin expressed in US dollars, the most widely quoted bitcoin pair. Like an FX pair, it is a ratio: it can move because bitcoin repriced, because the dollar repriced, or both. Bitcoin also trades against other currencies (EUR, GBP, JPY) and against stablecoins such as USDT, whose prices track the dollar pair closely but not perfectly.",
   },
   {
     question: "How does bitcoin relate to macro markets like the dollar and rates?",
     answer:
-      "The relationship shifts over time. In recent years bitcoin has often traded like a high-beta risk asset: firmer when liquidity is ample and equities rally, softer when real yields rise or the dollar strengthens sharply. At other times idiosyncratic crypto events — exchange failures, ETF flows, halving cycles — dominate and the macro correlation weakens. Treating any single correlation as permanent is the most common analytical mistake with bitcoin.",
+      "The relationship shifts over time. In recent years bitcoin has often traded like a high-beta risk asset: firmer when liquidity is ample and equities rally, softer when real yields rise or the dollar strengthens sharply. At other times idiosyncratic crypto events (exchange failures, ETF flows, halving cycles) dominate and the macro correlation weakens. Treating any single correlation as permanent is the most common analytical mistake with bitcoin.",
   },
   {
     question: "Why do bitcoin price moves sometimes accelerate suddenly?",
     answer:
-      "A large share of bitcoin trading uses leverage. When price crosses levels where leveraged positions are forced to close, those liquidations become market orders that push price further in the same direction, triggering more liquidations — a cascade. Combined with order books that can thin out quickly, this is why bitcoin can move several percent in minutes without any news at all.",
+      "A large share of bitcoin trading uses leverage. When price crosses levels where leveraged positions are forced to close, those liquidations become market orders that push price further in the same direction, triggering more liquidations: a cascade. Combined with order books that can thin out quickly, this is why bitcoin can move several percent in minutes without any news at all.",
   },
 ] as const;

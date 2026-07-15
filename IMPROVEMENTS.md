@@ -57,6 +57,14 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **prices-today enrichment** · pages are thin (live quote + hardcoded text — see Content entry) · add yesterday/7d/30d change, related-instrument links, FAQPage JSON-LD. More long-tail surface per page.
 - **Internal-linking pass** · blog posts rarely link to calculators/tools and tools don't link back · related-tools block in the Sanity post template + related-articles on tool pages. Cheapest crawl-equity win available.
 
+## SEO / UX *(2026-07-15, from SR-Alpha polish + SEO audit sessions)*
+
+- **Per-page OG images** · home has a real `og:image`; the four prices-today pages, `/smart-support-zones` and `/pro` ship OG tags without an image, so social/link-preview cards render bare · static branded 1200×630 per asset (or one `opengraph-image.tsx` per route with the asset name/theme colour). Cheap CTR win on shares.
+- **`/blog/all` pagination is client-only** · all 181 posts load into a client component but only 6 render per page via React state — crawlers without JS see page 1 only, and there are no `?page=` URLs to index · switch to server-paginated `searchParams` pages (or `/blog/page/2` routes) with `rel="prev"/"next"`-style linking. Post URLs are all in the sitemap, so severity is low, but crawl-path equity is lost.
+- **Blog tags are raw slugs end-to-end** · Sanity stores tags like `forex-market-update`; the index chip now de-hyphenates for display (2026-07-15 fix), but there are no tag/category pages and no display-name mapping · add a tag → display-name map (or proper Sanity category docs) and programmatic `/blog/tag/<tag>` listing pages; feeds the internal-linking pass above.
+- **Homepage "Prices Today" card is a single-door hub** · card links only `/gold-price-today`; silver/oil/bitcoin ride on the new footer + cross-link rows (2026-07-15) but get no above-the-fold entry point · either four mini price tiles (live quote per asset) or a small links row inside the card. Pairs with the prices-today enrichment entry.
+- **Public S&R Alpha standalone section is built but unused** · `ZoneOverlayPreview` now has a full non-compact variant (header, cohort cards, disclaimer, CTA footer) merged from the reference design, but every current usage is `compact` inside marketing grids · when a dedicated public S&R Alpha landing/section is wanted (e.g. on `/smart-support-zones` or a future `/support-resistance` public page), it's ready — just render it non-compact. No work needed now; noting so it isn't rebuilt.
+
 ## Launch prep
 
 - **Alpha demo accounts (free premium access)** *(2026-07-05, owner)*

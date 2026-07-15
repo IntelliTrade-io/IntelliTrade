@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  GRADE_COHORTS,
   GRADE_DISPLAY_ORDER,
   HISTORICAL_REACTION_RATE,
   dynamicOpportunityGradeConfig,
@@ -7,7 +8,7 @@ import {
   gradeBadgeStyle,
   gradeSummaryLine,
 } from "./gradeConfig";
-import { reactionRateTooltip } from "./copy";
+import { cohortRateTooltip } from "./copy";
 import EducationalTooltip from "./EducationalTooltip";
 
 interface GradeLegendProps {
@@ -17,15 +18,15 @@ interface GradeLegendProps {
 }
 
 /**
- * The one grade legend. Renders every opportunity grade in the user-facing
- * rank order (A+ → Elite Green → Green → Watch → Informational → Blocked) with
- * its exact historical reaction rate or qualification status. DOM order IS the
- * rank order — screen readers and visual layout agree.
+ * The one grade legend. Renders every opportunity grade in the teaching order
+ * (ascending: Blocked → Informational → Watch → Green → Elite Green → A+) with
+ * its cumulative-cohort historical rate or qualification status. DOM order IS
+ * the teaching order — screen readers and visual layout agree.
  */
 export function GradeLegend({ compact = false, precise = false }: GradeLegendProps) {
   return (
     <ul
-      aria-label="Opportunity grade legend, ranked highest to lowest"
+      aria-label="Opportunity grade legend, from lowest to highest tier"
       className={[
         "grid gap-2",
         compact ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-3 xl:grid-cols-6",
@@ -34,6 +35,7 @@ export function GradeLegend({ compact = false, precise = false }: GradeLegendPro
       {GRADE_DISPLAY_ORDER.map((grade) => {
         const config = dynamicOpportunityGradeConfig[grade];
         const rate = HISTORICAL_REACTION_RATE[grade];
+        const cohort = GRADE_COHORTS[grade];
 
         return (
           <li
@@ -48,23 +50,25 @@ export function GradeLegend({ compact = false, precise = false }: GradeLegendPro
                 {config.label}
               </span>
               {rate !== undefined ? (
-                <EducationalTooltip label={reactionRateTooltip(rate)} align="right" />
+                <EducationalTooltip label={cohortRateTooltip(grade)} align="right" />
               ) : null}
             </div>
             <div className={compact ? "text-xs text-white/72" : "text-[13px] text-white/78"}>
               {rate !== undefined ? (
                 <>
                   <span className="font-semibold text-white">{formatHistoricalReactionRate(grade)}</span>{" "}
-                  {precise ? "historical 0.50R reaction rate" : "historical reaction rate"}
+                  {precise ? "historical 0.50R first-reaction rate" : "historical first-reaction rate"}
                 </>
               ) : (
                 gradeSummaryLine(grade)
               )}
             </div>
-            {precise ? (
+            {cohort ? (
               <div className="text-[11px] leading-snug text-white/40">
-                {rate !== undefined ? "Based on comparable resolved setups" : config.description}
+                {cohort.label} · {cohort.resolvedSample} resolved events
               </div>
+            ) : precise ? (
+              <div className="text-[11px] leading-snug text-white/40">{config.description}</div>
             ) : null}
           </li>
         );

@@ -8,7 +8,7 @@ import { ProCtaCard } from "@/components/pro/ProCtaCard";
 export const metadata: Metadata = {
   title: "Gold Price Today (XAU/USD) · IntelliTrade",
   description:
-    "Live gold price in USD. Real-time XAU/USD quote, daily chart, market context, and key market relationships — updated throughout the session.",
+    "Live gold price in USD. Real-time XAU/USD quote, daily chart, market context, and key market relationships, updated throughout the session.",
   alternates: { canonical: "https://intellitrade.tech/gold-price-today" },
   openGraph: {
     title: "Gold Price Today (XAU/USD) · IntelliTrade",
@@ -69,7 +69,7 @@ export default async function Page() {
         <div className="mx-auto max-w-5xl">
           <ProCtaCard
             heading="The price is one input. Context is the rest."
-            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality — before you consider a trade."
+            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality, before you consider a trade."
             href="/pro?src=gold"
             ctaId="price_gold"
             src="gold"

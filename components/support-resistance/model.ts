@@ -35,7 +35,7 @@ export function formatReactionRange(range: ReactionRange): string {
 
 export function formatTypicalR(min: number, max?: number): string {
   if (!min || min <= 0) {
-    return "—";
+    return "n/a";
   }
   return max ? `${min.toFixed(2)}R-${max.toFixed(2)}R` : `${min.toFixed(2)}R`;
 }

@@ -40,6 +40,15 @@ export default function Footer() {
           <Link href="/">{siteMetadata.title}</Link>
         </div>
         <div className="mb-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-sm text-center px-4">
+          <Link href="/gold-price-today">Gold price</Link>
+          <div>{` • `}</div>
+          <Link href="/silver-price-today">Silver price</Link>
+          <div>{` • `}</div>
+          <Link href="/oil-price-today">Oil price</Link>
+          <div>{` • `}</div>
+          <Link href="/bitcoin-price-today">Bitcoin price</Link>
+        </div>
+        <div className="mb-2 flex flex-wrap justify-center gap-x-2 gap-y-1 text-sm text-center px-4">
           <Link href="/privacyStatement">Privacy statement</Link>
           <div>{` • `}</div>
           <Link href="/cookieStatement">Cookie statement</Link>

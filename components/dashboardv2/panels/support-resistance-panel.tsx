@@ -18,14 +18,14 @@ export function SupportResistancePanel({ panel, onToggleLock, onRemove, focused 
   return (
     <WidgetShell
       title="Support & Resistance Alpha"
-      subtitle="EURUSD support-reclaim opportunity grading (research decision support)."
+      subtitle="Live EURUSD M15 support-zone context."
       className="h-full"
       contentClassName="min-h-0 overflow-y-auto"
       headerRight={
         <>
           <Pill active>
             <LineChart className="h-3.5 w-3.5" />
-            EURUSD support
+            Alpha · EURUSD support
           </Pill>
           <PanelActions locked={panel.locked} onToggleLock={onToggleLock} onRemove={onRemove} />
         </>

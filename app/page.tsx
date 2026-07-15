@@ -15,12 +15,12 @@ import { TrackedLink } from "@/components/layout/TrackedLink";
 import { ZoneOverlayShowcase } from "@/components/support-resistance/ZoneOverlayShowcase";
 
 export const metadata: Metadata = {
-  title: "IntelliTrade — Stop Trading Blind. Start With Context.",
+  title: "IntelliTrade: Stop Trading Blind. Start With Context.",
   description:
     "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing. Free lot size calculator, live asset prices, and macro insights.",
   alternates: { canonical: "https://intellitrade.tech/" },
   openGraph: {
-    title: "IntelliTrade — Stop Trading Blind. Start With Context.",
+    title: "IntelliTrade: Stop Trading Blind. Start With Context.",
     description:
       "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing.",
     url: "https://intellitrade.tech/",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "IntelliTrade — Stop Trading Blind. Start With Context.",
+    title: "IntelliTrade: Stop Trading Blind. Start With Context.",
     description:
       "Your pre-trade routine in one workspace: support-zone quality, currency strength, event risk and position sizing.",
   },
@@ -98,7 +98,7 @@ const PRO_TOOLS = [
     href: "/smart-support-zones",
     icon: LineChart,
     label: "Smart Support Zones",
-    desc: "Most tools draw zones. IntelliTrade scores them — weak, medium or strong — for EURUSD, with reclaim confirmation and an explained opportunity score.",
+    desc: "Most tools draw zones. IntelliTrade scores them (weak, medium or strong) for EURUSD, with reclaim confirmation and an explained opportunity score.",
     tag: "PRO",
     cta: "Preview",
     isPro: true,
@@ -217,7 +217,7 @@ export default async function HomePage() {
             Stop trading blind.<br className="hidden sm:block" /> Start with context.
           </h1>
           <p className="text-base sm:text-lg text-white/50 max-w-xl mx-auto mb-10 leading-relaxed">
-            IntelliTrade is your pre-trade routine: support-zone quality, currency strength, event risk and position sizing — checked in minutes, before you consider a trade.
+            IntelliTrade is your pre-trade routine: support-zone quality, currency strength, event risk and position sizing, checked in minutes, before you consider a trade.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <TrackedLink
@@ -250,7 +250,7 @@ export default async function HomePage() {
               </h2>
               <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-6">
                 Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
-                medium or strong — zone behaviour, reclaim confirmation, and an opportunity score you can
+                medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
                 actually interpret. Educational decision support, not signals.
               </p>
               <TrackedLink
@@ -301,7 +301,7 @@ export default async function HomePage() {
                   €15/month for the first 100 members.
                 </p>
                 <p className="mt-1 text-sm text-white/55">
-                  Keep the price for as long as you stay subscribed. Cancel anytime — no contracts.
+                  Keep the price for as long as you stay subscribed. Cancel anytime, no contracts.
                 </p>
               </div>
               <TrackedLink

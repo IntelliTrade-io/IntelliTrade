@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from 'next/link';
 import { motion } from "framer-motion";
-import NewsletterForm from "@/components/layout/NewsletterForm";
 
 
 type SectionBullet = {
@@ -199,12 +198,9 @@ const sections = useMemo<Section[]>(
           "More information and additional disclaimers are available in our Terms of Service.",
         ],
       },
-      {
-        id: "about-cta",
-        eyebrow: "STAY IN THE LOOP",
-        title: "Decode macro like a pro",
-        subtitle: "Join IntelliTrade and get the Macro Decoder e-book free.",
-      },
+      // Newsletter CTA intentionally omitted: the global footer already renders
+      // the e-book NewsletterForm on every page, so a second block here showed
+      // the same e-book signup twice on /about.
     ],
     []
   );
@@ -273,7 +269,6 @@ const sections = useMemo<Section[]>(
         <main className="flex-1 space-y-6 lg:space-y-16">
           {sections.map((s, index) => {
             const isHero = s.id === "about-intro";
-            const isCTA = s.id === "about-cta";
 
             return (
               <section
@@ -281,23 +276,13 @@ const sections = useMemo<Section[]>(
                 id={s.id}
                 className="scroll-mt-28 relative overflow-visible"
               >
-                {isCTA ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 32 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
-                    transition={{ duration: 0.6, delay: index * 0.04 }}
-                  >
-                    <NewsletterForm />
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 32 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
-                    transition={{ duration: 0.6, delay: index * 0.04 }}
-                    className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
-                  >
+                <motion.div
+                  initial={{ opacity: 0, y: 32 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20% 0px -40% 0px" }}
+                  transition={{ duration: 0.6, delay: index * 0.04 }}
+                  className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10"
+                >
                     <div className="radial-backdrop" />
 
                     <div className="relative z-10">
@@ -360,8 +345,7 @@ const sections = useMemo<Section[]>(
                         </div>
                       )}
                     </div>
-                  </motion.div>
-                )}
+                </motion.div>
               </section>
             );
           })}

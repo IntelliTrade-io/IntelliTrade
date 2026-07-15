@@ -102,7 +102,7 @@ export function SupportResistanceAlphaLive({ compact = false, refreshMs = 60_000
     <div className={compact ? "flex h-full min-h-0 flex-col gap-2" : "grid gap-2"}>
       {isStale ? (
         <div className="rounded-full border border-amber-300/30 bg-amber-400/[0.08] px-3 py-1.5 text-xs text-amber-100">
-          Data may be stale — last snapshot {snapshotLabel} UTC. The scoring worker refreshes every 15 minutes.
+          Data may be stale. Last snapshot {snapshotLabel} UTC; the scoring worker refreshes every 15 minutes.
         </div>
       ) : snapshotLabel ? (
         <div className="text-xs text-white/44">Latest EURUSD M15 snapshot · {snapshotLabel} UTC</div>

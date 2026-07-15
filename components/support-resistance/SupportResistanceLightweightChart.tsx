@@ -5,7 +5,7 @@ import {
   getSupportResistanceChartMinHeight,
   getSupportResistanceChartViewportHeight,
 } from "./chartSizing";
-import { STRENGTH_BAND_OPACITY, dynamicOpportunityGradeConfig } from "./gradeConfig";
+import { GRADE_TOKENS, STRENGTH_BAND_OPACITY, dynamicOpportunityGradeConfig, staticStrengthConfig } from "./gradeConfig";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
 import type { CandleData, StaticZoneStrength, SupportResistanceZone } from "./types";
 
@@ -316,7 +316,7 @@ export function SupportResistanceLightweightChart({
         <div>
           <div className="text-[11px] uppercase tracking-[0.22em] text-white/34">Lightweight chart overlay</div>
           <h3 className="mt-1 text-lg font-semibold text-white">EURUSD Support Reclaim Alpha</h3>
-          <p className="mt-1 text-sm text-white/44">Live EURUSD M15 support-zone context. Resistance zones and more pairs are coming later.</p>
+          <p className="mt-1 text-sm text-white/44">Live EURUSD M15 support-zone context. Resistance zones and additional pairs are planned for future versions.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-white/60">
@@ -342,11 +342,16 @@ export function SupportResistanceLightweightChart({
         <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
           {overlays.map((overlay) => {
             const config = dynamicOpportunityGradeConfig[overlay.grade];
+            const tokens = config.tokens;
             const selected = overlay.id === selectedZoneId;
             const hovered = overlay.id === hoveredZoneId;
             const mutedGrade = overlay.grade === "blue" || overlay.grade === "watch" || overlay.grade === "blocked";
             const lowPriorityGrade = overlay.grade === "blue" || overlay.grade === "blocked";
-            const selectedBorder = overlay.grade === "a_plus" ? "rgba(247,227,140,0.95)" : "rgba(255,255,255,0.82)";
+            const strengthLabel = staticStrengthConfig[overlay.strength].label;
+            // Selected-zone emphasis is grade-driven: grade-tinted ring + the
+            // grade's own glow (falls back to a soft fill glow for tiers without
+            // a premium glow token).
+            const selectedShadow = `0 0 0 1px ${tokens.border}, ${tokens.glow ?? `0 0 18px ${tokens.fill}`}`;
 
             return (
               <button
@@ -355,15 +360,11 @@ export function SupportResistanceLightweightChart({
                 onClick={() => onSelectZone?.(overlay.id)}
                 onMouseEnter={() => setHoveredZoneId(overlay.id)}
                 onMouseLeave={() => setHoveredZoneId(null)}
-                aria-label={`${config.label} ${overlay.label}`}
+                aria-label={`${config.label} support zone, static strength ${strengthLabel}`}
                 title={`${config.label}: ${config.description}`}
                 className={[
-                  "pointer-events-auto absolute overflow-hidden rounded-[6px] border text-left transition-all",
-                  selected
-                    ? "z-20 shadow-[0_0_0_1px_rgba(255,255,255,0.72),0_0_24px_rgba(255,255,255,0.16)]"
-                    : hovered
-                      ? "z-20 brightness-110"
-                      : "z-10",
+                  "pointer-events-auto absolute overflow-hidden rounded-[6px] border text-left transition-all motion-reduce:transition-none",
+                  selected ? "z-20" : hovered ? "z-20 brightness-110" : "z-10",
                 ].join(" ")}
                 style={{
                   left: `${overlay.left}px`,
@@ -371,11 +372,11 @@ export function SupportResistanceLightweightChart({
                   width: `${overlay.width}px`,
                   height: `${overlay.height}px`,
                   background: config.chartFill,
-                  borderColor: selected ? selectedBorder : config.chartStroke,
+                  borderColor: selected ? tokens.text : config.chartStroke,
                   borderStyle: selected ? "solid" : mutedGrade ? "dashed" : "solid",
                   // Premium outer glow only for elite_green + a_plus (config.glow is
-                  // empty for the rest). Selection ring is handled by className.
-                  boxShadow: selected ? undefined : config.glow || undefined,
+                  // empty for the rest); selection uses the grade-tinted ring.
+                  boxShadow: selected ? selectedShadow : config.glow || undefined,
                   // Static strength sets the base visibility (weak subdued → strong
                   // bright); unqualified grades are further muted on top of that.
                   opacity: selected
@@ -386,15 +387,13 @@ export function SupportResistanceLightweightChart({
                 }}
               >
                 {selected ? (
-                  <span className="absolute left-2 top-1 flex max-w-[calc(100%-1rem)] items-center gap-2">
-                    {overlay.grade === "a_plus" ? (
-                      <span className="rounded-full border border-[#F7E38C]/28 bg-[#F7E38C]/[0.12] px-1.5 py-0.5 text-[9px] font-semibold text-[#FFF1B1]">
-                        A+
-                      </span>
-                    ) : null}
-                    <span className="truncate text-[10px] font-medium uppercase tracking-[0.14em] text-white/88">
-                      {config.shortLabel} / {overlay.label}
-                    </span>
+                  // Compact selected-zone label: GRADE · STRENGTH (pair/side live
+                  // in the section header, not on the band).
+                  <span
+                    className="absolute left-2 top-1 max-w-[calc(100%-1rem)] truncate text-[10px] font-semibold uppercase tracking-[0.14em]"
+                    style={{ color: tokens.text }}
+                  >
+                    {config.compactLabel} · {strengthLabel}
                   </span>
                 ) : (
                   <>
@@ -417,8 +416,11 @@ export function SupportResistanceLightweightChart({
         </div>
 
         {selectedZone?.dynamicGrade === "a_plus" ? (
-          <div className="absolute bottom-2 left-3 right-3 rounded-[8px] border border-[#F7E38C]/16 bg-[#0b0b10]/88 px-3 py-1.5 text-xs leading-relaxed text-[#FFF1B1] shadow-[0_16px_34px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:right-auto sm:max-w-sm">
-            Highest-quality short-term first-reaction setup, not a reversal call.
+          <div
+            className="absolute bottom-2 left-3 right-3 rounded-[8px] border bg-[#0b0b10]/88 px-3 py-1.5 text-xs leading-relaxed shadow-[0_16px_34px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:right-auto sm:max-w-sm"
+            style={{ borderColor: GRADE_TOKENS.a_plus.border, color: GRADE_TOKENS.a_plus.text }}
+          >
+            Highest-quality short-term first-reaction context, not a reversal call.
           </div>
         ) : null}
       </div>

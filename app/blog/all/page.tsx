@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { client } from "@/sanity/client";
 import { cleanPostTitle } from "@/lib/blog";
+import { jsonLd } from "@/lib/jsonLd";
 import { type SanityDocument } from "next-sanity";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import BlogClientPage from "./_components/BlogClientPage";
@@ -61,6 +62,38 @@ export default async function AllBlogsPage() {
     console.error("Error fetching posts from Sanity:", err);
   }
 
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "All Blog Posts · IntelliTrade Insights",
+    description:
+      "Browse all IntelliTrade macro and market analysis articles. Fundamental commentary on forex, gold, oil, crypto and global economic events.",
+    url: "https://intellitrade.tech/blog/all",
+    publisher: { "@type": "Organization", name: "IntelliTrade", url: "https://intellitrade.tech" },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://intellitrade.tech/" },
+        { "@type": "ListItem", position: 2, name: "Blog", item: "https://intellitrade.tech/blog" },
+        { "@type": "ListItem", position: 3, name: "All Blog Posts", item: "https://intellitrade.tech/blog/all" },
+      ],
+    },
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: posts.slice(0, 10).map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `https://intellitrade.tech/blog/${post.slug}`,
+        name: post.title,
+      })),
+    },
+  };
+
   // Pass the data to the Client Component
-  return <BlogClientPage initialPosts={posts} />;
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(collectionSchema) }} />
+      <BlogClientPage initialPosts={posts} />
+    </>
+  );
 }

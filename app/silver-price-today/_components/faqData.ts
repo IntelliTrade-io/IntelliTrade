@@ -25,7 +25,7 @@ export const FAQ_ITEMS = [
   {
     question: "What is the gold/silver ratio and why do traders watch it?",
     answer:
-      "The gold/silver ratio is the gold price divided by the silver price — how many ounces of silver one ounce of gold buys. It has historically ranged from below 20 to above 120, and market watchers use it as a rough gauge of relative value between the two metals: a high ratio means silver is cheap relative to gold by historical standards, a low ratio the opposite. It is a descriptive measure, not a timing tool.",
+      "The gold/silver ratio is the gold price divided by the silver price: how many ounces of silver one ounce of gold buys. It has historically ranged from below 20 to above 120, and market watchers use it as a rough gauge of relative value between the two metals: a high ratio means silver is cheap relative to gold by historical standards, a low ratio the opposite. It is a descriptive measure, not a timing tool.",
   },
   {
     question: "Why is silver more volatile than gold?",

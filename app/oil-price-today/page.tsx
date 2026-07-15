@@ -8,7 +8,7 @@ import { ProCtaCard } from "@/components/pro/ProCtaCard";
 export const metadata: Metadata = {
   title: "Oil Price Today (Brent Crude) · IntelliTrade",
   description:
-    "Live Brent crude oil price in USD. Real-time Brent quote, daily chart, market context, and key market relationships — updated throughout the session.",
+    "Live Brent crude oil price in USD. Real-time Brent quote, daily chart, market context, and key market relationships, updated throughout the session.",
   alternates: { canonical: "https://intellitrade.tech/oil-price-today" },
   openGraph: {
     title: "Oil Price Today (Brent Crude) · IntelliTrade",
@@ -69,7 +69,7 @@ export default async function Page() {
         <div className="mx-auto max-w-5xl">
           <ProCtaCard
             heading="The price is one input. Context is the rest."
-            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality — before you consider a trade."
+            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality, before you consider a trade."
             href="/pro?src=oil"
             ctaId="price_oil"
             src="oil"

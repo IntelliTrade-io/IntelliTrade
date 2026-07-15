@@ -37,7 +37,7 @@ export async function generateMetadata({
   const description =
     post.summary ||
     excerptFromPortableText(post.body) ||
-    `${title} — educational macro and market analysis from IntelliTrade.`;
+    `${title}: educational macro and market analysis from IntelliTrade.`;
 
   return {
     title: `${title} · IntelliTrade`,

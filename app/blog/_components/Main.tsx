@@ -93,9 +93,9 @@ export default function Main({ posts, showAll = false }: HomeProps) {
                           {tags.slice(0, 1).map((tag) => (
                             <span
                               key={tag}
-                              className="text-primary-500 mr-3 text-sm font-medium uppercase"
+                              className="inline-flex items-center rounded-full border border-brand/25 bg-white/5 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.14em] text-brand-300/90"
                             >
-                              {tag.split(' ').join('-')}
+                              {tag.replace(/-/g, ' ')}
                             </span>
                           ))}
                         </div>

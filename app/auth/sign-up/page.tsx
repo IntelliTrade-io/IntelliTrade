@@ -4,7 +4,7 @@ import { Check } from "lucide-react";
 const POINTS = [
   "Subscribe to IntelliTrade Pro when you're ready",
   "Founding Member pricing: €15/month for the first 100 members",
-  "Cancel anytime — no contracts",
+  "Cancel anytime, no contracts",
 ];
 
 export default function Page() {

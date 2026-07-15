@@ -8,7 +8,7 @@ import { ProCtaCard } from "@/components/pro/ProCtaCard";
 export const metadata: Metadata = {
   title: "Silver Price Today (XAG/USD) · IntelliTrade",
   description:
-    "Live silver price in USD. Real-time XAG/USD quote, daily chart, market context, and key market relationships — updated throughout the session.",
+    "Live silver price in USD. Real-time XAG/USD quote, daily chart, market context, and key market relationships, updated throughout the session.",
   alternates: { canonical: "https://intellitrade.tech/silver-price-today" },
   openGraph: {
     title: "Silver Price Today (XAG/USD) · IntelliTrade",
@@ -69,7 +69,7 @@ export default async function Page() {
         <div className="mx-auto max-w-5xl">
           <ProCtaCard
             heading="The price is one input. Context is the rest."
-            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality — before you consider a trade."
+            body="IntelliTrade Pro tracks currency strength, event risk and EURUSD zone quality, before you consider a trade."
             href="/pro?src=silver"
             ctaId="price_silver"
             src="silver"

@@ -103,15 +103,15 @@ export default function LotSizeFaqPage() {
         ],
         bullets: [
           {
-            title: "Step 1 — Risk Amount",
+            title: "Step 1: Risk Amount",
             desc: "Account Balance × Risk % = the maximum you are willing to lose on this trade.",
           },
           {
-            title: "Step 2 — Pip Value",
+            title: "Step 2: Pip Value",
             desc: "Convert your stop loss distance into money using the instrument's pip value. If the instrument is quoted in a different currency than your account, the pip value is converted into your deposit currency first.",
           },
           {
-            title: "Step 3 — Position Size",
+            title: "Step 3: Position Size",
             desc: "Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot)",
           },
         ],
@@ -122,11 +122,11 @@ export default function LotSizeFaqPage() {
         title: "Worked examples",
         bullets: [
           {
-            title: "Example 1 — EURUSD",
+            title: "Example 1: EURUSD",
             desc: "Account: $5,000 · Risk: 1% ($50) · Stop: 30 pips. For EURUSD, pip value ≈ $10 per pip per lot. Risk per lot with 30-pip stop = 30 × $10 = $300. Position size = $50 ÷ $300 = 0.17 lots (rounded).",
           },
           {
-            title: "Example 2 — GBPJPY",
+            title: "Example 2: GBPJPY",
             desc: "Account: $5,000 · Risk: 1% ($50) · Stop: 30 pips · USDJPY: 150. Pip value per lot in USD ≈ 1,000 ÷ 150 = $6.67. Risk per lot = 30 × $6.67 = $200.10. Position size ≈ $50 ÷ $200.10 ≈ 0.25 lots.",
           },
         ],
@@ -134,7 +134,7 @@ export default function LotSizeFaqPage() {
       {
         id: "metals",
         eyebrow: "SECTION 04",
-        title: "Metals — lots vs. ounces",
+        title: "Metals: lots vs. ounces",
         body: [
           "Metals can look confusing because the word lot does not mean 100,000 units like FX. For metals, a lot is usually defined in ounces.",
         ],
@@ -207,15 +207,15 @@ export default function LotSizeFaqPage() {
         bullets: [
           {
             title: "Fundamental Analysis Blog",
-            desc: "intellitrade.tech/blog — Market analysis and educational content.",
+            desc: "intellitrade.tech/blog: Market analysis and educational content.",
           },
           {
             title: "About IntelliTrade",
-            desc: "intellitrade.tech/about — Our mission and team.",
+            desc: "intellitrade.tech/about: Our mission and team.",
           },
           {
             title: "Terms and disclaimers",
-            desc: "intellitrade.tech/terms — Full legal disclaimer. Educational resource only, not investment advice.",
+            desc: "intellitrade.tech/terms: Full legal disclaimer. Educational resource only, not investment advice.",
           },
         ],
       },

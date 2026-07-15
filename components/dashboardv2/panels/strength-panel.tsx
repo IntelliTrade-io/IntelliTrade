@@ -328,7 +328,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
   if (points.length === 0) {
     return (
       <div className="flex h-36 items-center justify-center rounded-[18px] border border-white/8 bg-white/[0.02]">
-        <span className="text-xs text-white/25">No history yet — check back after a few scanner runs</span>
+        <span className="text-xs text-white/25">No history yet. Check back after a few scanner runs.</span>
       </div>
     );
   }
@@ -524,7 +524,7 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
                   <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/30 font-mono text-[11px] text-white/50 hover:border-white/20 hover:text-white/70">i</span>
                 </summary>
                 <div className="mt-2 rounded-2xl border border-white/8 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-white/46">
-                  <p>Strength is derived from cross-pair aggregation, centered on a fixed -100 to 100 scale. H1/M15 states are approximated from current scores — real multi-timeframe data requires the OANDA scanner.</p>
+                  <p>Strength is derived from cross-pair aggregation, centered on a fixed -100 to 100 scale. H1/M15 states are approximated from current scores; real multi-timeframe data requires the OANDA scanner.</p>
                 </div>
               </details>
             </section>

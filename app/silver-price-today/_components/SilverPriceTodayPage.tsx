@@ -10,6 +10,7 @@ import {
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 import type { MarketContext } from "@/lib/api/marketContext";
 import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { PricePageFooterNote } from "@/components/price-pages/PricePageFooterNote";
 import { FAQ_ITEMS } from "./faqData";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -531,6 +532,8 @@ export default function SilverPriceTodayPage({
             </div>
           </div>
         </motion.section>
+
+        <PricePageFooterNote asset="silver" />
 
         {/* Data credits */}
         <p className="mt-10 text-center text-[11px] text-slate-600">

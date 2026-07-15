@@ -25,11 +25,11 @@ export const FAQ_ITEMS = [
   {
     question: "How does the oil price affect currency markets?",
     answer:
-      "Oil is a major input cost and a major export revenue, so sustained price moves redistribute income between countries. Currencies of large exporters — the Canadian dollar and Norwegian krone are the classic examples — tend to firm when oil rallies, while heavy importers such as Japan and India face pressure on their trade balances. Oil also feeds directly into inflation expectations, which shapes central-bank policy and, through it, exchange rates.",
+      "Oil is a major input cost and a major export revenue, so sustained price moves redistribute income between countries. Currencies of large exporters (the Canadian dollar and Norwegian krone are the classic examples) tend to firm when oil rallies, while heavy importers such as Japan and India face pressure on their trade balances. Oil also feeds directly into inflation expectations, which shapes central-bank policy and, through it, exchange rates.",
   },
   {
     question: "Why do oil prices sometimes spike on news that hasn't reduced supply yet?",
     answer:
-      "Oil trades on expectations, and a large share of physical supply moves through a small number of chokepoints — the Strait of Hormuz alone carries roughly a fifth of global oil flows. Events that raise the probability of future disruption (conflict near a chokepoint, sanctions threats, attacks on infrastructure) add a risk premium to the price immediately, before any barrel is actually lost. That premium can fade just as quickly if the threat de-escalates.",
+      "Oil trades on expectations, and a large share of physical supply moves through a small number of chokepoints; the Strait of Hormuz alone carries roughly a fifth of global oil flows. Events that raise the probability of future disruption (conflict near a chokepoint, sanctions threats, attacks on infrastructure) add a risk premium to the price immediately, before any barrel is actually lost. That premium can fade just as quickly if the threat de-escalates.",
   },
 ] as const;
