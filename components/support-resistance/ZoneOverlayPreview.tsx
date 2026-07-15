@@ -243,7 +243,7 @@ export function ZoneOverlayPreview({
         {/* Grade cards double as the legend AND the zone selector. Teaching
             order is ascending: Blocked → Informational → Watch → Green →
             Elite Green → A+. */}
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
           {ascendingZones.map((zone) => {
             const tokens = GRADE_TOKENS[zone.dynamicGrade];
             const rate = HISTORICAL_REACTION_RATE[zone.dynamicGrade];

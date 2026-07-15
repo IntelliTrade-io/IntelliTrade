@@ -16,6 +16,9 @@ interface SupportResistanceAlphaModuleProps {
   profiles?: ResearchTierProfile[];
   candles?: CandleData[];
   compact?: boolean;
+  /** True on public marketing surfaces that render the module against mock
+      data, so copy never claims the rows come from a live snapshot. */
+  sample?: boolean;
 }
 
 // FAQ-style header disclosure: a small pill that opens a floating panel, so
@@ -53,6 +56,7 @@ export function SupportResistanceAlphaModule({
   profiles = supportResistanceResearchProfiles,
   candles = supportResistanceMockCandles,
   compact = false,
+  sample = false,
 }: SupportResistanceAlphaModuleProps) {
   const defaultZone = selectFeaturedZone(zones);
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(defaultZone?.id ?? null);
@@ -125,7 +129,7 @@ export function SupportResistanceAlphaModule({
           />
         </div>
 
-        <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} compact />
+        <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} compact sample={sample} />
 
         <div className="rounded-[22px] border border-amber-300/16 bg-amber-300/[0.06] px-4 py-4 text-sm leading-relaxed text-amber-50/80">
           {supportResistanceCopy.disclaimer}
@@ -195,7 +199,7 @@ export function SupportResistanceAlphaModule({
 
       <GradeLegend />
 
-      <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} />
+      <SupportResistanceScanner rows={scannerRows} selectedZoneId={selectedZoneId} onSelectZone={setSelectedZoneId} sample={sample} />
 
       <section className="rounded-[18px] border border-amber-300/16 bg-amber-300/[0.06] p-3">
         <div className="text-[10px] uppercase tracking-[0.18em] text-amber-100">Decision-support framing</div>
