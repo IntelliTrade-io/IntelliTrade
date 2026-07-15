@@ -415,15 +415,18 @@ export function SupportResistanceLightweightChart({
           })}
         </div>
 
-        {selectedZone?.dynamicGrade === "a_plus" ? (
-          <div
-            className="absolute bottom-2 left-3 right-3 rounded-[8px] border bg-[#0b0b10]/88 px-3 py-1.5 text-xs leading-relaxed shadow-[0_16px_34px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:right-auto sm:max-w-sm"
-            style={{ borderColor: GRADE_TOKENS.a_plus.border, color: GRADE_TOKENS.a_plus.text }}
-          >
-            Highest-quality short-term first-reaction context, not a reversal call.
-          </div>
-        ) : null}
       </div>
+
+      {/* In flow below the canvas: as an absolute overlay this sat on top of the
+          time axis and the TradingView attribution. */}
+      {selectedZone?.dynamicGrade === "a_plus" ? (
+        <div
+          className="mx-3 mb-2 mt-1 rounded-[8px] border bg-[#0b0b10]/88 px-3 py-1.5 text-xs leading-relaxed"
+          style={{ borderColor: GRADE_TOKENS.a_plus.border, color: GRADE_TOKENS.a_plus.text }}
+        >
+          Highest-quality short-term first-reaction context, not a reversal call.
+        </div>
+      ) : null}
     </section>
   );
 }

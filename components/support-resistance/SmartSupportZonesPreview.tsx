@@ -21,7 +21,7 @@ export function SmartSupportZonesPreview() {
 
   return (
     <div onPointerDown={handleFirstInteraction}>
-      <SupportResistanceAlphaModule profiles={[]} />
+      <SupportResistanceAlphaModule profiles={[]} sample />
     </div>
   );
 }

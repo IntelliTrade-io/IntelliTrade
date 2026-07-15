@@ -11,6 +11,9 @@ interface SupportResistanceScannerProps {
   selectedZoneId: string | null;
   onSelectZone?: (zoneId: string) => void;
   compact?: boolean;
+  /** True when rows are illustrative sample data (public marketing surfaces),
+      so the header never claims they come from the latest live snapshot. */
+  sample?: boolean;
 }
 
 function getScannerRowTone(grade: ScannerRow["dynamicGrade"], selected: boolean): string {
@@ -38,6 +41,7 @@ export function SupportResistanceScanner({
   selectedZoneId,
   onSelectZone,
   compact = false,
+  sample = false,
 }: SupportResistanceScannerProps) {
   const alphaQualifiedCount = rows.filter((row) => isGreenTierGrade(row.dynamicGrade)).length;
 
@@ -105,7 +109,7 @@ export function SupportResistanceScanner({
         </div>
         <div className="rounded-[18px] border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/68">
           {alphaQualifiedCount
-            ? `${alphaQualifiedCount} Green+ ${alphaQualifiedCount === 1 ? "row" : "rows"} in the latest EURUSD M15 snapshot.`
+            ? `${alphaQualifiedCount} Green+ ${alphaQualifiedCount === 1 ? "row" : "rows"} in ${sample ? "this illustrative sample" : "the latest EURUSD M15 snapshot"}.`
             : supportResistanceCopy.emptyStates.noGreenPlus}
         </div>
       </div>
