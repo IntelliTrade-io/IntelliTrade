@@ -12,32 +12,32 @@ import { PricingBeacon } from "@/components/pro/PricingBeacon";
 import { ZoneOverlayShowcase } from "@/components/support-resistance/ZoneOverlayShowcase";
 
 export const metadata: Metadata = {
-  title: "IntelliTrade Pro — Your Pre-Trade Routine In One Workspace",
+  title: "IntelliTrade Pro: Your Pre-Trade Routine In One Workspace",
   description:
-    "IntelliTrade Pro brings together Smart Support Zones, currency strength, the economic calendar, charts and risk tools. Founding Member — €15/month for the first 100 members.",
+    "IntelliTrade Pro brings together Smart Support Zones, currency strength, the economic calendar, charts and risk tools. Founding Member: €15/month for the first 100 members.",
   alternates: { canonical: "https://intellitrade.tech/pro" },
   openGraph: {
-    title: "IntelliTrade Pro — Your Pre-Trade Routine In One Workspace",
+    title: "IntelliTrade Pro: Your Pre-Trade Routine In One Workspace",
     description:
-      "Smart Support Zones, currency strength, event risk and position sizing in one workspace. Founding Member — €15/month, first 100 members.",
+      "Smart Support Zones, currency strength, event risk and position sizing in one workspace. Founding Member: €15/month, first 100 members.",
     url: "https://intellitrade.tech/pro",
     siteName: "IntelliTrade",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "IntelliTrade Pro — Your Pre-Trade Routine In One Workspace",
+    title: "IntelliTrade Pro: Your Pre-Trade Routine In One Workspace",
     description:
-      "Smart Support Zones, currency strength, event risk and position sizing in one workspace. Founding Member — €15/month.",
+      "Smart Support Zones, currency strength, event risk and position sizing in one workspace. Founding Member: €15/month.",
   },
 };
 
 const FEATURES = [
   { icon: LineChart, label: "Smart Support Zones (EURUSD)", desc: "Support zones scored weak, medium or strong, with reclaim confirmation and an explained opportunity score." },
-  { icon: Radar, label: "Currency Strength Meter", desc: "See which currencies are strong or weak across daily and intraday trends — before you pick a pair." },
+  { icon: Radar, label: "Currency Strength Meter", desc: "See which currencies are strong or weak across daily and intraday trends, before you pick a pair." },
   { icon: CalendarDays, label: "Economic Calendar", desc: "A clean view of the events that can move markets, so nothing catches your session by surprise." },
   { icon: CandlestickChart, label: "TradingView Charts", desc: "Full charting inside the workspace, alongside your context tools." },
-  { icon: Calculator, label: "Position Size Calculator", desc: "Size every position to your risk with live conversion — the free tool, built into your routine." },
+  { icon: Calculator, label: "Position Size Calculator", desc: "Size every position to your risk with live conversion: the free tool, built into your routine." },
   { icon: Gamepad2, label: "Bull vs Bear", desc: "A fast trading minigame for the moments between preparation. Members only." },
 ];
 
@@ -59,7 +59,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "How does billing and cancellation work?",
-    a: "€15 per month, billed through Stripe. Cancel anytime from your account page — access continues until the end of the paid period. No contracts, no cancellation emails, no retention hoops.",
+    a: "€15 per month, billed through Stripe. Cancel anytime from your account page; access continues until the end of the paid period. No contracts, no cancellation emails, no retention hoops.",
   },
   {
     q: "How does Founding Member pricing work?",
@@ -67,7 +67,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Is this a signal service?",
-    a: "No. IntelliTrade provides educational market context and analytics to support your own decision process. It does not provide trade recommendations, entries, or financial advice. If you are looking for someone to tell you what to trade, this is not that — deliberately.",
+    a: "No. IntelliTrade provides educational market context and analytics to support your own decision process. It does not provide trade recommendations, entries, or financial advice. If you are looking for someone to tell you what to trade, this is not that, deliberately.",
   },
 ];
 
@@ -96,7 +96,7 @@ async function resolveCta(): Promise<{ href: string; label: string; founding: bo
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return { href: "/auth/sign-up?redirect=/upgrade", label: "Become a Founding Member — €15/month", founding: true };
+    return { href: "/auth/sign-up?redirect=/upgrade", label: "Become a Founding Member · €15/month", founding: true };
   }
   // User-scoped read (RLS SELECT policy) — never the admin client on a public page.
   const { data: sub } = await supabase
@@ -108,7 +108,7 @@ async function resolveCta(): Promise<{ href: string; label: string; founding: bo
   if (isActive) {
     return { href: "/dashboardv2", label: "Open your dashboard", founding: false };
   }
-  return { href: "/upgrade", label: "Become a Founding Member — €15/month", founding: true };
+  return { href: "/upgrade", label: "Become a Founding Member · €15/month", founding: true };
 }
 
 function CtaButton({ cta, location, size = "lg" }: { cta: Awaited<ReturnType<typeof resolveCta>>; location: string; size?: "lg" | "md" }) {
@@ -155,7 +155,7 @@ export default async function ProPage({
           </h1>
           <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
             IntelliTrade Pro brings together Smart Support Zones, currency strength, the economic calendar,
-            charts and risk tools — so every session starts with context instead of guesswork.
+            charts and risk tools, so every session starts with context instead of guesswork.
           </p>
           <CtaButton cta={cta} location="pro_hero" />
           <p className="mt-3 text-[11px] text-white/30">Cancel anytime · No contracts · Powered by Stripe</p>
@@ -173,7 +173,7 @@ export default async function ProPage({
               </h2>
               <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-6">
                 Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
-                medium or strong — zone behaviour, reclaim confirmation, and an opportunity score you can
+                medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
                 actually interpret. Educational decision support, not signals.
               </p>
               <Link
@@ -255,7 +255,7 @@ export default async function ProPage({
               </div>
               <p className="mb-1 text-sm text-white/55">
                 Founding price for the first 100 Pro members. Keep it for as long as you stay subscribed.
-                Cancel anytime — no contracts.
+                Cancel anytime, no contracts.
               </p>
               <p className="mb-6 text-xs text-white/34">
                 After the first 100 members, new members join at the standard price.
@@ -276,7 +276,7 @@ export default async function ProPage({
             <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-5">
               <ShieldCheck className="mb-3 h-5 w-5 text-white/50" />
               <p className="text-sm font-medium text-white">Cancel anytime</p>
-              <p className="mt-1 text-xs text-white/45">Cancel from your account in one click — no emails, no retention flows.</p>
+              <p className="mt-1 text-xs text-white/45">Cancel from your account in one click, no emails, no retention flows.</p>
             </div>
             <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-5">
               <LineChart className="mb-3 h-5 w-5 text-white/50" />

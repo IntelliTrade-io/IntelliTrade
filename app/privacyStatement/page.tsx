@@ -120,10 +120,10 @@ export default function PrivacyStatementPage() {
         title: "Purposes & Legal Bases",
         body: ["Processing under GDPR Art. 6:"],
         bullets: [
-          { title: "Service Provision", desc: "Accounts, features, payments — Art. 6(1)(b) contract." },
-          { title: "Security", desc: "Fraud prevention — Art. 6(1)(f) legitimate interests." },
-          { title: "Marketing", desc: "Communications — Art. 6(1)(a) consent (opt-out anytime)." },
-          { title: "Analytics", desc: "Product improvement — Art. 6(1)(a) consent for non-essential cookies." },
+          { title: "Service Provision", desc: "Accounts, features, payments: Art. 6(1)(b) contract." },
+          { title: "Security", desc: "Fraud prevention: Art. 6(1)(f) legitimate interests." },
+          { title: "Marketing", desc: "Communications: Art. 6(1)(a) consent (opt-out anytime)." },
+          { title: "Analytics", desc: "Product improvement: Art. 6(1)(a) consent for non-essential cookies." },
         ],
       },
       {

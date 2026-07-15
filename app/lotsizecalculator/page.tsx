@@ -41,7 +41,7 @@ const faqSchemaData = {
       name: "What is a lot size calculator?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "A lot size calculator determines the correct position size (in lots) based on your account balance, risk per trade percentage, and stop loss distance. It removes guesswork from position sizing by calculating exactly how many lots to trade so that if your stop loss is hit, you lose only the amount you defined as acceptable risk. Most trading accounts do not fail because of one bad trade — they fail because of normal losses combined with oversized positions. A lot size calculator prevents that by keeping every trade sized consistently.",
+        text: "A lot size calculator determines the correct position size (in lots) based on your account balance, risk per trade percentage, and stop loss distance. It removes guesswork from position sizing by calculating exactly how many lots to trade so that if your stop loss is hit, you lose only the amount you defined as acceptable risk. Most trading accounts do not fail because of one bad trade; they fail because of normal losses combined with oversized positions. A lot size calculator prevents that by keeping every trade sized consistently.",
       },
     },
     {
@@ -57,7 +57,7 @@ const faqSchemaData = {
       name: "How is lot size calculated?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "The calculation follows three steps. First: Risk Amount = Account Balance × Risk %. Second: the stop loss distance is converted into money using the instrument's pip value — if the instrument quotes in a different currency than your account, the pip value is converted to your account currency using live rates. Third: Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot).",
+        text: "The calculation follows three steps. First: Risk Amount = Account Balance × Risk %. Second: the stop loss distance is converted into money using the instrument's pip value; if the instrument quotes in a different currency than your account, the pip value is converted to your account currency using live rates. Third: Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot).",
       },
     },
     {
@@ -81,7 +81,7 @@ const faqSchemaData = {
       name: "What is the difference between a micro, mini, and standard lot?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "In forex, 1.00 standard lot = 100,000 units of base currency, 0.10 is a mini lot (10,000 units), and 0.01 is a micro lot (1,000 units). Metals and indices follow different contract definitions — for example, 1 lot of gold (XAUUSD) is typically 100 troy ounces. Always check your broker's instrument specifications.",
+        text: "In forex, 1.00 standard lot = 100,000 units of base currency, 0.10 is a mini lot (10,000 units), and 0.01 is a micro lot (1,000 units). Metals and indices follow different contract definitions; for example, 1 lot of gold (XAUUSD) is typically 100 troy ounces. Always check your broker's instrument specifications.",
       },
     },
     {
@@ -147,7 +147,7 @@ export default function Page() {
             </p>
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/50 sm:text-base">
               Use this free lot size calculator to determine the correct position size based on your
-              account balance, risk per trade, stop loss distance, and account currency — with live
+              account balance, risk per trade, stop loss distance, and account currency, with live
               exchange rate conversion built in.
             </p>
 
@@ -208,7 +208,7 @@ export default function Page() {
                   The calculator follows a simple idea: define the money you are willing to lose on
                   the trade, then solve for the position size that matches that risk if the stop loss
                   is hit. It uses your account balance, risk percentage, stop loss distance, and
-                  instrument context — including live currency conversion where needed.
+                  instrument context, including live currency conversion where needed.
                 </p>
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -221,7 +221,7 @@ export default function Page() {
                     {
                       step: "Step 2",
                       title: "Select the pair or instrument",
-                      desc: "The calculator loads the correct pip size and contract specification for your selected instrument — forex, gold, silver, or crypto.",
+                      desc: "The calculator loads the correct pip size and contract specification for your selected instrument: forex, gold, silver, or crypto.",
                     },
                     {
                       step: "Step 3",
@@ -231,7 +231,7 @@ export default function Page() {
                     {
                       step: "Step 4",
                       title: "Get your position size",
-                      desc: "The calculator returns your position size in lots, the risk amount in your account currency, and the pip value per lot — using live conversion logic where needed.",
+                      desc: "The calculator returns your position size in lots, the risk amount in your account currency, and the pip value per lot, using live conversion logic where needed.",
                     },
                   ].map(({ step, title, desc }) => (
                     <div
@@ -281,7 +281,7 @@ export default function Page() {
                   {/* Example 1 — EURUSD */}
                   <div className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">
-                      Example 1 — EURUSD
+                      Example 1: EURUSD
                     </p>
                     <dl className="mt-4 space-y-1.5 text-[12px]">
                       <div className="flex justify-between">
@@ -310,7 +310,7 @@ export default function Page() {
                   {/* Example 2 — GBPJPY */}
                   <div className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">
-                      Example 2 — GBPJPY
+                      Example 2: GBPJPY
                     </p>
                     <dl className="mt-4 space-y-1.5 text-[12px]">
                       <div className="flex justify-between">
@@ -339,7 +339,7 @@ export default function Page() {
                   {/* Example 3 — Gold XAUUSD */}
                   <div className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">
-                      Example 3 — Gold (XAUUSD)
+                      Example 3: Gold (XAUUSD)
                     </p>
                     <dl className="mt-4 space-y-1.5 text-[12px]">
                       <div className="flex justify-between">
@@ -368,7 +368,7 @@ export default function Page() {
 
                 <div className="mt-6 rounded-2xl border border-brand/20 bg-brand/5 px-5 py-4 text-[13px] leading-relaxed text-slate-300/90">
                   <span className="font-semibold text-brand-300/90">Note on gold: </span>
-                  Many platforms quote gold to 2 decimals — 1 pip = $0.01. A $2.00 stop is 200 pips.
+                  Many platforms quote gold to 2 decimals: 1 pip = $0.01. A $2.00 stop is 200 pips.
                   A $20.00 stop is 2,000 pips. If your platform shows open and stop price, the stop
                   distance is simply the price difference.
                 </div>
@@ -466,7 +466,7 @@ export default function Page() {
                   {[
                     {
                       q: "What is a lot size calculator?",
-                      a: "A lot size calculator determines the correct position size (in lots) based on your account balance, risk per trade percentage, and stop loss distance. It removes guesswork from position sizing by calculating exactly how many lots to trade so that if your stop loss is hit, you lose only the amount you defined as acceptable risk. Most trading accounts do not fail because of one bad trade — they fail because of normal losses combined with oversized positions. A lot size calculator prevents that by keeping every trade sized consistently.",
+                      a: "A lot size calculator determines the correct position size (in lots) based on your account balance, risk per trade percentage, and stop loss distance. It removes guesswork from position sizing by calculating exactly how many lots to trade so that if your stop loss is hit, you lose only the amount you defined as acceptable risk. Most trading accounts do not fail because of one bad trade; they fail because of normal losses combined with oversized positions. A lot size calculator prevents that by keeping every trade sized consistently.",
                     },
                     {
                       q: "How do I use this position size calculator?",
@@ -474,7 +474,7 @@ export default function Page() {
                     },
                     {
                       q: "How is lot size calculated?",
-                      a: "The calculation follows three steps. Step 1 — Risk Amount: Account Balance × Risk % = the maximum you are willing to lose on this trade. Step 2 — Pip Value: convert your stop loss distance into money using the instrument's pip value. If the instrument is quoted in a different currency than your account, the pip value is converted into your deposit currency first. Step 3 — Position Size: Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot).",
+                      a: "The calculation follows three steps. Step 1, Risk Amount: Account Balance × Risk % = the maximum you are willing to lose on this trade. Step 2, Pip Value: convert your stop loss distance into money using the instrument's pip value. If the instrument is quoted in a different currency than your account, the pip value is converted into your deposit currency first. Step 3, Position Size: Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot).",
                     },
                     {
                       q: "Does this calculator work for forex, gold and indices?",
@@ -486,7 +486,7 @@ export default function Page() {
                     },
                     {
                       q: "What is the difference between a micro, mini, and standard lot?",
-                      a: "In FX, 1.00 standard lot is 100,000 units, 0.10 is a mini lot (10,000 units), and 0.01 is a micro lot (1,000 units). Metals and indices follow different contract definitions — for example, 1 lot of gold (XAUUSD) is typically 100 troy ounces, not 100,000 units. Always check your broker's instrument specifications.",
+                      a: "In FX, 1.00 standard lot is 100,000 units, 0.10 is a mini lot (10,000 units), and 0.01 is a micro lot (1,000 units). Metals and indices follow different contract definitions; for example, 1 lot of gold (XAUUSD) is typically 100 troy ounces, not 100,000 units. Always check your broker's instrument specifications.",
                     },
                     {
                       q: "Can I use this calculator with prop firm rules?",

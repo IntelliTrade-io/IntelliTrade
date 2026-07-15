@@ -44,7 +44,7 @@ export default async function UpgradePage({
     if (isActive) redirect("/dashboardv2");
   }
 
-  const amount = price.unit_amount ? (price.unit_amount / 100).toFixed(2) : "—";
+  const amount = price.unit_amount ? (price.unit_amount / 100).toFixed(2) : "n/a";
   const currency = price.currency.toUpperCase();
 
   return (
@@ -53,7 +53,7 @@ export default async function UpgradePage({
 
         {canceled && (
           <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/[0.07] px-4 py-3 text-sm text-amber-300">
-            Payment canceled — no charge was made. You can try again whenever you&apos;re ready.
+            Payment canceled; no charge was made. You can try again whenever you&apos;re ready.
           </div>
         )}
 
@@ -81,7 +81,7 @@ export default async function UpgradePage({
               <span className="mb-1.5 text-white/40">/month</span>
             </div>
             <p className="mb-1 text-sm text-white/55">
-              Founding price for the first 100 members — keep it for as long as you stay subscribed.
+              Founding price for the first 100 members; keep it for as long as you stay subscribed.
             </p>
             <p className="mb-8 text-sm text-white/40">
               Cancel anytime. No contracts.

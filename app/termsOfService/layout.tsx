@@ -4,7 +4,7 @@ import { jsonLd } from "@/lib/jsonLd";
 export const metadata: Metadata = {
   title: "Terms of Service · IntelliTrade",
   description:
-    "IntelliTrade terms of service — the rules and conditions that govern use of our platform, tools, and content.",
+    "IntelliTrade terms of service: the rules and conditions that govern use of our platform, tools, and content.",
   alternates: { canonical: "https://intellitrade.tech/termsOfService" },
   openGraph: {
     title: "Terms of Service · IntelliTrade",

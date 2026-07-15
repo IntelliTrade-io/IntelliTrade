@@ -103,7 +103,7 @@ export async function StrengthSnapshot({ publishedAt }: { publishedAt?: string }
       </div>
 
       <p className="mt-6 text-xs leading-relaxed text-slate-500">
-        Snapshot for educational context — how the meter read the market when this analysis was
+        Snapshot for educational context: how the meter read the market when this analysis was
         written, not a recommendation. The live meter, intraday readings and history are part of{" "}
         <TrackedLink
           href="/pro"

@@ -83,7 +83,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               {status === "success" && (
                 <p className="mt-3 text-sm text-brand-200/90 font-medium">
-                  Check your inbox — your e-book is on its way!
+                  Check your inbox: your e-book is on its way!
                 </p>
               )}
               {status === "error" && (

@@ -25,7 +25,7 @@ export const FAQ_ITEMS = [
   {
     question: "Why does gold usually move opposite to the US dollar?",
     answer:
-      "Gold is priced in dollars, so when the dollar strengthens, one ounce of gold costs more in other currencies and tends to attract less demand, pressuring the dollar price down — and vice versa. The relationship is a tendency, not a law: in stress episodes gold and the dollar can rise together, because both attract safe-haven flows at the same time.",
+      "Gold is priced in dollars, so when the dollar strengthens, one ounce of gold costs more in other currencies and tends to attract less demand, pressuring the dollar price down, and vice versa. The relationship is a tendency, not a law: in stress episodes gold and the dollar can rise together, because both attract safe-haven flows at the same time.",
   },
   {
     question: "What is the difference between spot gold and gold futures?",
@@ -35,6 +35,6 @@ export const FAQ_ITEMS = [
   {
     question: "Is the gold price the same all over the world?",
     answer:
-      "The underlying spot market is global, so the dollar price of gold is effectively the same everywhere at any given moment. What differs is the local-currency price — which moves with the exchange rate — and local premiums or taxes on physical gold. A weaker local currency means a higher gold price in that currency even if XAU/USD has not moved at all.",
+      "The underlying spot market is global, so the dollar price of gold is effectively the same everywhere at any given moment. What differs is the local-currency price (which moves with the exchange rate) and local premiums or taxes on physical gold. A weaker local currency means a higher gold price in that currency even if XAU/USD has not moved at all.",
   },
 ] as const;
