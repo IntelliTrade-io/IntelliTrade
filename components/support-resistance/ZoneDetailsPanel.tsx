@@ -1,7 +1,7 @@
 import React from "react";
 import { Waves } from "lucide-react";
-import { reactionRateTooltip, supportResistanceCopy } from "./copy";
-import { HISTORICAL_REACTION_RATE } from "./gradeConfig";
+import { cohortRateTooltip, supportResistanceCopy } from "./copy";
+import { GRADE_TOKENS, HISTORICAL_REACTION_RATE } from "./gradeConfig";
 import { buildZoneDetails, formatReactionRange, formatTypicalR } from "./model";
 import EducationalTooltip from "./EducationalTooltip";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
@@ -74,7 +74,13 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
           <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-white/34">
             Dynamic opportunity grade
             <EducationalTooltip
-              label={gradeRate !== undefined ? reactionRateTooltip(gradeRate) : supportResistanceCopy.tooltips.watchBlocked}
+              label={
+                gradeRate !== undefined
+                  ? cohortRateTooltip(details.dynamicGrade)
+                  : details.dynamicGrade === "blue"
+                    ? supportResistanceCopy.tooltips.blueZones
+                    : supportResistanceCopy.tooltips.watchBlocked
+              }
               align="right"
             />
           </div>
@@ -111,8 +117,15 @@ export function ZoneDetailsPanel({ zone }: ZoneDetailsPanelProps) {
           to every zone, so it does not belong inside the per-zone panel. */}
 
       {details.dynamicGrade === "a_plus" ? (
-        <div className="mt-2 rounded-[14px] border border-[#F7E38C]/18 bg-[#F7E38C]/[0.06] px-3 py-2.5 text-xs leading-relaxed text-[#FFF1B1]">
-          A+ = highest grade tier. Short-term first reaction, not a reversal call.
+        <div
+          className="mt-2 rounded-[14px] border px-3 py-2.5 text-xs leading-relaxed"
+          style={{
+            borderColor: GRADE_TOKENS.a_plus.border,
+            background: GRADE_TOKENS.a_plus.fill,
+            color: GRADE_TOKENS.a_plus.text,
+          }}
+        >
+          A+ is the highest grade tier: the strongest short-term first-reaction context, not a reversal call.
         </div>
       ) : null}
 

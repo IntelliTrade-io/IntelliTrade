@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { reactionRateTooltip, supportResistanceCopy } from "./copy";
+import { cohortRateTooltip, reactionRateTooltip, supportResistanceCopy } from "./copy";
 import {
+  GRADE_COHORTS,
   GRADE_DISPLAY_ORDER,
+  GRADE_TOKENS,
   HISTORICAL_REACTION_RATE,
   dynamicOpportunityGradeConfig,
   gradeSummaryLine,
@@ -30,13 +32,59 @@ describe("support resistance Alpha model", () => {
     );
   });
 
-  it("ranks grades in the locked user-facing order everywhere (A+ → Elite → Green → Watch → Informational → Blocked)", () => {
-    expect(GRADE_DISPLAY_ORDER).toEqual(["a_plus", "elite_green", "green", "watch", "blue", "blocked"]);
+  it("teaches grades in ascending order (Blocked → Informational → Watch → Green → Elite Green → A+)", () => {
+    expect(GRADE_DISPLAY_ORDER).toEqual(["blocked", "blue", "watch", "green", "elite_green", "a_plus"]);
 
-    // Scanner rows must come out in exactly that order — Watch must never
-    // render above Elite Green, Informational never above Watch.
+    // Scanner rows rank by current opportunity quality, best first — Watch must
+    // never render above Elite Green, Informational never above Watch.
     const rows = buildScannerRows(supportResistanceMockZones);
-    expect(rows.map((row) => row.dynamicGrade)).toEqual(GRADE_DISPLAY_ORDER);
+    expect(rows.map((row) => row.dynamicGrade)).toEqual([...GRADE_DISPLAY_ORDER].reverse());
+  });
+
+  it("locks the final grade colour tokens (crimson/slate/amber/light green/emerald/violet)", () => {
+    expect(GRADE_TOKENS.blocked.text).toBe("#FB7185");
+    expect(GRADE_TOKENS.blue.text).toBe("#94A3B8");
+    expect(GRADE_TOKENS.watch.text).toBe("#F59E0B");
+    expect(GRADE_TOKENS.green.text).toBe("#86EFAC");
+    expect(GRADE_TOKENS.elite_green.text).toBe("#34D399");
+    expect(GRADE_TOKENS.a_plus.text).toBe("#A78BFA");
+
+    // Restrained glow ONLY for the top two tiers.
+    expect(GRADE_TOKENS.a_plus.glow).toContain("rgba(124, 58, 237");
+    expect(GRADE_TOKENS.elite_green.glow).toContain("rgba(5, 150, 105");
+    expect(GRADE_TOKENS.blocked.glow).toBeUndefined();
+    expect(GRADE_TOKENS.blue.glow).toBeUndefined();
+    expect(GRADE_TOKENS.watch.glow).toBeUndefined();
+    expect(GRADE_TOKENS.green.glow).toBeUndefined();
+  });
+
+  it("presents the historical figures as cumulative cohorts with their resolved samples", () => {
+    expect(GRADE_COHORTS.green).toEqual({
+      label: "Green+ cohort",
+      includes: ["green", "elite_green", "a_plus"],
+      resolvedSample: 155,
+    });
+    expect(GRADE_COHORTS.elite_green).toEqual({
+      label: "Elite+ cohort",
+      includes: ["elite_green", "a_plus"],
+      resolvedSample: 109,
+    });
+    expect(GRADE_COHORTS.a_plus).toEqual({ label: "A+ cohort", includes: ["a_plus"], resolvedSample: 67 });
+
+    // The cohort tooltip must explain the cumulative buckets and the sample.
+    const tooltip = cohortRateTooltip("green");
+    expect(tooltip).toContain("Green+ includes Green, Elite Green, and A+");
+    expect(tooltip).toContain("Elite+ includes Elite Green and A+");
+    expect(tooltip).toContain("Unresolved events are excluded");
+    expect(tooltip).toContain("155 resolved events");
+    expect(cohortRateTooltip("a_plus")).toContain("86.57%");
+    expect(cohortRateTooltip("a_plus")).toContain("67 resolved events");
+
+    // Cumulative framing lives in the grade descriptions too — never an
+    // exclusive per-grade claim.
+    expect(dynamicOpportunityGradeConfig.green.description).toContain("Green+ cohort");
+    expect(dynamicOpportunityGradeConfig.elite_green.description).toContain("Elite+ cohort");
+    expect(dynamicOpportunityGradeConfig.a_plus.description).toContain("A+ cohort");
   });
 
   it("uses the exact validated historical reaction rates — never rounded, never the legacy numbers", () => {
@@ -48,7 +96,7 @@ describe("support resistance Alpha model", () => {
     expect(HISTORICAL_REACTION_RATE.blocked).toBeUndefined();
 
     expect(gradeSummaryLine("a_plus")).toBe("86.57% historical reaction rate");
-    expect(gradeSummaryLine("elite_green", true)).toBe("84.40% historical 0.50R reaction rate");
+    expect(gradeSummaryLine("elite_green", true)).toBe("84.40% historical 0.50R first-reaction rate");
     expect(gradeSummaryLine("watch")).toBe("Below activation threshold");
     expect(gradeSummaryLine("blue")).toBe("Support zone only");
     expect(gradeSummaryLine("blocked")).toBe("Conditions not qualified");

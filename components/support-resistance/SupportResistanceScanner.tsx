@@ -23,11 +23,11 @@ function getScannerRowTone(grade: ScannerRow["dynamicGrade"], selected: boolean)
   }
 
   if (grade === "watch") {
-    return "border-blue-400/12 bg-blue-950/[0.08] opacity-75 hover:border-blue-400/20 hover:opacity-90";
+    return "border-amber-400/14 bg-amber-950/[0.08] opacity-75 hover:border-amber-400/24 hover:opacity-90";
   }
 
   if (grade === "blue") {
-    return "border-sky-300/10 bg-sky-950/[0.06] opacity-70 hover:border-sky-300/18 hover:opacity-90";
+    return "border-slate-400/12 bg-slate-800/[0.14] opacity-70 hover:border-slate-400/20 hover:opacity-90";
   }
 
   return "border-white/10 bg-white/[0.03] hover:border-white/18 hover:bg-white/[0.05]";
@@ -143,11 +143,11 @@ export function SupportResistanceScanner({
                   row.id === selectedZoneId
                     ? "bg-white/[0.1]"
                     : row.dynamicGrade === "watch"
-                      ? "bg-blue-950/[0.04] opacity-80 hover:bg-blue-950/[0.08]"
+                      ? "bg-amber-950/[0.05] opacity-80 hover:bg-amber-950/[0.09]"
                       : row.dynamicGrade === "blocked"
                         ? "bg-rose-950/[0.04] opacity-70 hover:bg-rose-950/[0.08]"
                         : row.dynamicGrade === "blue"
-                          ? "bg-sky-950/[0.04] opacity-75 hover:bg-sky-950/[0.08]"
+                          ? "bg-slate-800/[0.08] opacity-75 hover:bg-slate-800/[0.14]"
                           : "bg-transparent hover:bg-white/[0.03]",
                 ].join(" ")}
               >

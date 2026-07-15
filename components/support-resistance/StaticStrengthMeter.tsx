@@ -11,8 +11,13 @@ export function StaticStrengthMeter({ strength, compact = false }: StaticStrengt
   const config = staticStrengthConfig[strength];
 
   return (
-    <div className="inline-flex items-center gap-3">
-      <div className={["grid grid-cols-3 gap-1", compact ? "w-16" : "w-20"].join(" ")}>
+    <div
+      className="inline-flex items-center gap-3"
+      role="img"
+      aria-label={`Static strength: ${config.label}, ${config.meterIndex} of 3 segments. ${config.description}`}
+      title={config.description}
+    >
+      <div aria-hidden className={["grid grid-cols-3 gap-1", compact ? "w-16" : "w-20"].join(" ")}>
         {Array.from({ length: 3 }).map((_, index) => {
           const active = index < config.meterIndex;
           return (

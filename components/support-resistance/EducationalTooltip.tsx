@@ -26,7 +26,7 @@ export function EducationalTooltip({ label, align = "left" }: EducationalTooltip
         aria-describedby={open ? descriptionId : undefined}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
-        className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/56 transition-all hover:border-white/18 hover:text-white"
+        className="relative inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/56 transition-all after:absolute after:-inset-2 after:content-[''] hover:border-white/18 hover:text-white motion-reduce:transition-none"
       >
         <Info className="h-3.5 w-3.5" />
       </button>

@@ -6,23 +6,23 @@ import { TrackedLink } from "@/components/layout/TrackedLink";
 import { supportResistanceCopy } from "@/components/support-resistance/copy";
 
 export const metadata: Metadata = {
-  title: "Smart Support Zones — EURUSD Support Zone Strength Scoring | IntelliTrade",
+  title: "Smart Support Zones: EURUSD Support Zone Strength Scoring | IntelliTrade",
   description:
-    "Smart Support Zones scores EURUSD support zones weak, medium or strong — and explains why: zone behaviour, reclaim confirmation, session context and an opportunity score. Educational decision support, not signals.",
+    "Smart Support Zones scores EURUSD support zones weak, medium or strong, and explains why: zone behaviour, reclaim confirmation, session context and an opportunity score. Educational decision support, not signals.",
   alternates: { canonical: "https://intellitrade.tech/smart-support-zones" },
   openGraph: {
-    title: "Smart Support Zones — EURUSD Support Zone Strength Scoring | IntelliTrade",
+    title: "Smart Support Zones: EURUSD Support Zone Strength Scoring | IntelliTrade",
     description:
-      "Go beyond generic support zones. See whether a EURUSD support zone looks weak, medium or strong — and why.",
+      "Go beyond generic support zones. See whether a EURUSD support zone looks weak, medium or strong, and why.",
     url: "https://intellitrade.tech/smart-support-zones",
     siteName: "IntelliTrade",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Smart Support Zones — EURUSD Support Zone Strength Scoring",
+    title: "Smart Support Zones: EURUSD Support Zone Strength Scoring",
     description:
-      "Score EURUSD support zones weak, medium or strong — with reclaim confirmation and an explained opportunity score.",
+      "Score EURUSD support zones weak, medium or strong, with reclaim confirmation and an explained opportunity score.",
   },
 };
 
@@ -39,11 +39,11 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "Which markets and timeframes are covered?",
-    a: "EURUSD support zones on M15 execution context. Support only — resistance is not currently scored. Coverage is deliberately narrow while the scoring model is refined; more pairs are planned.",
+    a: "EURUSD support zones on M15 execution context. Support only; resistance is not currently scored. Coverage is deliberately narrow while the scoring model is refined; more pairs are planned.",
   },
   {
     q: "What is reclaim confirmation?",
-    a: "A reclaim is when price dips into a support zone and then closes back above it, rather than merely touching the zone. A confirmed reclaim tells you the zone was tested and, so far, defended — which is different information than an untested zone or an unresolved dip.",
+    a: "A reclaim is when price dips into a support zone and then closes back above it, rather than merely touching the zone. A confirmed reclaim tells you the zone was tested and, so far, defended, which is different information than an untested zone or an unresolved dip.",
   },
   {
     q: "What data does the preview on this page use?",
@@ -51,18 +51,18 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: "What does a percentage like “86.57% historical reaction rate” mean?",
-    a: "It means 86.57% of comparable resolved historical setups in that grade tier reached the model's 0.50R first-reaction target during testing. It is a historical measurement over a bucket of similar setups — not a calibrated probability forecast for any specific live zone. Historical results do not guarantee future performance.",
+    a: "It means 86.57% of resolved qualifying events in that cohort reached the model's 0.50R first-reaction target during testing. The figures are cumulative cohorts: Green+ includes Green, Elite Green and A+ (81.94%, 155 resolved events), Elite+ includes Elite Green and A+ (84.40%, 109 resolved events), and A+ stands alone (86.57%, 67 resolved events). Unresolved events are excluded. It is a historical measurement over a bucket of similar setups, not a calibrated probability forecast for any specific live zone. Historical results do not guarantee future performance.",
   },
   {
     q: "How is the opportunity score calculated?",
-    a: "The score combines the zone's static strength (structure and history of the shelf) with dynamic context: reclaim status, approach quality, and session timing. Each component is shown with the score, so you can see why a zone is graded the way it is — and disagree with it if your own analysis says otherwise.",
+    a: "The score combines the zone's static strength (structure and history of the shelf) with dynamic context: reclaim status, approach quality, and session timing. Each component is shown with the score, so you can see why a zone is graded the way it is, and disagree with it if your own analysis says otherwise.",
   },
 ];
 
 const webPageSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  name: "Smart Support Zones — EURUSD Support Zone Strength Scoring",
+  name: "Smart Support Zones: EURUSD Support Zone Strength Scoring",
   description:
     "Smart Support Zones scores EURUSD support zones weak, medium or strong, with reclaim confirmation and an explained opportunity score. Educational decision support.",
   url: "https://intellitrade.tech/smart-support-zones",
@@ -123,7 +123,7 @@ export default function SmartSupportZonesPage() {
             Know how strong a support<br className="hidden sm:block" /> zone really is.
           </h1>
           <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto mb-8 leading-relaxed">
-            Smart Support Zones scores EURUSD support zones weak, medium or strong — and shows you why:
+            Smart Support Zones scores EURUSD support zones weak, medium or strong, and shows you why:
             zone behaviour, reclaim confirmation, session context, and an explained opportunity score.
           </p>
           <TrackedLink
@@ -158,7 +158,7 @@ export default function SmartSupportZonesPage() {
             <p>
               A support zone is a price area where a market has repeatedly slowed down, paused, or turned
               after falling. Traders watch these areas because they often mark where buying interest has
-              appeared before. But &ldquo;often&rdquo; is doing a lot of work in that sentence — not all
+              appeared before. But &ldquo;often&rdquo; is doing a lot of work in that sentence: not all
               support is equal, and treating every zone the same is one of the most common mistakes in
               retail trading.
             </p>
@@ -179,10 +179,10 @@ export default function SmartSupportZonesPage() {
             <h2 className="text-2xl font-semibold tracking-tight text-white mb-3">What Smart Support Zones does differently</h2>
             <p className="mb-4">
               Smart Support Zones evaluates each EURUSD support zone on the M15 timeframe and assigns it a
-              strength classification — weak, medium or strong — based on how the zone has actually behaved:
+              strength classification (weak, medium or strong) based on how the zone has actually behaved:
               how it was formed, how price has approached it, and how it has held. On top of the static
               strength of the shelf itself, the tool grades the <em>current</em> context around the zone,
-              including whether a reclaim has been confirmed — that is, whether price has closed back above
+              including whether a reclaim has been confirmed: that is, whether price has closed back above
               the zone after dipping into it, rather than merely touching it.
             </p>
             <p>
@@ -196,7 +196,7 @@ export default function SmartSupportZonesPage() {
           <div>
             <h2 className="text-2xl font-semibold tracking-tight text-white mb-3">What the classifications mean</h2>
             <ul className="space-y-2">
-              <li><span className="text-white/90 font-medium">Strong / medium / weak</span> describe the underlying shelf — its structure and history.</li>
+              <li><span className="text-white/90 font-medium">Strong / medium / weak</span> describe the underlying shelf: its structure and history.</li>
               <li><span className="text-white/90 font-medium">The dynamic grade</span> describes the current situation around that shelf, including reclaim confirmation and session timing. A structurally strong shelf can still grade poorly if the current approach is messy or the timing filter fails.</li>
               <li><span className="text-white/90 font-medium">Informational zones</span> are the neutral baseline: a support zone exists, but no validated historical edge is attached to it.</li>
               <li><span className="text-white/90 font-medium">Watch</span> means the setup is below the activation threshold; <span className="text-white/90 font-medium">Blocked</span> means one or more required conditions were not met.</li>
@@ -207,18 +207,18 @@ export default function SmartSupportZonesPage() {
             <h2 className="text-2xl font-semibold tracking-tight text-white mb-3">Honest scope</h2>
             <p>
               Smart Support Zones currently covers EURUSD support zones on M15 execution context. Support
-              only — resistance zones are not scored. More pairs and resistance coverage are on the roadmap.
+              only; resistance zones are not scored. More pairs and resistance coverage are on the roadmap.
               We would rather ship one pair scored honestly than twenty pairs scored loosely.
             </p>
           </div>
 
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight text-white mb-3">What this is — and is not</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-white mb-3">What this is, and is not</h2>
             <p>
               Smart Support Zones is educational decision support for your pre-trade preparation. A strong
               zone is not a prediction that price will bounce, and an opportunity score is not a
               recommendation to buy. The tool helps you understand whether a support area deserves a place
-              in your preparation for a potential trade setup — the decision itself stays yours.
+              in your preparation for a potential trade setup; the decision itself stays yours.
             </p>
           </div>
         </section>
@@ -252,7 +252,7 @@ export default function SmartSupportZonesPage() {
             Smart Support Zones is included in IntelliTrade Pro.
           </h2>
           <p className="relative z-10 mx-auto mb-6 max-w-xl text-sm text-white/55">
-            Founding Member — €15/month for the first 100 members. Keep the price for as long as you stay
+            Founding Member: €15/month for the first 100 members. Keep the price for as long as you stay
             subscribed.
           </p>
           <TrackedLink
