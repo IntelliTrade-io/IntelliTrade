@@ -103,6 +103,26 @@ The `.github/workflows/frontend.yml` job runs lint + typecheck + test on every p
 - [ ] **Locate the currency-strength meter Vite source** (built outside this repo — see `claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`). Needed to bring it in-repo with a build step (IMPROVEMENTS.md entry).
 - [ ] **Supabase CLI link** for the project so migrations run via `db push` instead of hand-pasting in the SQL editor; then Claude backfills migration files for the 4 dashboard-created tables (IMPROVEMENTS.md → Ops).
 
+## Market Context automation (see MARKET_CONTEXT_AUTOMATION.md, 2026-07-15)
+
+Wires the daily blog post's "Cross-Asset Wrap" section into the four `marketContext` documents behind the price pages. Code is done + tested, left uncommitted. **Nothing runs until the site's next production deploy AND these steps.** Do them together, after (or with) the big refactor push.
+
+- [ ] **Create the Sanity write token** — sanity.io/manage, project `6s37xbfh` → API → Tokens → add a token with **Editor** role. Add its value as `SANITY_API_WRITE_TOKEN` in Vercel (Production, server-side — NOT `NEXT_PUBLIC_`) and in local `.env.local`.
+- [ ] **Create the webhook secret** — generate a random string. Add it as `SANITY_WEBHOOK_SECRET` in Vercel (Production, server-side) and local `.env.local`. Use the same value in the webhook config below.
+- [ ] **Create the Sanity webhook** — sanity.io/manage, project `6s37xbfh` → API → Webhooks → Create:
+  - Name: `market-context-automation`
+  - URL: `https://intellitrade.tech/api/sanity/market-context`
+  - Dataset: `production`
+  - Trigger on: **Create + Update + Delete**
+  - Include drafts: **OFF**
+  - Filter: `_type == "post"`
+  - Projection: `{_id, _type, title, publishedAt, body, "operation": delta::operation()}`
+  - HTTP method: **POST**
+  - Secret: the `SANITY_WEBHOOK_SECRET` value
+  - API version: `2024-01-01` or later
+- [ ] **Deploy the Studio schema** — run `npx sanity deploy` from `C:\studio-intellitrade` to ship the schema changes (3 new `marketContext` fields: `sourcePost`, `generatedAt`, `manualOverride`; plus a body validation on `post` that blocks publishing a broken Cross-Asset Wrap). This is the same deploy already queued for the earlier `marketContext` enrichment fields — one `sanity deploy` covers both.
+- [ ] **Note:** the webhook only takes effect after the next production push/deploy of the site (repo is in no-push refactor mode). Kill switches if needed: disable the webhook in sanity.io/manage (instant), or set `MARKET_CONTEXT_AUTOMATION_DISABLED=1` in Vercel + redeploy. **No historical backfill** — only posts published after the webhook is live are processed.
+
 ---
 
 *Done items: strike through + date, don't delete — they're the audit trail.*
