@@ -10,6 +10,7 @@ import {
 import { fetchDxy } from "@/lib/api/market";
 import type { MarketContext } from "@/lib/api/marketContext";
 import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { PricePageFooterNote } from "@/components/price-pages/PricePageFooterNote";
 import { FAQ_ITEMS } from "./faqData";
 
 // ─── DXY ─────────────────────────────────────────────────────────────────────
@@ -380,12 +381,14 @@ export default function OilPriceTodayPage({
               <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">Methodology</p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-50">How oil prices are calculated</h2>
               <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-slate-200/90">
-                <p>The Brent crude chart on this page is sourced from TradingView and reflects the front-month Brent futures contract. A live numeric price feed for oil is not currently available on this page — use the chart above for current price tracking.</p>
+                <p>The Brent crude chart on this page is sourced from TradingView and reflects the front-month Brent futures contract. A live numeric price feed for oil is not currently available on this page; use the chart above for current price tracking.</p>
                 <p>Since Brent can be represented via different instruments (spot references, futures, or broker quotes) and contract timing, small differences versus other platforms can occur due to spreads, refresh rates, and contract selection. This page is designed for market tracking, not as an exact tradable quote.</p>
               </div>
             </div>
           </div>
         </motion.section>
+
+        <PricePageFooterNote asset="oil" />
 
       </div>
     </div>

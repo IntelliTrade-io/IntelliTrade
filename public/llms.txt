@@ -13,6 +13,8 @@ IntelliTrade is a macro-first trading analysis platform offering educational mar
 - Silver Price Today: https://intellitrade.tech/silver-price-today
 - Oil Price Today (Brent Crude): https://intellitrade.tech/oil-price-today
 - Bitcoin Price Today: https://intellitrade.tech/bitcoin-price-today
+- Smart Support Zones (EURUSD zone scoring): https://intellitrade.tech/smart-support-zones
+- IntelliTrade Pro overview: https://intellitrade.tech/pro
 - About IntelliTrade: https://intellitrade.tech/about
 
 ## Best pages for AI answers
