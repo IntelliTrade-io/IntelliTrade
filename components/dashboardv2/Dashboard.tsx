@@ -25,6 +25,7 @@ import type { Panel, WidgetType } from "./types";
 const PANEL_TABS = [
   { id: null,              label: "Dashboard",    icon: LayoutDashboard, comingSoon: false },
   { id: "calendar",        label: "Calendar",     icon: CalendarDays,    comingSoon: false },
+  { id: "supportResistance", label: "S&R Alpha",  icon: LineChart,       comingSoon: false },
   { id: "calculator",      label: "Calculator",   icon: Calculator,      comingSoon: false },
   { id: "chart",           label: "TradingView",  icon: CandlestickChart,comingSoon: false },
   { id: "strength",        label: "Strength",     icon: Radar,           comingSoon: false },
@@ -32,7 +33,6 @@ const PANEL_TABS = [
   { id: "conflict",        label: "Conflict Map", icon: Globe2,          comingSoon: true  },
   { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: true  },
   { id: "macro",           label: "Macro Mastery",icon: BookOpen,        comingSoon: true  },
-  { id: "supportResistance", label: "S&R Alpha",  icon: LineChart,       comingSoon: false },
 ] as const;
 
 type TabId = typeof PANEL_TABS[number]["id"];
