@@ -518,7 +518,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
   const thinned = points.filter((_, i) => i % step === 0 || i === points.length - 1);
 
   return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
+    <div className="relative overflow-hidden rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
       <div className="mb-1 px-1 text-[9px] uppercase tracking-[0.18em] text-white/30">
         Strength · {type === "intraday" ? "last 24h" : "last 7d"}
       </div>
@@ -550,17 +550,24 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
           />
           <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="3 3" />
           <Tooltip
+            // Pin vertically and clamp horizontally so the tall 8-currency
+            // tooltip can never escape the chart card (it previously pushed a
+            // horizontal scrollbar onto the panel when hovering the right edge).
+            position={{ y: 0 }}
+            allowEscapeViewBox={{ x: false, y: false }}
+            wrapperStyle={{ zIndex: 5 }}
             contentStyle={{
               background: "rgba(9,10,13,0.95)",
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: 10,
-              padding: "6px 10px",
+              padding: "4px 8px",
               fontSize: 10,
+              lineHeight: 1.25,
             }}
             labelFormatter={(ts: unknown) => formatChartTime(String(ts))}
             formatter={(value, name) => [`${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
-            itemStyle={{ color: "rgba(255,255,255,0.7)", padding: "1px 0" }}
-            labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 4 }}
+            itemStyle={{ color: "rgba(255,255,255,0.7)", padding: 0 }}
+            labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 2 }}
           />
           {CURRENCIES.map((c) => (
             <Line
