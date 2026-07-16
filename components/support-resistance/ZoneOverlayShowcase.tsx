@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { ZoneOverlayPreview } from "./ZoneOverlayPreview";
-import { supportResistanceMockZones, supportResistanceOverlaySeries } from "./mockData";
+import { supportResistanceMockZones } from "./mockData";
 
 // Lightweight branded S&R Alpha preview for marketing sections (homepage, /pro).
-// Uses the illustrative overlay (sample zones + line) with local selection
-// state — no API, no protected data.
+// Uses the illustrative candlestick chart with sample graded zones and local
+// selection state. No API, no protected data.
 export function ZoneOverlayShowcase({ compact = false }: { compact?: boolean }) {
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(
     supportResistanceMockZones[0]?.id ?? null,
@@ -14,7 +14,6 @@ export function ZoneOverlayShowcase({ compact = false }: { compact?: boolean }) 
 
   return (
     <ZoneOverlayPreview
-      points={supportResistanceOverlaySeries}
       zones={supportResistanceMockZones}
       selectedZoneId={selectedZoneId}
       onSelectZone={setSelectedZoneId}

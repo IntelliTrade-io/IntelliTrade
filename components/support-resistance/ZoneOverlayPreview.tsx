@@ -1,56 +1,40 @@
-import React from "react";
 import { Info } from "lucide-react";
 import OpportunityGradeBadge from "./OpportunityGradeBadge";
+import SupportZoneIllustrativeChart from "./SupportZoneIllustrativeChart";
 import { cohortRateTooltip, supportResistanceCopy } from "./copy";
 import {
   GRADE_COHORTS,
   GRADE_TOKENS,
   HISTORICAL_REACTION_RATE,
-  STRENGTH_BAND_OPACITY,
   dynamicOpportunityGradeConfig,
   formatHistoricalReactionRate,
   gradeSummaryLine,
-  staticStrengthConfig,
 } from "./gradeConfig";
 import { getDynamicGradeRank } from "./model";
-import type { OverlayPoint, SupportResistanceZone } from "./types";
+import type { SupportResistanceZone } from "./types";
 
 interface ZoneOverlayPreviewProps {
-  points: OverlayPoint[];
   zones: SupportResistanceZone[];
   selectedZoneId: string | null;
   onSelectZone?: (zoneId: string) => void;
   compact?: boolean;
 }
 
-function buildLinePath(points: OverlayPoint[], width: number, height: number, minValue: number, maxValue: number) {
-  const xStep = points.length > 1 ? width / (points.length - 1) : width;
-  const range = Math.max(0.0001, maxValue - minValue);
-
-  return points
-    .map((point, index) => {
-      const x = index * xStep;
-      const y = height - ((point.close - minValue) / range) * height;
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
-    .join(" ");
-}
-
 /**
- * The public Support & Resistance Alpha preview. Illustrative sample zones on
- * a stylised EURUSD line, one selected zone with the strongest emphasis, and
- * the grade hierarchy taught in ascending order (Blocked → A+). All colours
- * come from GRADE_TOKENS; the selected-zone card always matches the selected
- * band's grade colour.
+ * The public Support & Resistance Alpha preview. An illustrative EURUSD M15
+ * candlestick chart with sample graded support zones, one selected zone
+ * highlighted in its grade colour, and the grade hierarchy taught in ascending
+ * order (Blocked to A+). The grade cards double as the zone selector because
+ * the canvas chart is not interactive. All card colours come from GRADE_TOKENS;
+ * the selected-zone card always matches the selected grade colour.
  */
 export function ZoneOverlayPreview({
-  points,
   zones,
   selectedZoneId,
   onSelectZone,
   compact = false,
 }: ZoneOverlayPreviewProps) {
-  if (!points.length || !zones.length) {
+  if (!zones.length) {
     return (
       <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(13,13,18,0.94),rgba(8,8,12,0.98))] p-5 text-sm text-white/56">
         Preview data is unavailable right now.
@@ -58,8 +42,7 @@ export function ZoneOverlayPreview({
     );
   }
 
-  // Teaching order (ascending grade) drives the card grid; the chart stacks
-  // zones by price, so band order is data-driven.
+  // Teaching order (ascending grade) drives the card grid.
   const ascendingZones = [...zones].sort(
     (a, b) => getDynamicGradeRank(a.dynamicGrade) - getDynamicGradeRank(b.dynamicGrade),
   );
@@ -67,18 +50,6 @@ export function ZoneOverlayPreview({
   const selectedTokens = selectedZone ? GRADE_TOKENS[selectedZone.dynamicGrade] : null;
   const selectedRate = selectedZone ? HISTORICAL_REACTION_RATE[selectedZone.dynamicGrade] : undefined;
   const selectedCohort = selectedZone ? GRADE_COHORTS[selectedZone.dynamicGrade] : undefined;
-  const allValues = [
-    ...points.map((point) => point.close),
-    ...zones.flatMap((zone) => [zone.zoneLow, zone.zoneHigh]),
-  ];
-  const minValue = Math.min(...allValues) - 0.0004;
-  const maxValue = Math.max(...allValues) + 0.0004;
-  const valueRange = Math.max(0.0001, maxValue - minValue);
-  const linePath = buildLinePath(points, 100, 100, minValue, maxValue);
-  const latestPoint = points[points.length - 1];
-  const latestY = latestPoint ? 100 - ((latestPoint.close - minValue) / valueRange) * 100 : 0;
-  const tickCount = 5;
-  const ticks = Array.from({ length: tickCount }, (_, i) => minValue + ((tickCount - 1 - i) * valueRange) / (tickCount - 1));
 
   return (
     <section
@@ -133,112 +104,7 @@ export function ZoneOverlayPreview({
       </div>
 
       <div className={compact ? "mt-4" : "mt-5"}>
-        <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(6,11,20,0.98),rgba(5,8,14,0.98))] p-3 pr-1">
-          <div className={["relative", compact ? "h-[300px]" : "h-[380px]"].join(" ")}>
-            {/* Price axis + dotted gridlines */}
-            {ticks.map((tick, index) => {
-              const y = (index / (tickCount - 1)) * 100;
-              return (
-                <React.Fragment key={tick}>
-                  <div
-                    aria-hidden
-                    className="absolute left-0 right-14 border-t border-dashed border-white/[0.08]"
-                    style={{ top: `${y}%` }}
-                  />
-                  <span
-                    className="absolute right-0 w-12 -translate-y-1/2 text-right font-mono text-[10px] text-white/38"
-                    style={{ top: `${y}%` }}
-                  >
-                    {tick.toFixed(4)}
-                  </span>
-                </React.Fragment>
-              );
-            })}
-
-            {/* Plot area (leaves room for the axis labels) */}
-            <div className="absolute inset-y-0 left-0 right-14">
-              {/* Zone bands: slim pills. Only the selected band gets the strong
-                  glow + label; the rest stay muted so the hierarchy is obvious. */}
-              {ascendingZones.map((zone) => {
-                const tokens = GRADE_TOKENS[zone.dynamicGrade];
-                const config = dynamicOpportunityGradeConfig[zone.dynamicGrade];
-                const span = zone.previewSpan ?? { start: 0.1, end: 0.6 };
-                const mid = (zone.zoneLow + zone.zoneHigh) / 2;
-                const top = 100 - ((mid - minValue) / valueRange) * 100;
-                const selected = zone.id === selectedZone?.id;
-                const baseOpacity = STRENGTH_BAND_OPACITY[zone.staticStrength];
-                const strengthLabel = staticStrengthConfig[zone.staticStrength].label.toUpperCase();
-
-                return (
-                  <React.Fragment key={zone.id}>
-                    {selected ? (
-                      <span
-                        aria-hidden
-                        className="absolute z-[3] -translate-y-full pb-1 text-[9px] font-semibold uppercase tracking-[0.14em]"
-                        style={{ left: `${span.start * 100}%`, top: `calc(${top}% - 11px)`, color: tokens.text }}
-                      >
-                        {config.compactLabel} · {strengthLabel}
-                      </span>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => onSelectZone?.(zone.id)}
-                      aria-label={`Select illustrative ${config.label} support zone (static strength ${staticStrengthConfig[zone.staticStrength].label})`}
-                      aria-pressed={selected}
-                      className="absolute h-[18px] -translate-y-1/2 rounded-full border transition-all duration-200 hover:opacity-100 motion-reduce:transition-none"
-                      style={{
-                        left: `${span.start * 100}%`,
-                        width: `${(span.end - span.start) * 100}%`,
-                        top: `${top}%`,
-                        background: `linear-gradient(180deg, ${tokens.fill}, rgba(0,0,0,0.25)), ${tokens.background}`,
-                        borderColor: tokens.border,
-                        boxShadow: selected
-                          ? `0 0 26px ${tokens.border}, inset 0 0 14px ${tokens.fill}`
-                          : `inset 0 0 10px ${tokens.fill}`,
-                        opacity: selected ? 1 : baseOpacity * 0.72,
-                        zIndex: selected ? 3 : 2,
-                      }}
-                    />
-                  </React.Fragment>
-                );
-              })}
-
-              {/* Price line above the bands */}
-              <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 z-[4] h-full w-full overflow-visible" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="sr-line-fill" x1="0%" x2="0%" y1="0%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(232,244,255,0.14)" />
-                    <stop offset="100%" stopColor="rgba(232,244,255,0)" />
-                  </linearGradient>
-                </defs>
-                <path d={`${linePath} L 100 100 L 0 100 Z`} fill="url(#sr-line-fill)" opacity="0.7" />
-                <path
-                  d={linePath}
-                  fill="none"
-                  stroke="#F2F8FF"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                />
-              </svg>
-              {latestPoint ? (
-                <span
-                  aria-hidden
-                  className="absolute z-[5] h-3 w-3 -translate-y-1/2 translate-x-1/2 rounded-full border-2 border-white bg-[#0a1626] shadow-[0_0_12px_rgba(255,255,255,0.65)]"
-                  style={{ right: 0, top: `${latestY}%` }}
-                />
-              ) : null}
-
-              <span
-                aria-hidden
-                className="absolute bottom-1 left-1 z-[5] text-[9px] font-semibold uppercase tracking-[0.16em] text-white/34"
-              >
-                Illustrative preview
-              </span>
-            </div>
-          </div>
-        </div>
+        <SupportZoneIllustrativeChart />
 
         {/* Grade cards double as the legend AND the zone selector. Teaching
             order is ascending: Blocked → Informational → Watch → Green →
