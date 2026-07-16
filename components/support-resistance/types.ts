@@ -95,11 +95,6 @@ export interface ResearchTierProfile {
   validationAverageAfterCostR: number;
 }
 
-export interface OverlayPoint {
-  label: string;
-  close: number;
-}
-
 export interface SupabaseSupportResistanceRow {
   id: string;
   asset_id: string;

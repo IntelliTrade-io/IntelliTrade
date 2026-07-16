@@ -163,28 +163,35 @@ export default async function ProPage({
 
         {/* ── SSZ spotlight ── */}
         <section className="mb-20">
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
-                Pro module · Smart Support Zones
-              </p>
-              <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white mb-4 leading-tight">
-                Most tools draw zones. IntelliTrade scores them.
-              </h2>
-              <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-6">
-                Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
-                medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
-                actually interpret. Educational decision support, not signals.
-              </p>
-              <Link
-                href="/smart-support-zones"
-                className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-5 py-2.5 text-sm font-semibold text-violet-200 transition-all hover:bg-violet-500/20"
-              >
-                See the interactive preview
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
+            <div className="radial-backdrop" />
+            <div className="relative z-10">
+              <div className="mb-6 grid gap-6 lg:grid-cols-2 lg:items-center">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
+                    Pro module · Smart Support Zones
+                  </p>
+                  <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
+                    Most tools draw zones. IntelliTrade scores them.
+                  </h2>
+                </div>
+                <div>
+                  <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-4">
+                    Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
+                    medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
+                    actually interpret. Educational decision support, not signals.
+                  </p>
+                  <Link
+                    href="/smart-support-zones"
+                    className="group inline-flex items-center gap-2 text-sm font-semibold text-violet-300/70 transition-colors hover:text-violet-200"
+                  >
+                    See the interactive preview
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+              </div>
+              <ZoneOverlayShowcase compact />
             </div>
-            <ZoneOverlayShowcase compact />
           </div>
         </section>
 
@@ -268,20 +275,29 @@ export default async function ProPage({
         {/* ── Trust band ── */}
         <section className="mb-20">
           <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-5">
-              <CreditCard className="mb-3 h-5 w-5 text-white/50" />
-              <p className="text-sm font-medium text-white">Payments by Stripe</p>
-              <p className="mt-1 text-xs text-white/45">Secure card payment. We never store your card details.</p>
+            <div className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl">
+              <div className="radial-backdrop" />
+              <div className="relative z-10">
+                <CreditCard className="mb-3 h-5 w-5 text-white/50" />
+                <p className="text-sm font-medium text-white">Payments by Stripe</p>
+                <p className="mt-1 text-xs text-white/45">Secure card payment. We never store your card details.</p>
+              </div>
             </div>
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-5">
-              <ShieldCheck className="mb-3 h-5 w-5 text-white/50" />
-              <p className="text-sm font-medium text-white">Cancel anytime</p>
-              <p className="mt-1 text-xs text-white/45">Cancel from your account in one click, no emails, no retention flows.</p>
+            <div className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl">
+              <div className="radial-backdrop" />
+              <div className="relative z-10">
+                <ShieldCheck className="mb-3 h-5 w-5 text-white/50" />
+                <p className="text-sm font-medium text-white">Cancel anytime</p>
+                <p className="mt-1 text-xs text-white/45">Cancel from your account in one click, no emails, no retention flows.</p>
+              </div>
             </div>
-            <div className="rounded-[20px] border border-white/10 bg-white/[0.03] p-5">
-              <LineChart className="mb-3 h-5 w-5 text-white/50" />
-              <p className="text-sm font-medium text-white">Analytics, not signals</p>
-              <p className="mt-1 text-xs text-white/45">Educational market context and analytics. Not financial advice, not a signal service.</p>
+            <div className="relative overflow-hidden rounded-[20px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl">
+              <div className="radial-backdrop" />
+              <div className="relative z-10">
+                <LineChart className="mb-3 h-5 w-5 text-white/50" />
+                <p className="text-sm font-medium text-white">Analytics, not signals</p>
+                <p className="mt-1 text-xs text-white/45">Educational market context and analytics. Not financial advice, not a signal service.</p>
+              </div>
             </div>
           </div>
         </section>
@@ -292,12 +308,13 @@ export default async function ProPage({
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-6">Common questions</h2>
           <div className="space-y-2">
             {FAQ.map(({ q, a }) => (
-              <details key={q} className="group rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between text-[15px] font-medium text-white">
+              <details key={q} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 backdrop-blur-xl">
+                <div className="radial-backdrop" />
+                <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between text-[15px] font-medium text-white">
                   {q}
                   <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition-transform group-open:rotate-180" />
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-white/60">{a}</p>
+                <p className="relative z-10 mt-3 text-sm leading-relaxed text-white/60">{a}</p>
               </details>
             ))}
           </div>

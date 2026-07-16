@@ -1,5 +1,5 @@
 import { HISTORICAL_REACTION_RATE } from "./gradeConfig";
-import type { AlphaScopeConfig, CandleData, OverlayPoint, ResearchTierProfile, SupportResistanceZone } from "./types";
+import type { AlphaScopeConfig, CandleData, ResearchTierProfile, SupportResistanceZone } from "./types";
 
 export const supportResistanceAlphaScope: AlphaScopeConfig = {
   alphaName: "IntelliTrade EURUSD Support Alpha",
@@ -142,20 +142,6 @@ export const supportResistanceMockZones: SupportResistanceZone[] = [
     educationalSummary: "Example of how a required condition failing disqualifies a structurally decent zone.",
     previewSpan: { start: 0.03, end: 0.45 },
   },
-];
-
-export const supportResistanceOverlaySeries: OverlayPoint[] = [
-  { label: "06:00", close: 1.0804 },
-  { label: "06:30", close: 1.0813 },
-  { label: "07:00", close: 1.0826 },
-  { label: "07:30", close: 1.0841 },
-  { label: "08:00", close: 1.0835 },
-  { label: "08:30", close: 1.0848 },
-  { label: "09:00", close: 1.0857 },
-  { label: "09:30", close: 1.0846 },
-  { label: "10:00", close: 1.0838 },
-  { label: "10:30", close: 1.0849 },
-  { label: "11:00", close: 1.086 },
 ];
 
 export const supportResistanceMockCandles: CandleData[] = [
