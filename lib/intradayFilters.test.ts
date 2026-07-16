@@ -4,6 +4,8 @@ import {
   initialState,
   toggleCurrency,
   showAll,
+  showNone,
+  isAllVisible,
   focusPair,
   clearPairFocus,
   effectiveVisible,
@@ -36,6 +38,17 @@ describe("intradayFilters", () => {
     const shown = showAll(s);
     expect(shown.visible).toEqual([...ALL_CURRENCIES]);
     expect(shown.pairFocus).toBeNull();
+  });
+
+  it("showNone hides everything and exits pair focus; isAllVisible tracks state", () => {
+    const s = focusPair(initialState(), "GBP", "JPY");
+    expect(isAllVisible(s)).toBe(true);
+    const none = showNone(s);
+    expect(none.visible).toEqual([]);
+    expect(none.pairFocus).toBeNull();
+    expect(isAllVisible(none)).toBe(false);
+    // A chip can still be re-enabled from an empty selection.
+    expect(toggleCurrency(none, "USD").visible).toEqual(["USD"]);
   });
 
   it("focusPair yields exactly two effective currencies without mutating visible", () => {

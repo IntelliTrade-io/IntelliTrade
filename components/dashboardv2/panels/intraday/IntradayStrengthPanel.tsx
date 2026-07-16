@@ -18,6 +18,7 @@ import {
   serialize,
   toggleCurrency,
   showAll,
+  showNone,
   focusPair,
   clearPairFocus,
   effectiveVisible,
@@ -177,6 +178,7 @@ export function IntradayStrengthPanel({ panel, onToggleLock, onRemove }: Intrada
             pairFocus={filters.pairFocus}
             onToggle={(c) => setFilters((s) => toggleCurrency(s, c))}
             onShowAll={() => setFilters((s) => showAll(s))}
+            onShowNone={() => setFilters((s) => showNone(s))}
             onClearFocus={() => setFilters((s) => clearPairFocus(s))}
             onEmphasize={setEmphasized}
           />

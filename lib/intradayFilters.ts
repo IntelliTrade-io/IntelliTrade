@@ -51,6 +51,20 @@ export function showAll(state: FilterState): FilterState {
 }
 
 /**
+ * Hide every currency AND clear pair focus. The chart renders no lines until the
+ * user re-enables a currency or shows all again. An empty selection is not
+ * persisted as empty: on reload `deserialize` treats it as "all visible".
+ */
+export function showNone(state: FilterState): FilterState {
+  return { visible: [], pairFocus: state.pairFocus ? null : state.pairFocus };
+}
+
+/** True when every currency is in the stored selection. */
+export function isAllVisible(state: FilterState): boolean {
+  return state.visible.length === ALL_CURRENCIES.length;
+}
+
+/**
  * Focus a single pair. This is a temporary override that does NOT mutate the
  * stored `visible` selection; selecting a new pair replaces the focus.
  */

@@ -11,6 +11,7 @@ interface CurrencyChipsProps {
   pairFocus: PairFocus | null;
   onToggle: (ccy: CCY) => void;
   onShowAll: () => void;
+  onShowNone: () => void;
   onClearFocus: () => void;
   onEmphasize: (ccy: CCY | null) => void;
 }
@@ -20,9 +21,11 @@ export function CurrencyChips({
   pairFocus,
   onToggle,
   onShowAll,
+  onShowNone,
   onClearFocus,
   onEmphasize,
 }: CurrencyChipsProps) {
+  const allVisible = visible.length === CURRENCIES.length;
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-1">
       {CURRENCIES.map((c) => {
@@ -56,10 +59,11 @@ export function CurrencyChips({
 
       <button
         type="button"
-        onClick={onShowAll}
+        aria-pressed={allVisible}
+        onClick={allVisible ? onShowNone : onShowAll}
         className="inline-flex h-11 shrink-0 items-center rounded-full border border-white/10 bg-black/30 px-3 text-xs font-semibold text-white/60 transition-all hover:border-white/20 hover:text-white/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60"
       >
-        Show all
+        {allVisible ? "Show none" : "Show all"}
       </button>
 
       {pairFocus && (
