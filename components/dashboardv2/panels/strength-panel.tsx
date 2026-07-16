@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { RefreshCw } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { RefreshCw, Compass, ListChecks, ShieldCheck } from "lucide-react";
 import { apiGet } from "@/lib/api/client";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
@@ -21,6 +21,16 @@ import {
   type Expression,
   type CellData,
 } from "@/lib/strength";
+import {
+  computeMovements,
+  interpretAll,
+  buildSummaryStrip,
+  interpretExpression,
+  type CurrencyInterpretation,
+  type InterpTone,
+  type SummaryStrip,
+  type ExpressionMeta,
+} from "@/lib/strengthInterpretation";
 
 const CURRENCY_COLORS: Record<string, string> = {
   USD: "#60a5fa", // blue-400
@@ -158,21 +168,161 @@ function BiasChip({ state }: { state: "Bullish" | "Bearish" | "Neutral" | "Stron
   );
 }
 
+// ─── Interpretation layer (visual only — derived from existing scores) ───────
+
+const INTERP_TONE_CLASS: Record<InterpTone, string> = {
+  positive: "border-emerald-400/20 bg-emerald-500/10 text-emerald-200",
+  negative: "border-red-400/20 bg-red-500/10 text-red-200",
+  watch: "border-amber-400/20 bg-amber-500/10 text-amber-200",
+  fading: "border-orange-400/20 bg-orange-500/[0.08] text-orange-200/90",
+  neutral: "border-white/10 bg-white/[0.04] text-white/50",
+};
+
+function InterpBadge({ interp }: { interp: CurrencyInterpretation }) {
+  return (
+    <span
+      className={`inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-center text-[8px] font-bold uppercase leading-tight tracking-wider ${INTERP_TONE_CLASS[interp.tone]}`}
+    >
+      {interp.label}
+    </span>
+  );
+}
+
+function StripCard({ label, children, note }: { label: string; children: React.ReactNode; note: string }) {
+  return (
+    <div className="rounded-[18px] border border-white/8 bg-white/[0.03] px-3 py-2.5 backdrop-blur-sm">
+      <div className="text-[9px] uppercase tracking-[0.18em] text-white/34">{label}</div>
+      <div className="mt-1 text-sm font-semibold leading-tight text-white">{children}</div>
+      <div className="mt-0.5 text-[10px] leading-snug text-white/40">{note}</div>
+    </div>
+  );
+}
+
+function StripBadge({ text, tone }: { text: string; tone: InterpTone }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${INTERP_TONE_CLASS[tone]}`}
+    >
+      {text}
+    </span>
+  );
+}
+
+function InterpretationStrip({ strip }: { strip: SummaryStrip }) {
+  const regimeTone: InterpTone =
+    strip.regime.status === "Fading" ? "fading" : strip.regime.status === "Mature" ? "watch" : "positive";
+  const healthTone: InterpTone = strip.health.status === "Slightly Fading" ? "fading" : "positive";
+  const gapTone: InterpTone = strip.gap.status === "Extended" ? "watch" : "positive";
+
+  return (
+    <section>
+      <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+        <StripCard label="Confirmed Bias" note={strip.bias.note}>
+          <span className="text-emerald-200/90">
+            {strip.bias.strongest.length > 0 ? `${strip.bias.strongest.join(", ")} strongest` : "No clear leaders"}
+          </span>
+          <br />
+          <span className="text-red-200/80">
+            {strip.bias.weakest.length > 0 ? `${strip.bias.weakest.join(", ")} weakest` : "No clear laggards"}
+          </span>
+        </StripCard>
+        <StripCard label="Early Watchlist" note={strip.watchlist.note}>
+          {strip.watchlist.pairs.length > 0 ? (
+            <span className="font-mono text-[12px] tracking-tight">
+              {strip.watchlist.pairs.slice(0, 2).join(" · ")}
+              {strip.watchlist.pairs.length > 2 && (
+                <>
+                  <br />
+                  {strip.watchlist.pairs.slice(2, 4).join(" · ")}
+                </>
+              )}
+            </span>
+          ) : (
+            <span className="text-white/50">Nothing building yet</span>
+          )}
+        </StripCard>
+        <StripCard label="Regime Status" note={strip.regime.note}>
+          <StripBadge text={strip.regime.status} tone={regimeTone} />
+        </StripCard>
+        <StripCard label="Trend Health" note={strip.health.note}>
+          <StripBadge text={strip.health.status} tone={healthTone} />
+        </StripCard>
+        <StripCard label="Expected Window" note={strip.window.note}>
+          {strip.window.value}
+        </StripCard>
+        <StripCard label="Gap Strength" note={strip.gap.note}>
+          <StripBadge text={strip.gap.status} tone={gapTone} />
+        </StripCard>
+      </div>
+      <p className="mt-2 px-1 text-center text-[10px] italic text-white/32">
+        Interpretation layer for bias and watchlist context, not trade signals.
+      </p>
+    </section>
+  );
+}
+
+function HowToUsePanel() {
+  const items = [
+    { icon: Compass, title: "Build Bias", text: "Focus on strong vs weak" },
+    { icon: ListChecks, title: "Select Setups", text: "Shortlist clean pair expressions" },
+    { icon: ShieldCheck, title: "Manage Risk", text: "Confirm with price action and structure" },
+  ];
+  return (
+    <section className="rounded-[1.35rem] border border-white/8 bg-white/[0.02] p-4 backdrop-blur-sm">
+      <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Playbook</div>
+      <div className="mt-0.5 text-sm font-semibold text-white">How to use Daily CSM</div>
+      <p className="mt-2 text-[11px] leading-relaxed text-white/46">
+        Daily CSM shows where relative currency strength is concentrated. Use it to build directional
+        bias, shortlist pairs, and prepare for setups.
+      </p>
+      <p className="mt-1.5 text-[11px] font-semibold leading-relaxed text-white/75">
+        It is not a timing tool. Confirm entries with your execution plan.
+      </p>
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+        {items.map(({ icon: Icon, title, text }) => (
+          <div key={title} className="flex items-start gap-2 rounded-[14px] border border-white/[0.06] bg-black/20 px-2.5 py-2">
+            <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-white/45" />
+            <div>
+              <div className="text-[10px] font-semibold text-white/80">{title}</div>
+              <div className="text-[9px] leading-snug text-white/40">{text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ─── Ladder ───────────────────────────────────────────────────────────────────
 
-function LadderRow({ code, data }: { code: string; data: CurrencyStrength; rank?: number }) {
+function LadderRow({ code, data, interp }: { code: string; data: CurrencyStrength; rank?: number; interp?: CurrencyInterpretation }) {
   const conf = Math.min(Math.round(Math.abs(data.score)), 100);
+  const cols = interp
+    ? "grid-cols-[3rem_minmax(0,1fr)_4.5rem_3rem] sm:grid-cols-[3rem_minmax(0,1fr)_5rem_4.5rem_3rem]"
+    : "grid-cols-[3rem_1fr_4.5rem_3rem]";
   return (
     <article
-      className="grid items-center gap-2 rounded-[1.35rem] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(11,12,15,0.9),rgba(9,10,13,0.92))] px-3 py-2 transition-all hover:border-white/12 hover:-translate-y-px"
-      style={{ gridTemplateColumns: "3rem 1fr 4.5rem 3rem" }}
+      className={`grid items-center gap-2 rounded-[1.35rem] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(11,12,15,0.9),rgba(9,10,13,0.92))] px-3 py-2 transition-all hover:border-white/12 hover:-translate-y-px ${cols}`}
     >
       {/* Code */}
       <div className="inline-flex min-h-[2rem] min-w-[2.6rem] items-center justify-center rounded-full border border-white/10 bg-black/30 font-mono text-xs font-semibold text-white/90">
         {code}
       </div>
-      {/* Bar */}
-      <StrengthBar score={data.score} />
+      {/* Bar (badge drops below it on small screens) */}
+      <div className="flex min-w-0 flex-col gap-1">
+        <StrengthBar score={data.score} />
+        {interp && (
+          <div className="flex justify-center sm:hidden">
+            <InterpBadge interp={interp} />
+          </div>
+        )}
+      </div>
+      {/* Interpretation badge (own column on larger screens) */}
+      {interp && (
+        <div className="hidden justify-center sm:flex">
+          <InterpBadge interp={interp} />
+        </div>
+      )}
       {/* Score */}
       <ScorePill score={data.score} />
       {/* Confidence ring */}
@@ -185,7 +335,34 @@ function LadderRow({ code, data }: { code: string; data: CurrencyStrength; rank?
 
 // ─── Expressions ──────────────────────────────────────────────────────────────
 
-function ExpressionCard({ expr }: { expr: Expression }) {
+function ExpressionMetaRows({ meta }: { meta: ExpressionMeta }) {
+  const statusTone: InterpTone =
+    meta.status === "Fading" ? "fading" : meta.status === "Mature" ? "watch" : "positive";
+  const rows = [
+    { label: "Status", value: meta.status, tone: statusTone as InterpTone | null },
+    { label: "Window", value: meta.window, tone: null },
+    { label: "Health", value: meta.health, tone: null },
+    { label: "Use", value: meta.use, tone: null },
+  ];
+  return (
+    <div className="w-full space-y-1 rounded-[14px] border border-white/[0.06] bg-black/20 px-2 py-1.5">
+      {rows.map(({ label, value, tone }) => (
+        <div key={label} className="flex items-center justify-between gap-1 text-[9px]">
+          <span className="uppercase tracking-[0.12em] text-white/30">{label}</span>
+          {tone ? (
+            <span className={`inline-flex items-center rounded-full border px-1.5 py-px text-[8px] font-bold uppercase tracking-wider ${INTERP_TONE_CLASS[tone]}`}>
+              {value}
+            </span>
+          ) : (
+            <span className="text-right font-semibold leading-tight text-white/64">{value}</span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ExpressionCard({ expr, meta }: { expr: Expression; meta?: ExpressionMeta }) {
   const isBullish = expr.state === "Bullish";
   return (
     <article className="flex flex-col items-center gap-2">
@@ -224,6 +401,9 @@ function ExpressionCard({ expr }: { expr: Expression }) {
           <div className="font-mono text-white/72 font-semibold">{expr.spread}</div>
         </div>
       </div>
+
+      {/* Interpretation metadata */}
+      {meta && <ExpressionMetaRows meta={meta} />}
     </article>
   );
 }
@@ -338,7 +518,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
   const thinned = points.filter((_, i) => i % step === 0 || i === points.length - 1);
 
   return (
-    <div className="rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
+    <div className="relative overflow-hidden rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
       <div className="mb-1 px-1 text-[9px] uppercase tracking-[0.18em] text-white/30">
         Strength · {type === "intraday" ? "last 24h" : "last 7d"}
       </div>
@@ -370,17 +550,24 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
           />
           <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" strokeDasharray="3 3" />
           <Tooltip
+            // Pin vertically and clamp horizontally so the tall 8-currency
+            // tooltip can never escape the chart card (it previously pushed a
+            // horizontal scrollbar onto the panel when hovering the right edge).
+            position={{ y: 0 }}
+            allowEscapeViewBox={{ x: false, y: false }}
+            wrapperStyle={{ zIndex: 5 }}
             contentStyle={{
               background: "rgba(9,10,13,0.95)",
               border: "1px solid rgba(255,255,255,0.10)",
               borderRadius: 10,
-              padding: "6px 10px",
+              padding: "4px 8px",
               fontSize: 10,
+              lineHeight: 1.25,
             }}
             labelFormatter={(ts: unknown) => formatChartTime(String(ts))}
             formatter={(value, name) => [`${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
-            itemStyle={{ color: "rgba(255,255,255,0.7)", padding: "1px 0" }}
-            labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 4 }}
+            itemStyle={{ color: "rgba(255,255,255,0.7)", padding: 0 }}
+            labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 2 }}
           />
           {CURRENCIES.map((c) => (
             <Line
@@ -421,6 +608,136 @@ function IntradayExpressionRow({ expr }: { expr: Expression }) {
         <span>{expr.spread} spread · {expr.confidence}%</span>
         <span className={`font-mono font-semibold ${isBullish ? "text-emerald-300/70" : "text-red-300/70"}`}>{tfState}</span>
       </div>
+    </div>
+  );
+}
+
+// ─── Daily view (interpretation mini-dashboard around the existing output) ───
+
+interface DailyStrengthViewProps {
+  scores: Scores;
+  sorted: [string, CurrencyStrength][];
+  expressions: Expression[];
+  available: string[];
+  showMatrix: boolean;
+  onToggleMatrix: () => void;
+}
+
+function DailyStrengthView({ scores, sorted, expressions, available, showMatrix, onToggleMatrix }: DailyStrengthViewProps) {
+  // Movement context from the existing history endpoint (7 days of daily
+  // snapshots). Purely additive: labels degrade gracefully to score-only
+  // wording while history loads or when it is empty.
+  const { points } = useStrengthHistory("daily", 7 * 24);
+
+  const movements = useMemo(() => computeMovements(points), [points]);
+  const interps = useMemo(() => interpretAll(scores, movements), [scores, movements]);
+  const strip = useMemo(
+    () => buildSummaryStrip(scores, interps, expressions, movements),
+    [scores, interps, expressions, movements],
+  );
+
+  return (
+    <div className="space-y-4">
+
+      {/* ── Interpretation summary strip ── */}
+      <InterpretationStrip strip={strip} />
+
+      {/* ── Ranked ladder ── */}
+      <section>
+        <div className="mb-2 flex items-end justify-between gap-2">
+          <div>
+            <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Currency Strength Meter</div>
+            <div className="mt-0.5 text-sm font-semibold text-white">Ranked strength ladder</div>
+          </div>
+        </div>
+        <div className="mb-1 grid grid-cols-[3rem_minmax(0,1fr)_4.5rem_3rem] gap-2 px-1 text-[9px] uppercase tracking-[0.16em] text-white/24 sm:grid-cols-[3rem_minmax(0,1fr)_5rem_4.5rem_3rem]">
+          <span>CCY</span>
+          <span className="text-center">Strength</span>
+          <span className="hidden text-center sm:block">Read</span>
+          <span className="text-center">Score</span>
+          <span className="text-right">Conf</span>
+        </div>
+        <div className="space-y-1.5">
+          {sorted.map(([code, cs], i) => (
+            <LadderRow key={code} code={code} data={cs} rank={i + 1} interp={interps[code]} />
+          ))}
+        </div>
+        <details className="mt-3 group">
+          <summary className="flex cursor-pointer list-none items-center justify-center">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/30 font-mono text-[11px] text-white/50 hover:border-white/20 hover:text-white/70">i</span>
+          </summary>
+          <div className="mt-2 rounded-2xl border border-white/8 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-white/46">
+            <p>The ladder ranks currencies from the resulting filtered pair alignment and confidence-weighted strength output.</p>
+            <p className="mt-1.5">The ladder is not a buy or sell signal. It is a clean read of relative strength and weakness across the current market snapshot.</p>
+          </div>
+        </details>
+      </section>
+
+      {/* ── How to use ── */}
+      <HowToUsePanel />
+
+      {/* ── Best expressions ── */}
+      {expressions.length > 0 && (
+        <section>
+          <div className="mb-3">
+            <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Pair view</div>
+            <div className="mt-0.5 text-sm font-semibold text-white">Best expressions</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {expressions.map((expr) => (
+              <ExpressionCard key={expr.symbol} expr={expr} meta={interpretExpression(expr, interps)} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ── Matrix toggle ── */}
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={onToggleMatrix}
+          className="inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 text-xs font-semibold text-white/60 transition-all hover:border-white/20 hover:text-white/80"
+        >
+          {showMatrix ? "Hide" : "Show"} advanced pair matrix
+        </button>
+      </div>
+
+      {/* ── Advanced pair matrix ── */}
+      {showMatrix && available.length > 0 && (
+        <section>
+          <div className="mb-3">
+            <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Deep detail</div>
+            <div className="mt-0.5 text-sm font-semibold text-white">Advanced pair matrix</div>
+          </div>
+          <div className="overflow-x-auto pb-2">
+            <table className="border-separate" style={{ borderSpacing: "0.4rem", minWidth: 600 }}>
+              <thead>
+                <tr>
+                  <th className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38 pr-1">Base</th>
+                  {available.map((c) => (
+                    <th key={c} className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38">{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {available.map((base) => (
+                  <tr key={base}>
+                    <th className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38 pr-2 whitespace-nowrap">{base}</th>
+                    {available.map((quote) => (
+                      <td key={quote} className="p-0">
+                        {base === quote
+                          ? <MatrixCell isBlank />
+                          : <MatrixCell cell={computeMatrixCell(base, quote, scores)} />}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
     </div>
   );
 }
@@ -534,102 +851,14 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
       )}
 
       {data && variant === "daily" && (
-        <div className="space-y-4">
-
-          {/* ── Ranked ladder ── */}
-          <section>
-            <div className="mb-2 flex items-end justify-between gap-2">
-              <div>
-                <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Currency Strength Meter</div>
-                <div className="mt-0.5 text-sm font-semibold text-white">Ranked strength ladder</div>
-              </div>
-            </div>
-            <div className="mb-1 grid px-1 text-[9px] uppercase tracking-[0.16em] text-white/24"
-              style={{ gridTemplateColumns: "3rem 1fr 4.5rem 3rem" }}>
-              <span>CCY</span>
-              <span className="text-center">Strength</span>
-              <span className="text-center">Score</span>
-              <span className="text-right">Conf</span>
-            </div>
-            <div className="space-y-1.5">
-              {sorted.map(([code, cs], i) => (
-                <LadderRow key={code} code={code} data={cs} rank={i + 1} />
-              ))}
-            </div>
-            <details className="mt-3 group">
-              <summary className="flex cursor-pointer list-none items-center justify-center">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/30 font-mono text-[11px] text-white/50 hover:border-white/20 hover:text-white/70">i</span>
-              </summary>
-              <div className="mt-2 rounded-2xl border border-white/8 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-white/46">
-                <p>The ladder ranks currencies from the resulting filtered pair alignment and confidence-weighted strength output.</p>
-                <p className="mt-1.5">The ladder is not a buy or sell signal. It is a clean read of relative strength and weakness across the current market snapshot.</p>
-              </div>
-            </details>
-          </section>
-
-          {/* ── Best expressions ── */}
-          {expressions.length > 0 && (
-            <section>
-              <div className="mb-3">
-                <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Pair view</div>
-                <div className="mt-0.5 text-sm font-semibold text-white">Best expressions</div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {expressions.map((expr) => (
-                  <ExpressionCard key={expr.symbol} expr={expr} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── Matrix toggle ── */}
-          <div className="flex justify-center">
-            <button
-              type="button"
-              onClick={() => setShowMatrix((v) => !v)}
-              className="inline-flex h-9 items-center gap-2 rounded-full border border-white/10 bg-black/30 px-4 text-xs font-semibold text-white/60 transition-all hover:border-white/20 hover:text-white/80"
-            >
-              {showMatrix ? "Hide" : "Show"} advanced pair matrix
-            </button>
-          </div>
-
-          {/* ── Advanced pair matrix ── */}
-          {showMatrix && available.length > 0 && (
-            <section>
-              <div className="mb-3">
-                <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">Deep detail</div>
-                <div className="mt-0.5 text-sm font-semibold text-white">Advanced pair matrix</div>
-              </div>
-              <div className="overflow-x-auto pb-2">
-                <table className="border-separate" style={{ borderSpacing: "0.4rem", minWidth: 600 }}>
-                  <thead>
-                    <tr>
-                      <th className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38 pr-1">Base</th>
-                      {available.map((c) => (
-                        <th key={c} className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38">{c}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {available.map((base) => (
-                      <tr key={base}>
-                        <th className="text-left text-[10px] uppercase tracking-[0.14em] text-white/38 pr-2 whitespace-nowrap">{base}</th>
-                        {available.map((quote) => (
-                          <td key={quote} className="p-0">
-                            {base === quote
-                              ? <MatrixCell isBlank />
-                              : <MatrixCell cell={computeMatrixCell(base, quote, scores)} />}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-          )}
-
-        </div>
+        <DailyStrengthView
+          scores={scores}
+          sorted={sorted}
+          expressions={expressions}
+          available={available}
+          showMatrix={showMatrix}
+          onToggleMatrix={() => setShowMatrix((v) => !v)}
+        />
       )}
     </WidgetShell>
     </>
