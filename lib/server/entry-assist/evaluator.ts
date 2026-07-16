@@ -197,8 +197,17 @@ export function evaluateRules(
 ): EvaluatedCandidate[] {
   if (isStale(snapshots, now)) return [];
 
-  // Defensive: ensure ascending order even if the caller did not sort.
-  const ordered = [...snapshots].sort((a, b) => a.asof.getTime() - b.asof.getTime());
+  // Defensive normalization: dedupe on asof (keep latest created_at) and sort
+  // ascending, even if the caller handed us out-of-order or duplicate rows.
+  const byAsof = new Map<number, NormalizedSnapshot>();
+  for (const snap of snapshots) {
+    if (!(snap.asof instanceof Date) || Number.isNaN(snap.asof.getTime())) continue;
+    const key = snap.asof.getTime();
+    const existing = byAsof.get(key);
+    if (!existing || snap.createdAt > existing.createdAt) byAsof.set(key, snap);
+  }
+  const ordered = [...byAsof.values()].sort((a, b) => a.asof.getTime() - b.asof.getTime());
+  if (ordered.length === 0) return [];
   const newest = ordered[ordered.length - 1]!;
   const updatedAt = newest.asof.toISOString();
 

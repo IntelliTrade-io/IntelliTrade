@@ -161,7 +161,9 @@ export interface FeatureFlags {
   enableMomentumWatchlist: boolean;
 }
 
-export function readFeatureFlags(env: NodeJS.ProcessEnv = process.env): FeatureFlags {
+export function readFeatureFlags(
+  env: Record<string, string | undefined> = process.env,
+): FeatureFlags {
   return {
     enablePrimaryEntryAssist: env.ENTRY_ASSIST_PRIMARY_DISABLED !== "1",
     enableSecondaryEntryAssist: env.ENTRY_ASSIST_SECONDARY_ENABLED === "1",
