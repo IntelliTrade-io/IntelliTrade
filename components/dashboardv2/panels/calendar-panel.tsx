@@ -26,8 +26,9 @@ interface CalendarPanelProps {
 import {
   buildListItems,
   dateInTz,
+  dropElapsedItems,
+  filterEvents,
   getUserTz,
-  matchesDateFilter,
   toCalendarEvent,
   DATE_FILTER_LABELS,
   type ApiEvent,
@@ -174,52 +175,30 @@ export function CalendarPanel({ panel, onToggleLock, onRemove }: CalendarPanelPr
     return () => document.removeEventListener("mousedown", handler);
   }, [showCurrencyMenu]);
 
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      if (viewMode === "market_movers" && !event.defaultDashboard) return false;
-      if (!matchesDateFilter(event.isoDateTime, dateFilter)) return false;
-      if (selectedCurrency !== "All" && event.currency !== selectedCurrency) return false;
-      if (!filters[event.impact]) return false;
-      if (query) {
-        const haystack = `${event.title} ${event.currency} ${event.region} ${event.agency}`.toLowerCase();
-        if (!haystack.includes(query.toLowerCase())) return false;
-      }
-      return true;
-    });
-  }, [events, viewMode, dateFilter, query, selectedCurrency, filters]);
-
-  const listItems = useMemo(() => buildListItems(filteredEvents), [filteredEvents]);
-
-  const marketMoversCount = useMemo(() => {
-    const f = events.filter(e =>
-      e.defaultDashboard &&
-      matchesDateFilter(e.isoDateTime, dateFilter) &&
-      (selectedCurrency === "All" || e.currency === selectedCurrency) &&
-      filters[e.impact],
-    );
-    return buildListItems(f).length;
-  }, [events, dateFilter, selectedCurrency, filters]);
-
-  const fullCalendarCount = useMemo(() => {
-    const f = events.filter(e =>
-      matchesDateFilter(e.isoDateTime, dateFilter) &&
-      (selectedCurrency === "All" || e.currency === selectedCurrency) &&
-      filters[e.impact],
-    );
-    return buildListItems(f).length;
-  }, [events, dateFilter, selectedCurrency, filters]);
-
-  const visibleItems = useMemo(
+  // One pipeline for both tabs: filter → cluster → drop already-released
+  // events. The badges count these exact lists, so they always match what
+  // the list renders.
+  const moversItems = useMemo(
     () =>
-      listItems.filter((item) => {
-        if (now === null) return true;
-        const t = item.type === "event"
-          ? new Date(item.event.isoDateTime).getTime()
-          : item.cluster.firstTime;
-        return now - t < 4000;
-      }),
-    [listItems, now],
+      dropElapsedItems(
+        buildListItems(filterEvents(events, { moversOnly: true, dateFilter, currency: selectedCurrency, impact: filters, query })),
+        now,
+      ),
+    [events, dateFilter, selectedCurrency, filters, query, now],
   );
+
+  const calendarItems = useMemo(
+    () =>
+      dropElapsedItems(
+        buildListItems(filterEvents(events, { moversOnly: false, dateFilter, currency: selectedCurrency, impact: filters, query })),
+        now,
+      ),
+    [events, dateFilter, selectedCurrency, filters, query, now],
+  );
+
+  const visibleItems = viewMode === "market_movers" ? moversItems : calendarItems;
+  const marketMoversCount = moversItems.length;
+  const fullCalendarCount = calendarItems.length;
 
   const groupedItems = useMemo(() => {
     const groups: Array<{ dateKey: string; dateLabel: string; items: typeof visibleItems }> = [];

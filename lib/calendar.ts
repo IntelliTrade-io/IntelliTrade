@@ -228,6 +228,52 @@ export function buildListItems(events: CalendarEvent[]): ListItem[] {
   return items;
 }
 
+// -- Panel filter pipeline --
+// One shared pipeline for the event list AND the view-mode count badges, so a
+// badge can never claim more events than the list actually renders.
+
+export interface EventFilterOptions {
+  moversOnly: boolean;
+  dateFilter: DateFilter;
+  /** Currency code, or "All". */
+  currency: string;
+  impact: Record<ImpactLevel, boolean>;
+  query: string;
+}
+
+export function filterEvents(
+  events: CalendarEvent[],
+  opts: EventFilterOptions,
+  tz: string = USER_TZ,
+  now: Date = new Date(),
+): CalendarEvent[] {
+  const q = opts.query.trim().toLowerCase();
+  return events.filter((event) => {
+    if (opts.moversOnly && !event.defaultDashboard) return false;
+    if (!matchesDateFilter(event.isoDateTime, opts.dateFilter, tz, now)) return false;
+    if (opts.currency !== "All" && event.currency !== opts.currency) return false;
+    if (!opts.impact[event.impact]) return false;
+    if (q) {
+      const haystack = `${event.title} ${event.currency} ${event.region} ${event.agency}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+/** Grace period before a released event is dropped from the live list. */
+export const ELAPSED_GRACE_MS = 4000;
+
+/** Drops items whose scheduled time passed more than the grace period ago.
+ *  `nowMs === null` (before the client clock mounts) keeps everything. */
+export function dropElapsedItems(items: ListItem[], nowMs: number | null, graceMs: number = ELAPSED_GRACE_MS): ListItem[] {
+  if (nowMs === null) return items;
+  return items.filter((item) => {
+    const t = item.type === "event" ? new Date(item.event.isoDateTime).getTime() : item.cluster.firstTime;
+    return nowMs - t < graceMs;
+  });
+}
+
 // -- Date filters --
 export type DateFilter = "today" | "this_week" | "next_week" | "upcoming";
 

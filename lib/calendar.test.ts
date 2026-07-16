@@ -8,7 +8,11 @@ import {
   toCalendarEvent,
   buildListItems,
   matchesDateFilter,
+  filterEvents,
+  dropElapsedItems,
+  ELAPSED_GRACE_MS,
   type ApiEvent,
+  type EventFilterOptions,
 } from "./calendar";
 
 const TZ = "Europe/Amsterdam";
@@ -123,5 +127,65 @@ describe("matchesDateFilter", () => {
     expect(matchesDateFilter("2026-06-30T10:00:00Z", "upcoming", TZ, NOW)).toBe(false);
     expect(matchesDateFilter("2026-07-31T10:00:00Z", "upcoming", TZ, NOW)).toBe(true);
     expect(matchesDateFilter("2026-08-01T10:00:00Z", "upcoming", TZ, NOW)).toBe(false);
+  });
+});
+
+describe("filterEvents", () => {
+  const opts = (overrides: Partial<EventFilterOptions> = {}): EventFilterOptions => ({
+    moversOnly: false,
+    dateFilter: "this_week",
+    currency: "All",
+    impact: { high: true, medium: true, low: false },
+    query: "",
+    ...overrides,
+  });
+
+  const events = [
+    toCalendarEvent(apiEvent({ id: "mover", default_dashboard: true }), TZ),
+    toCalendarEvent(apiEvent({ id: "regular", default_dashboard: false }), TZ),
+    toCalendarEvent(apiEvent({ id: "low", default_dashboard: true, impact: "Low" }), TZ),
+    toCalendarEvent(apiEvent({ id: "next-week", default_dashboard: true, date_time_utc: "2026-07-08T12:00:00Z" }), TZ),
+    toCalendarEvent(apiEvent({ id: "gbp", default_dashboard: true, country: "GB", title: "BoE Rate Decision" }), TZ),
+  ];
+
+  it("moversOnly keeps only default-dashboard events", () => {
+    const ids = filterEvents(events, opts({ moversOnly: true }), TZ, NOW).map((e) => e.id);
+    expect(ids).toEqual(["mover", "gbp"]);
+  });
+
+  it("applies date, impact, and currency filters", () => {
+    expect(filterEvents(events, opts(), TZ, NOW).map((e) => e.id)).toEqual(["mover", "regular", "gbp"]);
+    expect(filterEvents(events, opts({ impact: { high: true, medium: true, low: true } }), TZ, NOW).map((e) => e.id))
+      .toContain("low");
+    expect(filterEvents(events, opts({ currency: "GBP" }), TZ, NOW).map((e) => e.id)).toEqual(["gbp"]);
+  });
+
+  it("matches the query against title, currency, region, and agency", () => {
+    expect(filterEvents(events, opts({ query: "boe" }), TZ, NOW).map((e) => e.id)).toEqual(["gbp"]);
+    expect(filterEvents(events, opts({ query: "united kingdom" }), TZ, NOW).map((e) => e.id)).toEqual(["gbp"]);
+    expect(filterEvents(events, opts({ query: "  " }), TZ, NOW)).toHaveLength(3);
+  });
+});
+
+describe("dropElapsedItems", () => {
+  const items = buildListItems([
+    toCalendarEvent(apiEvent({ id: "past", date_time_utc: "2026-07-01T11:00:00Z" }), TZ),
+    toCalendarEvent(apiEvent({ id: "just-started", date_time_utc: "2026-07-01T11:59:58Z" }), TZ),
+    toCalendarEvent(apiEvent({ id: "future", date_time_utc: "2026-07-01T14:00:00Z" }), TZ),
+  ]);
+
+  it("drops events past the grace period, keeps just-started and future", () => {
+    const kept = dropElapsedItems(items, NOW.getTime());
+    expect(kept.map((i) => i.type === "event" && i.event.id)).toEqual(["just-started", "future"]);
+  });
+
+  it("keeps everything before the client clock mounts", () => {
+    expect(dropElapsedItems(items, null)).toHaveLength(3);
+  });
+
+  it("uses the grace boundary exclusively", () => {
+    const eventTime = new Date("2026-07-01T11:00:00Z").getTime();
+    expect(dropElapsedItems(items.slice(0, 1), eventTime + ELAPSED_GRACE_MS - 1)).toHaveLength(1);
+    expect(dropElapsedItems(items.slice(0, 1), eventTime + ELAPSED_GRACE_MS)).toHaveLength(0);
   });
 });
