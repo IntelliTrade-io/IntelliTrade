@@ -54,7 +54,7 @@ export function ZoneOverlayPreview({
   return (
     <section
       aria-labelledby="sr-alpha-preview-title"
-      className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_70%_0%,rgba(124,58,237,0.1),transparent_38%),linear-gradient(180deg,rgba(13,13,18,0.94),rgba(8,8,12,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.32)] sm:p-5"
+      className="rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_70%_0%,rgba(124,58,237,0.1),transparent_38%),linear-gradient(180deg,rgba(13,13,18,0.94),rgba(8,8,12,0.98))] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.32)] sm:p-5 [overflow-anchor:none]"
     >
       <div className="flex flex-col gap-3 border-b border-white/8 pb-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -82,7 +82,7 @@ export function ZoneOverlayPreview({
             <div className="mt-2">
               <OpportunityGradeBadge grade={selectedZone.dynamicGrade} compact />
             </div>
-            <div className="mt-2 text-sm text-white/82">
+            <div className="mt-2 min-h-[52px] text-sm text-white/82">
               {selectedRate !== undefined ? (
                 <>
                   <span className="text-2xl font-semibold tracking-tight" style={{ color: selectedTokens.text }}>
@@ -94,7 +94,7 @@ export function ZoneOverlayPreview({
                 gradeSummaryLine(selectedZone.dynamicGrade)
               )}
             </div>
-            <div className="mt-1 text-[11px] text-white/44">
+            <div className="mt-1 truncate text-[11px] text-white/44">
               {selectedCohort
                 ? `${selectedCohort.label} · ${selectedCohort.resolvedSample} resolved events`
                 : selectedZone.zoneLabel}
@@ -166,18 +166,23 @@ export function ZoneOverlayPreview({
           <span>{supportResistanceCopy.tooltips.cumulativeCohorts}</span>
         </div>
 
-        {selectedZone?.dynamicGrade === "a_plus" ? (
-          <div
-            className="mt-3 rounded-[16px] border px-4 py-3 text-sm"
-            style={{
-              borderColor: GRADE_TOKENS.a_plus.border,
-              background: GRADE_TOKENS.a_plus.fill,
-              color: GRADE_TOKENS.a_plus.text,
-            }}
-          >
-            A+ is the highest-quality short-term first-reaction context, not a long-term reversal prediction.
-          </div>
-        ) : null}
+        {/* Always laid out (visibility toggle, not unmount) so selecting or
+            deselecting A+ never changes the preview height and scroll-jumps
+            the page. */}
+        <div
+          aria-hidden={selectedZone?.dynamicGrade !== "a_plus"}
+          className={[
+            "mt-3 rounded-[16px] border px-4 py-3 text-sm",
+            selectedZone?.dynamicGrade === "a_plus" ? "visible" : "invisible",
+          ].join(" ")}
+          style={{
+            borderColor: GRADE_TOKENS.a_plus.border,
+            background: GRADE_TOKENS.a_plus.fill,
+            color: GRADE_TOKENS.a_plus.text,
+          }}
+        >
+          A+ is the highest-quality short-term first-reaction context, not a long-term reversal prediction.
+        </div>
 
         {!compact ? (
           <footer className="mt-4 flex flex-col gap-3 border-t border-white/8 pt-4 sm:flex-row sm:items-center sm:justify-between">

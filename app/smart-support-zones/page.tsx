@@ -143,8 +143,11 @@ export default function SmartSupportZonesPage() {
             <Eyebrow>Interactive preview</Eyebrow>
             <span className="text-[11px] text-white/34">Sample data for illustration</span>
           </div>
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.02] p-3 sm:p-4">
-            <SmartSupportZonesPreview />
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.02] p-3 backdrop-blur-xl sm:p-4">
+            <div className="radial-backdrop" />
+            <div className="relative z-10">
+              <SmartSupportZonesPreview />
+            </div>
           </div>
           <p className="mt-3 text-center text-xs text-white/34">
             Live EURUSD zones, refreshed throughout the session, are available inside IntelliTrade Pro.
@@ -234,12 +237,13 @@ export default function SmartSupportZonesPage() {
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-6">Common questions</h2>
           <div className="space-y-2">
             {FAQ.map(({ q, a }) => (
-              <details key={q} className="group rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between text-[15px] font-medium text-white">
+              <details key={q} className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-4 backdrop-blur-xl">
+                <div className="radial-backdrop" />
+                <summary className="relative z-10 flex cursor-pointer list-none items-center justify-between text-[15px] font-medium text-white">
                   {q}
                   <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition-transform group-open:rotate-180" />
                 </summary>
-                <p className="mt-3 text-sm leading-relaxed text-white/60">{a}</p>
+                <p className="relative z-10 mt-3 text-sm leading-relaxed text-white/60">{a}</p>
               </details>
             ))}
           </div>

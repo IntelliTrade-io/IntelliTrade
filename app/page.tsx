@@ -240,30 +240,37 @@ export default async function HomePage() {
 
         {/* ── Spotlight: Smart Support Zones ── */}
         <section className="mb-20">
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
-                IntelliTrade Pro · Smart Support Zones
-              </p>
-              <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white mb-4 leading-tight">
-                Most tools draw zones. IntelliTrade scores them.
-              </h2>
-              <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-6">
-                Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
-                medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
-                actually interpret. Educational decision support, not signals.
-              </p>
-              <TrackedLink
-                href="/smart-support-zones"
-                event="cta_click"
-                params={{ cta_id: "home_ssz_section", destination: "/smart-support-zones" }}
-                className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-500/10 px-5 py-2.5 text-sm font-semibold text-violet-200 transition-all hover:bg-violet-500/20"
-              >
-                See how zone scoring works
-                <ArrowRight className="h-4 w-4" />
-              </TrackedLink>
+          <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
+            <div className="radial-backdrop" />
+            <div className="relative z-10">
+              <div className="mb-6 grid gap-6 lg:grid-cols-2 lg:items-center">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-violet-300/80 mb-3">
+                    IntelliTrade Pro · Smart Support Zones
+                  </p>
+                  <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
+                    Most tools draw zones. IntelliTrade scores them.
+                  </h2>
+                </div>
+                <div>
+                  <p className="text-sm sm:text-base text-white/50 leading-relaxed mb-4">
+                    Smart Support Zones evaluates every EURUSD support zone and explains whether it looks weak,
+                    medium or strong: zone behaviour, reclaim confirmation, and an opportunity score you can
+                    actually interpret. Educational decision support, not signals.
+                  </p>
+                  <TrackedLink
+                    href="/smart-support-zones"
+                    event="cta_click"
+                    params={{ cta_id: "home_ssz_section", destination: "/smart-support-zones" }}
+                    className="group inline-flex items-center gap-2 text-sm font-semibold text-violet-300/70 transition-colors hover:text-violet-200"
+                  >
+                    See how zone scoring works
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </TrackedLink>
+                </div>
+              </div>
+              <ZoneOverlayShowcase compact />
             </div>
-            <ZoneOverlayShowcase compact />
           </div>
         </section>
 
