@@ -6,7 +6,7 @@ import { type SanityDocument } from "next-sanity";
 import {
   Calculator, TrendingUp, BookOpen,
   CalendarDays, Radar, Gamepad2,
-  ArrowRight, LineChart,
+  ArrowRight, LineChart, Gauge,
 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
@@ -86,6 +86,15 @@ const FREE_TOOLS = [
       { label: "Oil", href: "/oil-price-today" },
       { label: "Bitcoin", href: "/bitcoin-price-today" },
     ],
+  },
+  {
+    href: "/pipvaluecalculator",
+    icon: Gauge,
+    label: "Pip Value Calculator",
+    desc: "Find what one pip is worth in your account currency for any pair, with live rates. Standard, mini and micro lots.",
+    tag: "FREE TOOL",
+    cta: "Open",
+    isPro: false,
   },
   {
     href: "/blog",

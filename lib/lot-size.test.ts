@@ -7,6 +7,7 @@ import {
   composePairsFrom,
   rateFromUsdRates,
   computeLotSize,
+  computePipValue,
 } from "./lot-size";
 
 describe("pair parsing", () => {
@@ -104,5 +105,35 @@ describe("computeLotSize", () => {
     expect(() =>
       computeLotSize({ balance: 1_000, riskPercent: 1, stopLossPips: 0, pair: "EURUSD", quoteToAccount: 1 }),
     ).toThrow("risk per lot");
+  });
+});
+
+describe("computePipValue", () => {
+  it("classic FX case: USD account, EURUSD (pip/lot = 10)", () => {
+    const r = computePipValue({ pair: "EURUSD", lots: 1, quoteToAccount: 1 });
+    expect(r.perStandardLot).toBe(10);
+    expect(r.perMiniLot).toBeCloseTo(1);
+    expect(r.perMicroLot).toBeCloseTo(0.1);
+    expect(r.forLots).toBe(10);
+  });
+
+  it("scales by position size", () => {
+    const r = computePipValue({ pair: "EURUSD", lots: 2.5, quoteToAccount: 1 });
+    expect(r.forLots).toBeCloseTo(25);
+  });
+
+  it("applies quote->account conversion (EUR account, EURUSD at 0.9)", () => {
+    const r = computePipValue({ pair: "EUR/USD", lots: 1, quoteToAccount: 0.9 });
+    expect(r.perStandardLot).toBeCloseTo(9);
+  });
+
+  it("JPY pair uses 0.01 pip size", () => {
+    const r = computePipValue({ pair: "USDJPY", lots: 1, quoteToAccount: 1 / 150 });
+    expect(r.perStandardLot).toBeCloseTo(1000 / 150);
+  });
+
+  it("gold contract: 100 oz per lot → pip value 1", () => {
+    const r = computePipValue({ pair: "XAUUSD", lots: 1, quoteToAccount: 1 });
+    expect(r.perStandardLot).toBe(1);
   });
 });

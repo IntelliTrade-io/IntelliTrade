@@ -554,6 +554,22 @@ export default function Page() {
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <Link
+                    href="/pipvaluecalculator"
+                    className="group rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.07]"
+                  >
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">
+                      Tool
+                    </p>
+                    <p className="mt-2 text-[15px] font-medium text-slate-100 group-hover:text-white">
+                      Pip Value Calculator
+                    </p>
+                    <p className="mt-1 text-[13px] text-slate-400/80">
+                      Find what one pip is worth in your account currency for any pair, standard,
+                      mini and micro lots.
+                    </p>
+                  </Link>
+
+                  <Link
                     href="/lotsizecalculator/faq"
                     className="group rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.07]"
                   >

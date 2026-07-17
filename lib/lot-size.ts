@@ -127,6 +127,48 @@ export interface LotSizeResult {
   lots: number;
 }
 
+export interface PipValueInputs {
+  /** Instrument, e.g. "EURUSD" or "EUR/USD". */
+  pair: string;
+  /** Position size in standard lots (1 = one standard lot). */
+  lots: number;
+  /** Rate converting the pair's quote currency into the account currency (1 when identical). */
+  quoteToAccount: number;
+}
+
+export interface PipValueResult {
+  /** Pip value for one standard lot, in account currency. */
+  perStandardLot: number;
+  /** Pip value for one mini lot (0.1), in account currency. */
+  perMiniLot: number;
+  /** Pip value for one micro lot (0.01), in account currency. */
+  perMicroLot: number;
+  /** Pip value for the entered position size, in account currency. */
+  forLots: number;
+}
+
+/**
+ * Pip value in the account currency for a given instrument and position size.
+ * Same money math as computeLotSize's pipValuePerLot, exposed standalone for
+ * the pip value calculator: pip value per lot = pipSize x contractSize x
+ * (quote->account rate), then scaled by the number of lots.
+ */
+export function computePipValue({ pair, lots, quoteToAccount }: PipValueInputs): PipValueResult {
+  const cleanPair = normalizePair(pair);
+  const perStandardLot = pipSizeFor(cleanPair) * contractSizeFor(cleanPair) * quoteToAccount;
+
+  if (!isFinite(perStandardLot) || perStandardLot <= 0) {
+    throw new Error("Calculated pip value is invalid.");
+  }
+
+  return {
+    perStandardLot,
+    perMiniLot: perStandardLot * 0.1,
+    perMicroLot: perStandardLot * 0.01,
+    forLots: perStandardLot * lots,
+  };
+}
+
 export function computeLotSize({ balance, riskPercent, stopLossPips, pair, quoteToAccount }: LotSizeInputs): LotSizeResult {
   const cleanPair = normalizePair(pair);
   const pipSize = pipSizeFor(cleanPair);

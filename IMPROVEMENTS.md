@@ -21,7 +21,7 @@ Format: what · why · rough approach. Date each entry.
 
 Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator + prices-today; wants more free modules/functions that attract traffic. Candidates (all cheap on data, SEO-friendly, natural upsell into premium):
 
-- **Pip value calculator** — sibling of the lot size calc, reuses `/api/rates`. High search volume ("pip value EURUSD"). Near-zero build cost.
+- ~~**Pip value calculator**~~ *(done 2026-07-17)* — shipped at `/pipvaluecalculator`: pure `computePipValue` in `lib/lot-size.ts` (tested), `PipValueCalculator` client component reusing the lot-size combobox + `/api/rates` conversion, full SEO shell (SoftwareApplication + FAQPage + BreadcrumbList schema, worked examples, on-page FAQ), OG image, sitemap entry, homepage card, and reciprocal cross-links with the lot-size page. NOTE: the two calculators now duplicate ~200 lines of combobox code — extract a shared `SearchCombobox` when a third calculator lands.
 - **Margin / leverage calculator** — same shell, no external data at all.
 - **Compounding / growth calculator** — "grow $1k at 2%/week" tables; pure client math, very shareable.
 - **Forex market hours / session clock** — "is the London session open" queries; static timezone logic, pairs well with existing session logic in the S&R engine.
