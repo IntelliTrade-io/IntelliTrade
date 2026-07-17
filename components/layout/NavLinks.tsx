@@ -11,6 +11,7 @@ type MenuItem = { label: string; href: string; symbol?: string };
 const CALC_LINKS: MenuItem[] = [
   { label: "Lot size calculator", href: "/lotsizecalculator" },
   { label: "Pip value calculator", href: "/pipvaluecalculator" },
+  { label: "Margin calculator", href: "/margincalculator" },
 ];
 
 const PRICE_LINKS: MenuItem[] = [

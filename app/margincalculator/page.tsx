@@ -1,76 +1,74 @@
 import type { Metadata } from "next";
 import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
-import { Calculator, Scale, TrendingUp, ArrowRight } from "lucide-react";
-import PipValueCalculator from "@/components/calculators/PipValueCalculator";
+import { Calculator, Gauge, TrendingUp, ArrowRight } from "lucide-react";
+import MarginCalculator from "@/components/calculators/MarginCalculator";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 
-const URL = "https://intellitrade.tech/pipvaluecalculator";
+const URL = "https://intellitrade.tech/margincalculator";
 
 export const metadata: Metadata = {
-  title: "Pip Value Calculator | Pip Value for Forex, Gold & Crypto | IntelliTrade",
+  title: "Margin Calculator | Forex Leverage & Required Margin | IntelliTrade",
   description:
-    "Calculate the value of one pip in your account currency for any forex pair, gold or crypto, with live exchange rates. Free pip value calculator for standard, mini and micro lots.",
+    "Calculate the margin required to open a leveraged position for any forex pair, gold or crypto, with live exchange rates. Free margin and leverage calculator.",
   alternates: { canonical: URL },
   openGraph: {
-    title: "Pip Value Calculator | IntelliTrade",
+    title: "Margin Calculator | IntelliTrade",
     description:
-      "Work out the value of one pip in your account currency for any pair, with live exchange rates. Standard, mini and micro lots.",
+      "Work out the margin required to open a leveraged position, with live exchange rates. Any pair, any leverage.",
     url: URL,
     siteName: "IntelliTrade",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pip Value Calculator | IntelliTrade",
-    description: "Pip value in your account currency for any pair, with live rates.",
+    title: "Margin Calculator | IntelliTrade",
+    description: "Required margin for a leveraged position, with live rates.",
   },
 };
 
-// ─── FAQ (single source: feeds both the visible accordion and FAQPage schema) ─
-
 const FAQ_ITEMS = [
   {
-    question: "What is a pip value calculator?",
+    question: "What is a margin calculator?",
     answer:
-      "A pip value calculator tells you how much money one pip of price movement is worth for a given position, expressed in your account currency. Pip value depends on the instrument, the size of your position, and the exchange rate between the pair's quote currency and your account currency. Knowing it lets you translate a stop loss in pips into a real money amount before you place a trade.",
+      "A margin calculator tells you how much of your own capital a broker will set aside to open a leveraged position, expressed in your account currency. It depends on the instrument, your position size, the current price, and your account leverage. Knowing required margin before you trade helps you avoid over-committing capital and getting close to a margin call.",
   },
   {
-    question: "How is pip value calculated?",
+    question: "How is required margin calculated?",
     answer:
-      "Pip value per standard lot = pip size x contract size x the rate that converts the pair's quote currency into your account currency. For most forex pairs the pip size is 0.0001 and one standard lot is 100,000 units, so a pair quoted in your account currency is worth about 10 units per pip per standard lot. If the quote currency differs from your account currency, the value is converted at the live rate. The figure then scales linearly with position size.",
+      "Required margin = position notional value / leverage. The notional value is your position size in base-currency units (lots x contract size) valued at the current price and converted into your account currency. For example, one standard lot of EUR/USD is 100,000 EUR; at 1.08 that is 108,000 USD of notional, and at 1:30 leverage the required margin is 108,000 / 30 = 3,600 USD.",
   },
   {
-    question: "What is the pip value of EUR/USD for a USD account?",
+    question: "What does leverage like 1:30 or 1:100 mean?",
     answer:
-      "For a USD-denominated account trading EUR/USD, one pip is worth about 10 USD per standard lot (100,000 units), 1 USD per mini lot (0.1), and 0.10 USD per micro lot (0.01). Because the quote currency (USD) matches the account currency, no conversion is applied, so the value is stable regardless of the exchange rate.",
+      "Leverage expresses how much market exposure you control per unit of margin. At 1:30, every 1 unit of margin supports 30 units of position value, so the margin requirement is 1/30 (about 3.33%) of the notional. Higher leverage lowers the margin needed to open the same position, but it does not change the position's risk: losses are still measured against the full notional.",
   },
   {
-    question: "Why does pip value change with the exchange rate?",
+    question: "Does higher leverage reduce my risk?",
     answer:
-      "When the pair's quote currency is different from your account currency, the pip value has to be converted back into your currency at the current rate. As that rate moves, the converted pip value moves with it. For pairs where the quote currency equals your account currency, no conversion is needed and the pip value stays fixed per lot.",
+      "No. Higher leverage only reduces the margin required to open a position; it does not reduce the money at risk. A larger position relative to your account still loses (or gains) the same amount per pip regardless of leverage. Position sizing and stop-loss distance determine risk, which is what the lot size calculator is for. Leverage determines how much margin that position ties up.",
   },
   {
-    question: "What is the difference between a standard, mini and micro lot?",
+    question: "Why does required margin change with the exchange rate?",
     answer:
-      "A standard lot is 100,000 units of the base currency, a mini lot is 10,000 units (0.1 lot), and a micro lot is 1,000 units (0.01 lot). Pip value scales directly with lot size, so a mini lot is worth one tenth of a standard lot per pip and a micro lot one hundredth. This calculator shows all three alongside the value for your exact position.",
+      "The notional value of your position is measured in the base currency and then converted into your account currency at the live rate. When that rate moves, the account-currency value of the same position moves with it, so the margin requirement shifts. When the base currency equals your account currency, no conversion applies and margin stays fixed for a given size and leverage.",
   },
   {
-    question: "Is pip value the same for gold and crypto?",
+    question: "Is margin the same for gold and crypto?",
     answer:
-      "No. Metals and crypto use different contract specifications and pip conventions, so their pip values differ from standard forex. This calculator applies gold, silver and crypto contract sizes where relevant, but brokers vary, so always confirm the exact contract specification with your broker before sizing a position.",
+      "No. Metals and crypto use different contract sizes and often different maximum leverage than forex, so their margin requirements differ. This calculator applies the relevant contract sizes, but brokers vary and many cap leverage per instrument, so always confirm the exact contract specification and leverage limits with your broker.",
   },
 ];
 
 const softwareAppSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "IntelliTrade Pip Value Calculator",
+  name: "IntelliTrade Margin Calculator",
   applicationCategory: "FinanceApplication",
   operatingSystem: "Web",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
   description:
-    "Free pip value calculator for forex, gold and crypto traders. Calculates the value of one pip in your account currency for any position size, using live exchange rates.",
+    "Free margin and leverage calculator for forex, gold and crypto traders. Calculates the margin required to open a leveraged position in your account currency, using live exchange rates.",
   url: URL,
 };
 
@@ -89,25 +87,25 @@ const breadcrumbSchema = {
   "@type": "BreadcrumbList",
   itemListElement: [
     { "@type": "ListItem", position: 1, name: "Home", item: "https://intellitrade.tech/" },
-    { "@type": "ListItem", position: 2, name: "Pip Value Calculator", item: URL },
+    { "@type": "ListItem", position: 2, name: "Margin Calculator", item: URL },
   ],
 };
 
 const EXAMPLES = [
   {
     title: "EUR/USD · USD account",
-    lead: "1 standard lot",
-    body: "Pip size 0.0001 x 100,000 units = 10 USD per pip. The quote currency (USD) matches the account, so no conversion is applied: 10 USD standard, 1 USD mini, 0.10 USD micro.",
+    lead: "1 lot @ 1:30",
+    body: "Notional = 100,000 EUR valued at 1.08 = 108,000 USD. Required margin = 108,000 / 30 = 3,600 USD (about 3.33% of the position).",
   },
   {
-    title: "USD/JPY · USD account",
-    lead: "1 standard lot",
-    body: "JPY pairs use a 0.01 pip size. Pip value = 0.01 x 100,000 = 1,000 JPY per pip, converted to USD at the live USD/JPY rate — around 6.70 USD per pip when USD/JPY trades near 150.",
+    title: "EUR/USD · USD account",
+    lead: "1 lot @ 1:100",
+    body: "Same 108,000 USD notional, higher leverage: margin = 108,000 / 100 = 1,080 USD. The position — and its risk — is identical; only the margin tied up is lower.",
   },
   {
     title: "XAU/USD (gold) · USD account",
-    lead: "1 standard lot",
-    body: "Gold uses a 100-ounce contract and a 0.01 pip. Pip value = 0.01 x 100 = 1 USD per pip per standard lot. Broker contract sizes vary, so confirm before sizing.",
+    lead: "1 lot @ 1:20",
+    body: "Gold uses a 100-ounce contract. Notional = 100 x 2,400 = 240,000 USD; margin = 240,000 / 20 = 12,000 USD. Broker leverage caps on metals vary.",
   },
 ];
 
@@ -123,17 +121,17 @@ export default function Page() {
         {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Pip Value Calculator
+            Margin Calculator
           </h1>
           <p className="mt-1 text-[13px] uppercase tracking-[0.18em] text-white/40">
-            Pip value for forex, gold &amp; crypto
+            Required margin &amp; leverage for forex, gold &amp; crypto
           </p>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/50 sm:text-base">
-            Work out what one pip is worth in your account currency for any pair and position size,
-            with live exchange-rate conversion built in. Shows standard, mini and micro lots.
+            Work out the margin needed to open a leveraged position in your account currency, with
+            live exchange-rate conversion built in. Enter your pair, position size and leverage.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {["Live exchange rates", "Forex, gold & crypto", "Standard / mini / micro", "Free tool"].map((label) => (
+            {["Live exchange rates", "Forex, gold & crypto", "Any leverage", "Free tool"].map((label) => (
               <span key={label} className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] text-white/50">
                 {label}
               </span>
@@ -145,13 +143,13 @@ export default function Page() {
         <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10">
           <div className="radial-backdrop" />
           <div className="relative z-10">
-            <PipValueCalculator />
+            <MarginCalculator />
           </div>
         </div>
 
         <p className="mt-4 text-center text-[11px] text-white/28">
-          For educational and planning purposes only. Always verify instrument specifications and
-          contract details with your broker.
+          For educational and planning purposes only. Always verify instrument specifications,
+          contract details and leverage limits with your broker.
         </p>
 
         {/* ── How it works ─────────────────────────────────────────────────── */}
@@ -164,23 +162,22 @@ export default function Page() {
                   SECTION 01
                 </div>
                 <h2 id="how-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
-                  How pip value is calculated
+                  How required margin is calculated
                 </h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
-                  Pip value answers a simple question: if price moves one pip, how much does my
-                  position gain or lose? It depends on three things: the instrument&apos;s pip size,
-                  the contract size behind one lot, and the exchange rate that brings the pair&apos;s
-                  quote currency back into your account currency.
+                  Margin is the slice of your own capital a broker locks up to let you hold a
+                  leveraged position. It is the position&apos;s notional value divided by your
+                  leverage, expressed in your account currency.
                 </p>
                 <div className="mt-6 rounded-2xl border border-white/12 bg-white/[0.03] p-5 font-mono text-[13px] leading-relaxed text-white/70">
-                  pip value / standard lot = pip size x contract size x (quote &rarr; account rate)
+                  notional = lots x contract size x (base &rarr; account rate)
                   <br />
-                  pip value = pip value / lot x number of lots
+                  required margin = notional / leverage
                 </div>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
-                  When the quote currency already matches your account currency, the conversion factor
-                  is 1 and the pip value stays fixed per lot. When it differs, the value is converted
-                  at the live rate, which is why pip value on cross pairs shifts as the market moves.
+                  Higher leverage lowers the margin needed for the same position, but not the risk:
+                  profit and loss are always measured against the full notional. Use the lot size
+                  calculator to size risk, and this calculator to see the margin that position ties up.
                 </p>
               </div>
             </div>
@@ -201,7 +198,7 @@ export default function Page() {
                 </h2>
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
                   {EXAMPLES.map(({ title, lead, body }) => (
-                    <div key={title} className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
+                    <div key={`${title}-${lead}`} className="rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
                       <p className="text-sm font-semibold text-white">{title}</p>
                       <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-300/90">{lead}</p>
                       <p className="mt-3 text-[13px] leading-relaxed text-white/55">{body}</p>
@@ -223,7 +220,7 @@ export default function Page() {
                   SECTION 03
                 </div>
                 <h2 id="faq-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
-                  Pip value questions
+                  Margin &amp; leverage questions
                 </h2>
                 <div className="mt-6 space-y-3">
                   {FAQ_ITEMS.map((item) => (
@@ -260,14 +257,14 @@ export default function Page() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-white/30 group-hover:translate-x-0.5 group-hover:text-white/60 transition-all" />
               </Link>
-              <Link href="/margincalculator" className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06]">
+              <Link href="/pipvaluecalculator" className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06]">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/70 group-hover:text-brand/80">
-                    <Scale className="h-4 w-4" />
+                    <Gauge className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">Margin</p>
-                    <p className="text-xs text-white/45">Margin for a leveraged position.</p>
+                    <p className="text-sm font-semibold text-white">Pip Value</p>
+                    <p className="text-xs text-white/45">Value of one pip, your currency.</p>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-white/30 group-hover:translate-x-0.5 group-hover:text-white/60 transition-all" />

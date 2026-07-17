@@ -169,6 +169,51 @@ export function computePipValue({ pair, lots, quoteToAccount }: PipValueInputs):
   };
 }
 
+export interface MarginInputs {
+  /** Instrument, e.g. "EURUSD" or "EUR/USD". */
+  pair: string;
+  /** Position size in standard lots. */
+  lots: number;
+  /** Leverage ratio (e.g. 30 for 1:30). */
+  leverage: number;
+  /** Rate converting the pair's BASE currency into the account currency (1 when identical). */
+  baseToAccount: number;
+}
+
+export interface MarginResult {
+  /** Position size in base-currency units (lots x contract size). */
+  units: number;
+  /** Notional position value, in account currency. */
+  notional: number;
+  /** Required margin, in account currency. */
+  margin: number;
+  /** Margin requirement as a percentage of notional (100 / leverage). */
+  marginPercent: number;
+}
+
+/**
+ * Required margin for a leveraged position, in the account currency.
+ * Notional = units x (base->account rate); margin = notional / leverage.
+ * Base-to-account (not quote-to-account) because the position's notional value
+ * is measured in the base currency.
+ */
+export function computeMargin({ pair, lots, leverage, baseToAccount }: MarginInputs): MarginResult {
+  if (!isFinite(leverage) || leverage <= 0) {
+    throw new Error("Leverage must be greater than zero.");
+  }
+  const units = lots * contractSizeFor(normalizePair(pair));
+  const notional = units * baseToAccount;
+  if (!isFinite(notional) || notional <= 0) {
+    throw new Error("Calculated notional value is invalid.");
+  }
+  return {
+    units,
+    notional,
+    margin: notional / leverage,
+    marginPercent: 100 / leverage,
+  };
+}
+
 export function computeLotSize({ balance, riskPercent, stopLossPips, pair, quoteToAccount }: LotSizeInputs): LotSizeResult {
   const cleanPair = normalizePair(pair);
   const pipSize = pipSizeFor(cleanPair);

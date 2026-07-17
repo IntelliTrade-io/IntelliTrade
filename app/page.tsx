@@ -80,13 +80,14 @@ const FREE_TOOLS: ToolCardData[] = [
     href: "/lotsizecalculator",
     icon: Calculator,
     label: "Calculators",
-    desc: "Free risk tools for forex, gold and crypto: size your position to your risk, and find pip value in your account currency, with live rates.",
+    desc: "Free risk tools for forex, gold and crypto: position size, pip value and required margin, all with live rates.",
     tag: "FREE",
     cta: "Open",
     isPro: false,
     subLinks: [
       { label: "Lot size", href: "/lotsizecalculator" },
       { label: "Pip value", href: "/pipvaluecalculator" },
+      { label: "Margin", href: "/margincalculator" },
     ],
   },
   {

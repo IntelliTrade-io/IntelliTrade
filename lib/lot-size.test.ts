@@ -8,6 +8,7 @@ import {
   rateFromUsdRates,
   computeLotSize,
   computePipValue,
+  computeMargin,
 } from "./lot-size";
 
 describe("pair parsing", () => {
@@ -135,5 +136,44 @@ describe("computePipValue", () => {
   it("gold contract: 100 oz per lot → pip value 1", () => {
     const r = computePipValue({ pair: "XAUUSD", lots: 1, quoteToAccount: 1 });
     expect(r.perStandardLot).toBe(1);
+  });
+});
+
+describe("computeMargin", () => {
+  it("classic FX case: EURUSD, USD account, 1:30", () => {
+    // units = 100,000 EUR; notional = 100,000 * 1.08 = 108,000 USD; margin = 3,600
+    const r = computeMargin({ pair: "EURUSD", lots: 1, leverage: 30, baseToAccount: 1.08 });
+    expect(r.units).toBe(100_000);
+    expect(r.notional).toBeCloseTo(108_000);
+    expect(r.margin).toBeCloseTo(3_600);
+    expect(r.marginPercent).toBeCloseTo(100 / 30);
+  });
+
+  it("scales with lots and leverage", () => {
+    const r = computeMargin({ pair: "EURUSD", lots: 0.5, leverage: 100, baseToAccount: 1.1 });
+    // units 50,000; notional 55,000; margin 550
+    expect(r.notional).toBeCloseTo(55_000);
+    expect(r.margin).toBeCloseTo(550);
+  });
+
+  it("base == account: no conversion (rate 1)", () => {
+    const r = computeMargin({ pair: "USDJPY", lots: 1, leverage: 50, baseToAccount: 1 });
+    // units 100,000 USD; notional 100,000; margin 2,000
+    expect(r.notional).toBe(100_000);
+    expect(r.margin).toBeCloseTo(2_000);
+  });
+
+  it("gold: 100 oz per lot at 2400", () => {
+    const r = computeMargin({ pair: "XAUUSD", lots: 1, leverage: 20, baseToAccount: 2_400 });
+    // units 100 oz; notional 240,000; margin 12,000
+    expect(r.units).toBe(100);
+    expect(r.notional).toBeCloseTo(240_000);
+    expect(r.margin).toBeCloseTo(12_000);
+  });
+
+  it("rejects non-positive leverage", () => {
+    expect(() =>
+      computeMargin({ pair: "EURUSD", lots: 1, leverage: 0, baseToAccount: 1.08 }),
+    ).toThrow("Leverage");
   });
 });
