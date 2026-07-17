@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { LucideIcon } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
 import { client } from "@/sanity/client";
@@ -6,7 +7,7 @@ import { type SanityDocument } from "next-sanity";
 import {
   Calculator, TrendingUp, BookOpen,
   CalendarDays, Radar, Gamepad2,
-  ArrowRight, LineChart, Gauge,
+  ArrowRight, LineChart,
 } from "lucide-react";
 import { formatDate } from "@/lib/formatDate";
 import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
@@ -62,15 +63,31 @@ const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
 
 // ─── Tool cards ───────────────────────────────────────────────────────────────
 
-const FREE_TOOLS = [
+type ToolCardData = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  desc: string;
+  tag: string;
+  cta: string;
+  isPro: boolean;
+  meta?: string;
+  subLinks?: { label: string; href: string }[];
+};
+
+const FREE_TOOLS: ToolCardData[] = [
   {
     href: "/lotsizecalculator",
     icon: Calculator,
-    label: "Lot Size Calculator",
-    desc: "Stop guessing your position size. Manage risk like a professional with a clean calculator built for forex, gold, indices and crypto.",
-    tag: "FREE TOOL",
+    label: "Calculators",
+    desc: "Free risk tools for forex, gold and crypto: size your position to your risk, and find pip value in your account currency, with live rates.",
+    tag: "FREE",
     cta: "Open",
     isPro: false,
+    subLinks: [
+      { label: "Lot size", href: "/lotsizecalculator" },
+      { label: "Pip value", href: "/pipvaluecalculator" },
+    ],
   },
   {
     href: "/gold-price-today",
@@ -88,15 +105,6 @@ const FREE_TOOLS = [
     ],
   },
   {
-    href: "/pipvaluecalculator",
-    icon: Gauge,
-    label: "Pip Value Calculator",
-    desc: "Find what one pip is worth in your account currency for any pair, with live rates. Standard, mini and micro lots.",
-    tag: "FREE TOOL",
-    cta: "Open",
-    isPro: false,
-  },
-  {
     href: "/blog",
     icon: BookOpen,
     label: "Macro Insights",
@@ -108,7 +116,7 @@ const FREE_TOOLS = [
   },
 ];
 
-const PRO_TOOLS = [
+const PRO_TOOLS: ToolCardData[] = [
   {
     href: "/smart-support-zones",
     icon: LineChart,
@@ -149,14 +157,7 @@ const PRO_TOOLS = [
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
-function ToolCard({
-  tool,
-}: {
-  tool: typeof FREE_TOOLS[number] & {
-    meta?: string;
-    subLinks?: { label: string; href: string }[];
-  };
-}) {
+function ToolCard({ tool }: { tool: ToolCardData }) {
   const isPro = tool.isPro;
 
   const cardBody = (
