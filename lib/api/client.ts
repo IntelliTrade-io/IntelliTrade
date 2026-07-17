@@ -43,3 +43,16 @@ export function apiPost<T>(path: string, body?: unknown, init?: RequestInit): Pr
     ...init,
   });
 }
+
+export function apiPatch<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+  return request<T>(path, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...init?.headers },
+    body: JSON.stringify(body),
+    ...init,
+  });
+}
+
+export function apiDelete<T>(path: string, init?: RequestInit): Promise<T> {
+  return request<T>(path, { method: "DELETE", ...init });
+}
