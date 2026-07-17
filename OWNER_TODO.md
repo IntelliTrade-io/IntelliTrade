@@ -27,7 +27,7 @@ Everything below is the detail for these plus lower-priority owner items (AdSens
 
 ## Deploy / merge (closer to critical — security fixes aren't live until merged)
 
-- [ ] **Run migration 006 in the Supabase SQL Editor** (`supabase/migrations/006_calculator_templates.sql`) — creates `calculator_account_templates` (Pro account templates for the lot size calculator) with RLS + subscription-gated mutations. Non-destructive; must be applied before the `feat/lot-size-precision` branch deploys, otherwise `/api/calculator-templates` returns 500 for signed-in users (free calculator itself is unaffected).
+- [x] ~~**Run migration 006 in the Supabase SQL Editor**~~ **DONE 2026-07-17** (`supabase/migrations/006_calculator_templates.sql`) — `calculator_account_templates` created for the lot size calculator Pro account templates. Verified live: table reachable via service role, anon SELECT returns an empty set (RLS filters to owner), anon INSERT rejected with 42501 (row-level security). Safe ahead of the `feat/lot-size-precision` deploy.
 
 - [x] ~~**Merge `refactor/phase1-security` → `main`** (PR)~~ **DONE 2026-07-08** (PR #103, merge `de3342b`). Verified before merge: clean merge-tree (0 conflicts), merged tree byte-identical to the tested branch, rebuilt green (build 216 pages, pytest 395, tsc). CI caught + fixed one Windows-only path test (`3cea76d`). Security hardening now on `main` → deploys via Vercel.
 - [ ] **Merge `SRL-dev3` → `main`** for the S&R frontend on Vercel (if not already superseded by the branch above — verify diff first).
