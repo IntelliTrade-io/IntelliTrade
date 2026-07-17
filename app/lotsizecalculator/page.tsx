@@ -136,10 +136,7 @@ export default function Page() {
         {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center rounded-full border border-white/12 bg-white/[0.03] px-4 py-2 text-[11px] font-medium uppercase tracking-[0.28em] text-white/72">
-              IntelliTrade tools
-            </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Lot Size Calculator
             </h1>
             <p className="mt-1 text-[13px] uppercase tracking-[0.18em] text-white/40">
