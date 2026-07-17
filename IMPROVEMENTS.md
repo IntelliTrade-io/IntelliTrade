@@ -43,6 +43,7 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **Event-risk overlay** · `economic_events` × pairs the user watches → "high-impact USD event in 6h touches 4 of your pairs" · join on currency, next-24h window; dashboard panel + optional alert.
 - **Track-record page** · graded SR opportunities scored against realized outcomes from stored `market_candles` — verifiable performance converts skeptics (and keeps us honest) · nightly job grades past opportunities; page shows hit-rate per grade.
 - **Agreement screener** · both scanner families (D1/H4 + H1/M15) write snapshots; pairs where daily and intraday direction agree = the strongest signal we produce · one query over the two latest snapshots, filterable table.
+- **Broker settings + account templates across all calculators** *(2026-07-17)* · the lot size calculator now has per-instrument MT4/MT5 contract overrides and Pro account templates; the pip value and margin calculators still assume standard contract sizes (`contractSizeFor`) and know nothing about templates · reuse `defaultBrokerSettingsFor` + the saved override map and let an applied account template preload balance/currency in margin and pip-value calcs. Deepens the Pro template feature at near-zero backend cost (same table, same API).
 
 ## SEO *(2026-07-05)*
 
