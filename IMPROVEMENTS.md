@@ -29,6 +29,9 @@ Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator +
 - **Currency strength teaser** — yesterday's daily snapshot only (delayed data), static daily render; upsell to live meter.
 - **Currency correlation matrix** — 30-day pair correlations from candles already in Supabase; classic evergreen tool page.
 - **Spread/swap glossary + per-pair "what is" pages** — programmatic SEO pages fed from Sanity, feeds the blog cluster.
+- **Per-pair calculator SEO pages** *(2026-07-17, from Myfxbook analysis)* — Myfxbook indexes a URL per symbol (`/forex-calculators/position-size/XAUCHF` etc.); likely their main long-tail acquisition channel for the tool. We could ship `/lotsizecalculator/[pair]` (and pip-value equivalents) that pre-select the pair and swap H1/meta/examples per symbol. Pairs list already comes from `composePairsFrom`; needs `generateStaticParams` + canonical strategy so it complements (not cannibalizes) the main page.
+- **Risk as fixed money amount** *(2026-07-17, from Myfxbook analysis)* — Myfxbook lets users toggle risk % vs fixed money (e.g. "$50"). Cheap add to the lot size calculator: toggle beside "Risk per trade", math already reduces to `riskAmount = balance × pct` vs direct input. Keeps our exact-vs-broker-ready edge intact.
+- **Embeddable calculator widget** *(2026-07-17, from Myfxbook analysis)* — Myfxbook offers embed snippets for its calculators; every embedding site is a backlink. Ours could be an iframe route with a "powered by IntelliTrade" link. Backlink engine for domain authority; scope carefully (free tier only, rate-limited rates proxy).
 
 - **Currency-strength meter Vite source not in repo** *(2026-07-04)*
   `public/currency-strength-meter{,-intraday}/assets/index-*.{js,css}` are prebuilt Vite bundles (~810 KB) with **no source in this repo** — they're the only copy, built somewhere external (see `claudeLoad/STRENGTH_METER_DEV_HANDOFF.md`). Risk: unreproducible artifact; any change requires whoever holds the source. Bring the Vite app in-repo (e.g. `apps/strength-meter/`) with a build step that outputs into `public/`, then gitignore the bundles. Ties into Phase 6.1 strength-engine dedup.
@@ -43,6 +46,7 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **Event-risk overlay** · `economic_events` × pairs the user watches → "high-impact USD event in 6h touches 4 of your pairs" · join on currency, next-24h window; dashboard panel + optional alert.
 - **Track-record page** · graded SR opportunities scored against realized outcomes from stored `market_candles` — verifiable performance converts skeptics (and keeps us honest) · nightly job grades past opportunities; page shows hit-rate per grade.
 - **Agreement screener** · both scanner families (D1/H4 + H1/M15) write snapshots; pairs where daily and intraday direction agree = the strongest signal we produce · one query over the two latest snapshots, filterable table.
+- **Broker settings + account templates across all calculators** *(2026-07-17)* · the lot size calculator now has per-instrument MT4/MT5 contract overrides and Pro account templates; the pip value and margin calculators still assume standard contract sizes (`contractSizeFor`) and know nothing about templates · reuse `defaultBrokerSettingsFor` + the saved override map and let an applied account template preload balance/currency in margin and pip-value calcs. Deepens the Pro template feature at near-zero backend cost (same table, same API).
 
 ## SEO *(2026-07-05)*
 
