@@ -444,11 +444,6 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     return () => document.removeEventListener("mousedown", handler);
   }, [ccyOpen]);
 
-  useEffect(() => {
-    const el = ccyDropdownRef.current?.querySelector(`[data-ccy-idx="${ccyHighlightedIdx}"]`);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [ccyHighlightedIdx]);
-
   const selectCcy = (c: string) => {
     setCurrency(c);
     setCcyOpen(false);
@@ -507,12 +502,6 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [pairOpen]);
-
-  // Scroll highlighted item into view
-  useEffect(() => {
-    const el = pairDropdownRef.current?.querySelector(`[data-idx="${highlightedIdx}"]`);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [highlightedIdx]);
 
   const selectPair = (p: string) => {
     setPair(p);
