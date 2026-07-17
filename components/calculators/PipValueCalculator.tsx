@@ -152,11 +152,6 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
     return () => document.removeEventListener("mousedown", handler);
   }, [ccyOpen]);
 
-  useEffect(() => {
-    const el = ccyDropdownRef.current?.querySelector(`[data-ccy-idx="${ccyHighlightedIdx}"]`);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [ccyHighlightedIdx]);
-
   const selectCcy = (c: string) => { setCurrency(c); setCcyOpen(false); setCcySearch(""); setCcyHighlightedIdx(0); };
 
   const handleCcyKeyDown = (e: React.KeyboardEvent) => {
@@ -194,11 +189,6 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [pairOpen]);
-
-  useEffect(() => {
-    const el = pairDropdownRef.current?.querySelector(`[data-idx="${highlightedIdx}"]`);
-    el?.scrollIntoView({ block: "nearest" });
-  }, [highlightedIdx]);
 
   const selectPair = (p: string) => { setPair(p); setPairOpen(false); setPairSearch(""); setHighlightedIdx(0); };
 
@@ -249,7 +239,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                 <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                   {ccyOpen && ccySearch ? (
                     <button type="button" className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setCcySearch(""); setCcyHighlightedIdx(0); ccyInputRef.current?.focus(); }}>
+                      onClick={(e) => { e.stopPropagation(); setCcySearch(""); setCcyHighlightedIdx(0); ccyInputRef.current?.focus({ preventScroll: true }); }}>
                       <X className="h-3.5 w-3.5" />
                     </button>
                   ) : (
@@ -302,7 +292,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                 <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
                   {pairOpen && pairSearch ? (
                     <button type="button" className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setPairSearch(""); setHighlightedIdx(0); pairInputRef.current?.focus(); }}>
+                      onClick={(e) => { e.stopPropagation(); setPairSearch(""); setHighlightedIdx(0); pairInputRef.current?.focus({ preventScroll: true }); }}>
                       <X className="h-3.5 w-3.5" />
                     </button>
                   ) : (

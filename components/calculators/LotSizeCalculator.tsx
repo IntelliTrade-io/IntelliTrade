@@ -621,7 +621,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       type="button"
                       aria-label="Clear search"
                       className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setCcySearch(""); setCcyHighlightedIdx(0); ccyInputRef.current?.focus(); }}
+                      onClick={(e) => { e.stopPropagation(); setCcySearch(""); setCcyHighlightedIdx(0); ccyInputRef.current?.focus({ preventScroll: true }); }}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -710,7 +710,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       type="button"
                       aria-label="Clear search"
                       className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setPairSearch(""); setHighlightedIdx(0); pairInputRef.current?.focus(); }}
+                      onClick={(e) => { e.stopPropagation(); setPairSearch(""); setHighlightedIdx(0); pairInputRef.current?.focus({ preventScroll: true }); }}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>

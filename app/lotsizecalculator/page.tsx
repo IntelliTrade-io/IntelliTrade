@@ -3,6 +3,7 @@ import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
 import { BookOpen, ArrowRight } from "lucide-react";
 import LotSizeCalculator from "@/components/calculators/LotSizeCalculator";
+import NoSmoothScroll from "@/components/calculators/NoSmoothScroll";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 
 export const metadata: Metadata = {
@@ -146,6 +147,8 @@ export default function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
+
+      <NoSmoothScroll />
 
       <div className="mx-auto max-w-4xl px-4 pb-28 pt-10 sm:px-8">
 
