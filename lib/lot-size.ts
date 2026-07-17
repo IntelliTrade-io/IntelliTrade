@@ -232,3 +232,230 @@ export function computeLotSize({ balance, riskPercent, stopLossPips, pair, quote
 
   return { riskAmount, pipValuePerLot, lots: riskAmount / riskPerLot };
 }
+
+// ─── Exact vs broker-ready position sizing ────────────────────────────────────
+// The free calculator used to round the exact lot size with toFixed(2) before
+// display, which silently rounded 0.0166667 up to 0.02 and presented the target
+// risk as if it were the risk of that rounded position. The functions below keep
+// the exact mathematical size and the broker-executable size as separate values,
+// and never round upward past the target risk.
+
+/** Human unit label for a position's underlying exposure. */
+export const unitLabelFor = (p: string): string => {
+  const s = normalizePair(p);
+  if (s.startsWith("XAU") || s.startsWith("XAG")) return "oz";
+  if (s.startsWith("WTI")) return "barrels";
+  if (s.startsWith("BTC")) return "BTC";
+  if (s.startsWith("ETH")) return "ETH";
+  if (/^[A-Z]{6}$/.test(s)) return s.slice(0, 3); // FX: base-currency units
+  return "units";
+};
+
+export interface BrokerSettings {
+  /** Units per 1.00 lot (e.g. 100 oz for standard XAUUSD). */
+  contractSize: number;
+  /** Smallest tradeable volume (e.g. 0.01). */
+  minLot: number;
+  /** Volume increment above the minimum (e.g. 0.01). */
+  lotStep: number;
+}
+
+/** Standard MT4/MT5-style defaults for an instrument. */
+export const defaultBrokerSettingsFor = (p: string): BrokerSettings => ({
+  contractSize: contractSizeFor(p),
+  minLot: 0.01,
+  lotStep: 0.01,
+});
+
+/** Snap tiny float noise off a lot number (broker steps never need >8 dp). */
+export const roundLots = (x: number): number => Math.round(x * 1e8) / 1e8;
+
+/**
+ * Largest broker-valid volume that does not exceed exactLots. Valid volumes sit
+ * on the grid minLot + k * lotStep (k >= 0). Returns null when exactLots is
+ * below the minimum. The epsilon terms absorb float error so an exact 0.50
+ * never floors to 0.49; they can only overshoot by a sub-nanolote amount.
+ */
+export function floorToLotGrid(exactLots: number, minLot: number, lotStep: number): number | null {
+  if (!isFinite(exactLots) || !isFinite(minLot) || !isFinite(lotStep) || minLot <= 0 || lotStep <= 0) {
+    return null;
+  }
+  if (exactLots + 1e-9 < minLot) return null;
+  const q = (exactLots - minLot) / lotStep;
+  const steps = Math.floor(q + 1e-9 + Math.abs(q) * 1e-12);
+  return roundLots(minLot + steps * lotStep);
+}
+
+export type StopInput =
+  | { mode: "pips"; pips: number }
+  | { mode: "price"; entryPrice: number; stopLossPrice: number };
+
+export interface PositionSizeInputs {
+  /** Account balance in account currency. */
+  balance: number;
+  /** Risk per trade as a percentage of balance (e.g. 1 for 1%). */
+  riskPercent: number;
+  /** Instrument, e.g. "EURUSD" or "XAU/USD". */
+  pair: string;
+  /** Rate converting the pair's quote currency into the account currency (1 when identical). */
+  quoteToAccount: number;
+  /** Stop distance as pips or as entry + stop-loss prices. */
+  stop: StopInput;
+  /** Broker overrides; instrument defaults fill anything omitted. */
+  broker?: Partial<BrokerSettings>;
+}
+
+export interface PositionSizeResult {
+  /** balance x riskPercent / 100, in account currency. */
+  targetRisk: number;
+  /** Stop distance expressed in pips (derived in price mode). */
+  stopDistancePips: number;
+  /** Stop distance expressed as a quote-currency price move. */
+  priceDistance: number;
+  pipSize: number;
+  contractSize: number;
+  minLot: number;
+  lotStep: number;
+  /** Value of one pip for 1.00 lot, in account currency. */
+  pipValuePerLot: number;
+  /** Loss at the stop for 1.00 lot, in account currency. */
+  riskPerLot: number;
+  /** Unrounded mathematical size. May not be executable. */
+  exactLots: number;
+  exactUnits: number;
+  unitLabel: string;
+  /** Largest executable volume within target risk; null when below minLot. */
+  brokerLots: number | null;
+  brokerUnits: number | null;
+  actualRisk: number | null;
+  actualRiskPercent: number | null;
+  belowMinimum: boolean;
+  /** Risk the broker's minimum lot would carry (shown in the below-minimum state). */
+  minLotRisk: number;
+  minLotRiskPercent: number;
+  /** One step above brokerLots (or the minimum lot when below minimum). */
+  nextLots: number;
+  nextRisk: number;
+  nextRiskPercent: number;
+  nextExceedsTarget: boolean;
+  /** True when the exact size already sits on the broker grid. */
+  exactIsExecutable: boolean;
+}
+
+export function computePositionSize({
+  balance,
+  riskPercent,
+  pair,
+  quoteToAccount,
+  stop,
+  broker,
+}: PositionSizeInputs): PositionSizeResult {
+  if (!isFinite(balance) || balance <= 0) throw new Error("Account balance must be greater than zero.");
+  if (!isFinite(riskPercent) || riskPercent <= 0) throw new Error("Risk percentage must be greater than zero.");
+  if (!isFinite(quoteToAccount) || quoteToAccount <= 0) throw new Error("Conversion rate is invalid.");
+
+  const cleanPair = normalizePair(pair);
+  const pipSize = pipSizeFor(cleanPair);
+  const defaults = defaultBrokerSettingsFor(cleanPair);
+  const contractSize = broker?.contractSize ?? defaults.contractSize;
+  const minLot = broker?.minLot ?? defaults.minLot;
+  const lotStep = broker?.lotStep ?? defaults.lotStep;
+  if (!isFinite(contractSize) || contractSize <= 0) throw new Error("Contract size must be greater than zero.");
+  if (!isFinite(minLot) || minLot <= 0) throw new Error("Minimum lot must be greater than zero.");
+  if (!isFinite(lotStep) || lotStep <= 0) throw new Error("Lot step must be greater than zero.");
+
+  let priceDistance: number;
+  let stopDistancePips: number;
+  if (stop.mode === "pips") {
+    if (!isFinite(stop.pips) || stop.pips <= 0) throw new Error("Stop distance must be greater than zero.");
+    stopDistancePips = stop.pips;
+    priceDistance = stop.pips * pipSize;
+  } else {
+    if (!isFinite(stop.entryPrice) || stop.entryPrice <= 0) throw new Error("Entry price must be greater than zero.");
+    if (!isFinite(stop.stopLossPrice) || stop.stopLossPrice <= 0) throw new Error("Stop-loss price must be greater than zero.");
+    if (stop.entryPrice === stop.stopLossPrice) throw new Error("Entry price and stop-loss price cannot be identical.");
+    priceDistance = Math.abs(stop.entryPrice - stop.stopLossPrice);
+    stopDistancePips = priceDistance / pipSize;
+  }
+
+  const targetRisk = balance * (riskPercent / 100);
+  const pipValuePerLot = pipSize * contractSize * quoteToAccount;
+  const riskPerLot = priceDistance * contractSize * quoteToAccount;
+  if (!isFinite(riskPerLot) || riskPerLot <= 0) throw new Error("Calculated risk per lot is invalid.");
+
+  const exactLots = targetRisk / riskPerLot;
+  const exactUnits = exactLots * contractSize;
+
+  const brokerLots = floorToLotGrid(exactLots, minLot, lotStep);
+  const belowMinimum = brokerLots === null;
+  const actualRisk = brokerLots === null ? null : brokerLots * riskPerLot;
+
+  const nextLots = brokerLots === null ? roundLots(minLot) : roundLots(brokerLots + lotStep);
+  const nextRisk = nextLots * riskPerLot;
+
+  const minLotRisk = minLot * riskPerLot;
+
+  return {
+    targetRisk,
+    stopDistancePips,
+    priceDistance,
+    pipSize,
+    contractSize,
+    minLot,
+    lotStep,
+    pipValuePerLot,
+    riskPerLot,
+    exactLots,
+    exactUnits,
+    unitLabel: unitLabelFor(cleanPair),
+    brokerLots,
+    brokerUnits: brokerLots === null ? null : brokerLots * contractSize,
+    actualRisk,
+    actualRiskPercent: actualRisk === null ? null : (actualRisk / balance) * 100,
+    belowMinimum,
+    minLotRisk,
+    minLotRiskPercent: (minLotRisk / balance) * 100,
+    nextLots,
+    nextRisk,
+    nextRiskPercent: (nextRisk / balance) * 100,
+    nextExceedsTarget: nextRisk > targetRisk * (1 + 1e-9),
+    exactIsExecutable: brokerLots !== null && Math.abs(brokerLots - exactLots) <= Math.max(1e-9, exactLots * 1e-9),
+  };
+}
+
+// ─── Display formatting ───────────────────────────────────────────────────────
+// toFixed(2) on a raw lot size is exactly the bug this module replaces: it must
+// only ever be applied to already-separated display values, never fed back into
+// downstream math.
+
+/**
+ * Lot size for display: at least 2 decimals, and enough decimals to keep three
+ * significant digits for small sizes (0.0166667 -> "0.0167", 0.5 -> "0.50").
+ */
+export function formatLots(lots: number): string {
+  if (!isFinite(lots)) return "0";
+  const abs = Math.abs(lots);
+  let decimals = 2;
+  if (abs > 0 && abs < 1) {
+    const firstSignificant = Math.ceil(-Math.log10(abs));
+    decimals = Math.min(Math.max(2, firstSignificant + 2), 6);
+  }
+  let s = lots.toFixed(decimals);
+  while (s.includes(".") && s.endsWith("0") && (s.split(".")[1]?.length ?? 0) > 2) s = s.slice(0, -1);
+  return s;
+}
+
+/**
+ * Underlying exposure for display: grouped thousands, up to four significant
+ * digits below 1,000 (1.6666667 -> "1.667", 50 -> "50", 100000 -> "100,000").
+ */
+export function formatUnits(units: number): string {
+  if (!isFinite(units)) return "0";
+  const abs = Math.abs(units);
+  let decimals = 0;
+  if (abs > 0 && abs < 1000) {
+    const intDigits = abs >= 1 ? Math.floor(Math.log10(abs)) + 1 : 0;
+    decimals = Math.min(Math.max(4 - intDigits, 0), 4);
+  }
+  return units.toLocaleString("en-US", { maximumFractionDigits: decimals });
+}
