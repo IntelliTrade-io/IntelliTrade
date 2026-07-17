@@ -80,7 +80,7 @@ const FREE_TOOLS: ToolCardData[] = [
     href: "/lotsizecalculator",
     icon: Calculator,
     label: "Calculators",
-    desc: "Free risk tools for forex, gold and crypto: position size, pip value and required margin, all with live rates.",
+    desc: "Free risk and planning tools for forex, gold and crypto: position size, pip value, margin and account compounding.",
     tag: "FREE",
     cta: "Open",
     isPro: false,
@@ -88,6 +88,7 @@ const FREE_TOOLS: ToolCardData[] = [
       { label: "Lot size", href: "/lotsizecalculator" },
       { label: "Pip value", href: "/pipvaluecalculator" },
       { label: "Margin", href: "/margincalculator" },
+      { label: "Compounding", href: "/compoundingcalculator" },
     ],
   },
   {

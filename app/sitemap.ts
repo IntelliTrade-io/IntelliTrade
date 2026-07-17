@@ -14,6 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/lotsizecalculator/faq`, priority: 0.7, changeFrequency: "monthly" },
     { url: `${BASE}/pipvaluecalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/margincalculator`, priority: 0.8, changeFrequency: "monthly" },
+    { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/gold-price-today`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/silver-price-today`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/oil-price-today`, priority: 0.8, changeFrequency: "daily" },

@@ -12,6 +12,7 @@ const CALC_LINKS: MenuItem[] = [
   { label: "Lot size calculator", href: "/lotsizecalculator" },
   { label: "Pip value calculator", href: "/pipvaluecalculator" },
   { label: "Margin calculator", href: "/margincalculator" },
+  { label: "Compounding calculator", href: "/compoundingcalculator" },
 ];
 
 const PRICE_LINKS: MenuItem[] = [
