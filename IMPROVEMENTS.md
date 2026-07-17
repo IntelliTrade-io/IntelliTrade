@@ -6,11 +6,6 @@ Format: what · why · rough approach. Date each entry.
 
 ---
 
-## Content
-
-- **Price-today pages: hardcoded daily content → Sanity** *(2026-07-04, owner)*
-  `gold/silver/oil/bitcoin-price-today` pages contain narrative/analysis content that should change daily but is hardcoded in the components. Move it to Sanity (e.g. a `dailyMarketNote` document type per instrument) so it's editable without deploys; pages already fetch from Sanity for the blog, same client can serve these.
-
 ## API / data
 
 - **`/api/scrape` is dead code** *(2026-07-04)*
@@ -26,10 +21,10 @@ Format: what · why · rough approach. Date each entry.
 
 Owner standing request *(2026-07-04)*: free tier is blog + lot size calculator + prices-today; wants more free modules/functions that attract traffic. Candidates (all cheap on data, SEO-friendly, natural upsell into premium):
 
-- **Pip value calculator** — sibling of the lot size calc, reuses `/api/rates`. High search volume ("pip value EURUSD"). Near-zero build cost.
-- **Margin / leverage calculator** — same shell, no external data at all.
-- **Compounding / growth calculator** — "grow $1k at 2%/week" tables; pure client math, very shareable.
-- **Forex market hours / session clock** — "is the London session open" queries; static timezone logic, pairs well with existing session logic in the S&R engine.
+- ~~**Pip value calculator**~~ *(done 2026-07-17)* — shipped at `/pipvaluecalculator`: pure `computePipValue` in `lib/lot-size.ts` (tested), `PipValueCalculator` client component reusing the lot-size combobox + `/api/rates` conversion, full SEO shell (SoftwareApplication + FAQPage + BreadcrumbList schema, worked examples, on-page FAQ), OG image, sitemap entry, homepage card, and reciprocal cross-links with the lot-size page. NOTE: the two calculators now duplicate ~200 lines of combobox code — extract a shared `SearchCombobox` when a third calculator lands.
+- ~~**Margin / leverage calculator**~~ *(done 2026-07-17)* — shipped at `/margincalculator`: pure `computeMargin` in `lib/lot-size.ts` (tested), full SEO shell, OG image, nav dropdown + mobile + homepage Calculators card + /pro comparison + sitemap + cross-links. **DEBT:** three calculators (lot size, pip value, margin) now duplicate ~200 lines of combobox each. Extract a shared `SearchCombobox` — a dedicated task that touches the golden lot-size calc, so it needs owner visual verification (do not squeeze into a feature session).
+- ~~**Compounding / growth calculator**~~ *(done 2026-07-17)* — shipped at `/compoundingcalculator`: pure `computeCompounding` in `lib/compounding.ts` (tested), fixed per-period return over N periods with optional deposit + full period-by-period table, day/week/month/year units. No external data or combobox (does NOT add to the combobox-dedup debt). Full SEO shell, OG image, nav dropdown + mobile + homepage Calculators card + /pro comparison + sitemap.
+- ~~**Forex market hours / session clock**~~ *(done 2026-07-17)* — shipped at `/forex-market-hours`: DST-correct session logic in `lib/sessions.ts` (tested; Sydney/Tokyo/London/New York evaluated in their IANA timezones via Intl, no fixed offsets), live `MarketHoursClock` client component (per-second tick, open/closed + next-change countdown), full SEO shell + OG image. Separate "Sessions" nav link + mobile + /pro + sitemap. Frontend has its own session constants (backend S&R session logic is Python, not importable).
 - **Economic calendar teaser** — today-only, delayed, no filters; upsell to the full premium calendar. Reuses `economic_events` behind a limited public endpoint.
 - **Currency strength teaser** — yesterday's daily snapshot only (delayed data), static daily render; upsell to live meter.
 - **Currency correlation matrix** — 30-day pair correlations from candles already in Supabase; classic evergreen tool page.
@@ -54,15 +49,15 @@ All built on pipelines that already run — cost is frontend + one API route eac
 - **Programmatic per-pair strength pages** (`/currency-strength/eur-usd`, 28 pairs) · long-tail "eurusd strength today" queries; we render live per-pair data nobody else serves server-side · ISR from latest snapshot, real numbers + templated analysis (avoid thin content: include BOS dates, confidence, small history table). Free teaser, detail locked → upsell path.
 - **Replicate the lot-size-calc SEO pattern** (proven Apr 2026) on the sibling calculators above: own URL, FAQ schema, worked examples each. Calculators are the proven free-traffic engine here.
 - **Free economic-calendar teaser page** · "forex economic calendar this week" is high-volume and ours is premium-only, so Google never sees it · public page with today's high-impact rows (or 24h delay), full calendar gated. Already a free-module candidate above — the SEO case makes it first in line.
-- **prices-today enrichment** · pages are thin (live quote + hardcoded text — see Content entry) · add yesterday/7d/30d change, related-instrument links, FAQPage JSON-LD. More long-tail surface per page.
+- **prices-today enrichment** · pages are thin (live quote + Sanity market context) · FAQPage JSON-LD and related-instrument cross-links already shipped; still open: yesterday/7d/30d change figures per page. More long-tail surface per page.
 - **Internal-linking pass** · blog posts rarely link to calculators/tools and tools don't link back · related-tools block in the Sanity post template + related-articles on tool pages. Cheapest crawl-equity win available.
 
 ## SEO / UX *(2026-07-15, from SR-Alpha polish + SEO audit sessions)*
 
-- **Per-page OG images** · home has a real `og:image`; the four prices-today pages, `/smart-support-zones` and `/pro` ship OG tags without an image, so social/link-preview cards render bare · static branded 1200×630 per asset (or one `opengraph-image.tsx` per route with the asset name/theme colour). Cheap CTR win on shares.
+- ~~**Per-page OG images**~~ *(done 2026-07-17)* · shipped `opengraph-image.tsx` per route (prices-today ×4, `/pro`, `/smart-support-zones`) via a shared `next/og` builder (`lib/og/priceOgImage.tsx`), themed to each page accent; Twitter cards fall back to the OG image automatically. Prerender as static at build time.
 - **`/blog/all` pagination is client-only** · all 181 posts load into a client component but only 6 render per page via React state — crawlers without JS see page 1 only, and there are no `?page=` URLs to index · switch to server-paginated `searchParams` pages (or `/blog/page/2` routes) with `rel="prev"/"next"`-style linking. Post URLs are all in the sitemap, so severity is low, but crawl-path equity is lost.
 - **Blog tags are raw slugs end-to-end** · Sanity stores tags like `forex-market-update`; the index chip now de-hyphenates for display (2026-07-15 fix), but there are no tag/category pages and no display-name mapping · add a tag → display-name map (or proper Sanity category docs) and programmatic `/blog/tag/<tag>` listing pages; feeds the internal-linking pass above.
-- **Homepage "Prices Today" card is a single-door hub** · card links only `/gold-price-today`; silver/oil/bitcoin ride on the new footer + cross-link rows (2026-07-15) but get no above-the-fold entry point · either four mini price tiles (live quote per asset) or a small links row inside the card. Pairs with the prices-today enrichment entry.
+- ~~**Homepage "Prices Today" card is a single-door hub**~~ *(done 2026-07-17)* · card now renders a row of four asset chip-links (Gold/Silver/Oil/Bitcoin) instead of a single `/gold-price-today` link. Went with the links-row option, not live-quote tiles (would add 4 client fetches above the fold). Live mini-quotes still open if desired later.
 - **Public S&R Alpha standalone section is built but unused** · `ZoneOverlayPreview` now has a full non-compact variant (header, cohort cards, disclaimer, CTA footer) merged from the reference design, but every current usage is `compact` inside marketing grids · when a dedicated public S&R Alpha landing/section is wanted (e.g. on `/smart-support-zones` or a future `/support-resistance` public page), it's ready — just render it non-compact. No work needed now; noting so it isn't rebuilt.
 
 ## Launch prep
@@ -88,4 +83,4 @@ Deferred from the conversion-system build (Phases A–E shipped; see `CONVERSION
 - **No repo-linked migration flow** *(2026-07-04)*
   `supabase/migrations/*.sql` are run by hand in the SQL editor (002–004 tables even predate their migration files; 4 tables exist only in the dashboard). Consider `supabase` CLI link + `db push` so migrations are tracked and reproducible, and backfill migration files for the dashboard-created tables (`conflict_cache`, `scanner_results`, `currency_strength_snapshots`, `economic_events`).
 
-- **CSM data-freshness surfacing (from the 2026-07-07 outage):** the strength API silently serves week-old snapshots. Product fix: route already returns `cacheAgeSeconds` — dashboard panel should render a "data from Xh ago" badge / warning state when age exceeds ~2× scan cadence, so stale pipelines are visible to users AND founders instead of failing silent. Ops fix: a tiny GitHub-scheduled workflow that checks `scanner_health.updated_at` staleness and fails loudly (email) when >N hours — off-box watchdog replacing the VPS-resident one.
+- **CSM data-freshness surfacing (from the 2026-07-07 outage):** ~~Product fix~~ *(done 2026-07-17)* — both strength panels now show `Xs/m/h/d ago` and append `· Data delayed` past ~2× cadence (intraday panel already did this; the daily panel `StrengthPanelNative` was the gap, now matched). **Still open — ops fix:** a tiny GitHub-scheduled workflow that checks `scanner_health.updated_at` staleness and fails loudly (email) when >N hours — off-box watchdog replacing the VPS-resident one.

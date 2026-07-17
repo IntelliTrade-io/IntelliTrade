@@ -115,18 +115,21 @@ export const GRADE_TOKENS: Record<DynamicOpportunityGrade, GradeTokens> = {
     fill: "rgba(245, 158, 11, 0.14)",
     background: "rgba(120, 53, 15, 0.23)",
   },
+  // Green (lower qualified tier) carries the deeper emerald and no glow; Elite
+  // Green (higher tier) carries the brighter mint AND the premium glow, so the
+  // stronger grade always reads brighter than Green.
   green: {
-    text: "#86EFAC",
-    border: "rgba(134, 239, 172, 0.72)",
-    fill: "rgba(74, 222, 128, 0.14)",
-    background: "rgba(20, 83, 45, 0.22)",
-  },
-  elite_green: {
     text: "#34D399",
     border: "rgba(5, 150, 105, 0.9)",
     fill: "rgba(4, 120, 87, 0.2)",
     background: "rgba(6, 78, 59, 0.28)",
-    glow: "0 0 18px rgba(5, 150, 105, 0.28)",
+  },
+  elite_green: {
+    text: "#86EFAC",
+    border: "rgba(134, 239, 172, 0.72)",
+    fill: "rgba(74, 222, 128, 0.14)",
+    background: "rgba(20, 83, 45, 0.22)",
+    glow: "0 0 18px rgba(74, 222, 128, 0.4)",
   },
   a_plus: {
     text: "#A78BFA",
@@ -203,8 +206,8 @@ export const dynamicOpportunityGradeConfig: Record<
     chartFill: GRADE_TOKENS.green.fill,
     chartStroke: GRADE_TOKENS.green.border,
     glow: "",
-    panelClassName: "border-green-300/18 bg-green-400/[0.06]",
-    emphasisClassName: "text-green-100",
+    panelClassName: "border-emerald-400/20 bg-emerald-500/[0.07]",
+    emphasisClassName: "text-emerald-200",
     scannerStatus: "Active review",
   },
   elite_green: {
@@ -217,8 +220,8 @@ export const dynamicOpportunityGradeConfig: Record<
     chartFill: GRADE_TOKENS.elite_green.fill,
     chartStroke: GRADE_TOKENS.elite_green.border,
     glow: GRADE_TOKENS.elite_green.glow ?? "",
-    panelClassName: "border-emerald-400/20 bg-emerald-500/[0.07]",
-    emphasisClassName: "text-emerald-200",
+    panelClassName: "border-green-300/18 bg-green-400/[0.06]",
+    emphasisClassName: "text-green-100",
     scannerStatus: "Elite review",
   },
   a_plus: {

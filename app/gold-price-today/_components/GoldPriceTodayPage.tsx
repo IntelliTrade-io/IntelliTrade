@@ -2,11 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
+import { ChevronRight } from "lucide-react";
 import {
   PricePageBrandStyles,
   RadialBackdrop,
-
-  getChartTabClassName
 } from "@/components/price-pages/PricePageBrand";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 import type { MarketContext } from "@/lib/api/marketContext";
@@ -24,17 +23,6 @@ const QUOTE_REFRESH_MS = 30_000;
 
 const LARGE_CHART_TIMEOUT_MS = 6000;
 
-
-const LARGE_CHART_TABS = [
-  { label: "1D", value: "1D", timeFrame: null },
-  { label: "1W", value: "1W", timeFrame: "7D" },
-  { label: "1M", value: "1M", timeFrame: "1M" },
-  { label: "3M", value: "3M", timeFrame: "3M" },
-  { label: "6M", value: "6M", timeFrame: "6M" },
-  { label: "1Y", value: "1Y", timeFrame: "12M" },
-  { label: "All", value: "ALL", timeFrame: "ALL" },
-] as const;
-
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
@@ -44,23 +32,11 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const easternTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  hour: "numeric",
-  minute: "2-digit",
-  timeZone: "America/New_York",
-});
-
 function roundToTwo(v: number) {
   return Math.round(v * 100) / 100;
 }
 function formatCurrency(v: number) {
   return currencyFormatter.format(v);
-}
-function formatSigned(v: number) {
-  return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}`;
-}
-function formatSignedPct(v: number) {
-  return `${v >= 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}%`;
 }
 
 
@@ -124,83 +100,6 @@ function useDxy(): string | null {
     return () => { cancelled = true; window.clearInterval(id); };
   }, []);
   return value;
-}
-
-// ─── Quote logic ──────────────────────────────────────────────────────────────
-
-type GoldQuote = {
-  updatedAt: number;
-  price: number;
-  absoluteChange: number;
-  percentageChange: number;
-  high: number;
-  low: number;
-  open: number;
-  formatted: {
-    price: string;
-    percentageChange: string;
-    absoluteChange: string;
-    sessionTime: string;
-    high: string;
-    low: string;
-    open: string;
-  };
-};
-
-function useGoldPrice(): GoldQuote | null {
-  const [quote, setQuote] = useState<GoldQuote | null>(null);
-  const openRef = useRef<number | null>(null);
-  const highRef = useRef<number>(-Infinity);
-  const lowRef = useRef<number>(Infinity);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchPrice = async () => {
-      const usd = await fetchUsdPrice("XAU");
-      if (usd === null || cancelled) return;
-
-      const price = roundToTwo(usd);
-      if (openRef.current === null) openRef.current = price;
-      if (price > highRef.current) highRef.current = price;
-      if (price < lowRef.current) lowRef.current = price;
-
-      const open = openRef.current;
-      const high = highRef.current;
-      const low = lowRef.current;
-      const absoluteChange = roundToTwo(price - open);
-      const percentageChange = roundToTwo((absoluteChange / open) * 100);
-      const updatedAt = Date.now();
-
-      setQuote({
-        updatedAt,
-        price,
-        absoluteChange,
-        percentageChange,
-        high,
-        low,
-        open,
-        formatted: {
-          price: formatCurrency(price),
-          percentageChange: formatSignedPct(percentageChange),
-          absoluteChange: `(${formatSigned(absoluteChange)})`,
-          sessionTime: `${easternTimeFormatter.format(updatedAt)} / ET`,
-          high: formatCurrency(high),
-          low: formatCurrency(low),
-          open: formatCurrency(open),
-        },
-      });
-    };
-
-    fetchPrice();
-    const id = window.setInterval(fetchPrice, QUOTE_REFRESH_MS);
-    return () => {
-      cancelled = true;
-      window.clearInterval(id);
-    };
-  }, []);
-
-  return quote;
 }
 
 // ─── TradingView mini chart loader ────────────────────────────────────────────
@@ -333,68 +232,71 @@ function MiniPriceWidgetChart() {
   );
 }
 
-function TradingViewMiniChart({ timeFrame }: { timeFrame: string | null }) {
+// TradingView Symbol Overview: a richer-than-mini area chart with its own
+// built-in date-range tabs (1D / 1M / 3M / 12M / 60M / All), price header and
+// value tracking. Themed to the gold accent and transparent so it sits on the
+// panel. It manages its own ranges, so the page carries no custom tab row.
+function TradingViewSymbolOverview() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">(
-    "loading"
-  );
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    let cancelled = false;
-    let frameId = 0;
-    setStatus("loading");
     container.replaceChildren();
 
-    const mountChart = async () => {
-      try {
-        await ensureTvMiniChartModule();
-        if (cancelled) return;
-        const chart = document.createElement("tv-mini-chart");
-        chart.setAttribute("symbol", GOLD_SYMBOL);
-        chart.setAttribute("theme", "dark");
-        chart.setAttribute("show-time-range", "");
-        chart.setAttribute("transparent", "");
-        chart.style.display = "block";
-        chart.style.position = "absolute";
-        chart.style.inset = "0";
-        chart.style.width = "100%";
-        chart.style.height = "100%";
-        chart.style.maxWidth = "100%";
-        chart.style.minWidth = "0";
-        if (timeFrame) chart.setAttribute("time-frame", timeFrame);
-        container.replaceChildren(chart);
-        frameId = window.requestAnimationFrame(() => {
-          if (!cancelled) setStatus("ready");
-        });
-      } catch {
-        if (cancelled) return;
-        container.replaceChildren();
-        setStatus("error");
-      }
-    };
+    const widget = document.createElement("div");
+    widget.className = "tradingview-widget-container__widget";
+    widget.style.height = "100%";
+    widget.style.width = "100%";
+    container.appendChild(widget);
 
-    mountChart();
+    const script = document.createElement("script");
+    script.src =
+      "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+    script.async = true;
+    script.type = "text/javascript";
+    script.innerHTML = JSON.stringify({
+      symbols: [["Gold", `${GOLD_SYMBOL}|1D`]],
+      chartOnly: false,
+      width: "100%",
+      height: "100%",
+      locale: "en",
+      colorTheme: "dark",
+      autosize: true,
+      showVolume: false,
+      showMA: false,
+      hideDateRanges: false,
+      hideMarketStatus: false,
+      hideSymbolLogo: false,
+      scalePosition: "right",
+      scaleMode: "Normal",
+      fontFamily:
+        "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+      fontSize: "10",
+      noTimeScale: false,
+      valuesTracking: "1",
+      changeMode: "price-and-percent",
+      chartType: "area",
+      lineWidth: 2,
+      lineType: 0,
+      dateRanges: ["1d|1", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"],
+      lineColor: "rgba(245, 158, 11, 1)",
+      topColor: "rgba(245, 158, 11, 0.25)",
+      bottomColor: "rgba(245, 158, 11, 0)",
+      backgroundColor: "#050507",
+      gridLineColor: "rgba(255, 255, 255, 0.06)",
+      isTransparent: false,
+    });
+    container.appendChild(script);
+
     return () => {
-      cancelled = true;
-      window.cancelAnimationFrame(frameId);
       container.replaceChildren();
     };
-  }, [timeFrame]);
+  }, []);
 
   return (
-    <div className="relative h-[280px] w-full overflow-hidden rounded-[18px] bg-[#050507] md:h-[340px]" style={{ contain: "paint", minWidth: 0 }}>
-      <div ref={containerRef} className="absolute inset-0" />
-      {status !== "ready" && (
-        <ChartStatusOverlay
-          message={
-            status === "error"
-              ? "Chart will be back online ASAP"
-              : "Loading live chart..."
-          }
-        />
-      )}
+    <div className="relative h-[360px] w-full overflow-hidden rounded-[18px] bg-[#050507] md:h-[440px]" style={{ contain: "paint", minWidth: 0 }}>
+      <div ref={containerRef} className="tradingview-widget-container absolute inset-0" />
       <div className="pointer-events-none absolute inset-0 rounded-[18px] ring-1 ring-inset ring-white/5" />
     </div>
   );
@@ -448,14 +350,13 @@ function FaqAccordionItem({
           <span className="text-sm font-medium text-slate-100">
             {item.question}
           </span>
-          <span
+          <ChevronRight
+            aria-hidden
             className={[
-              "shrink-0 text-lg text-slate-300 transition-transform duration-300",
+              "h-5 w-5 shrink-0 text-slate-300 transition-transform duration-300",
               isOpen ? "rotate-90" : "rotate-0",
             ].join(" ")}
-          >
-            &gt;
-          </span>
+          />
         </button>
         <div
           className={[
@@ -474,30 +375,23 @@ function FaqAccordionItem({
   );
 }
 
-function MiniPriceWidget({ quote }: { quote: GoldQuote | null }) {
+function MiniPriceWidget() {
 
   return (
-    <motion.div
-      whileHover={{ y: -6, scale: 1.01 }}
-      transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="price-surface group rounded-3xl p-5 md:p-6"
-    >
+    <motion.div className="price-surface rounded-3xl p-5 md:p-6">
       <RadialBackdrop />
       <div className="price-surface-content">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-slate-50 transition-colors duration-300 group-hover:text-white">
+            <p className="text-xl sm:text-3xl font-semibold tracking-tight text-slate-50">
               Gold Price
             </p>
-            <p className="price-value-brand mt-2 sm:mt-4 text-3xl sm:text-5xl font-semibold tracking-tight transition duration-300 group-hover:scale-[1.01]">
-              {quote?.formatted.price ?? "—"}
-            </p>
           </div>
-          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-amber-300 transition duration-300">
+          <button className="price-widget-chip rounded-xl border px-3 py-2 text-sm font-medium text-amber-300">
             1D
           </button>
         </div>
-        <div className="price-chart-shell price-chart-shell-hover mt-5 rounded-2xl p-3">
+        <div className="price-chart-shell mt-5 rounded-2xl p-3">
           <MiniPriceWidgetChart />
         </div>
 
@@ -513,15 +407,9 @@ export default function GoldPriceTodayPage({
 }: {
   marketContext: MarketContext | null;
 }) {
-  const goldQuote = useGoldPrice();
   const marketData = useMarketData();
   const dxy = useDxy();
-  const [selectedRange, setSelectedRange] = useState("1D");
   const [openFaq, setOpenFaq] = useState(-1);
-
-  const activeLargeChartTab =
-    LARGE_CHART_TABS.find((t) => t.value === selectedRange) ??
-    LARGE_CHART_TABS[0];
 
   return (
     <div className="min-h-screen bg-[#020203] text-slate-100 overflow-x-hidden">
@@ -560,7 +448,7 @@ export default function GoldPriceTodayPage({
               </div>
             </div>
             <div>
-              <MiniPriceWidget quote={goldQuote} />
+              <MiniPriceWidget />
             </div>
           </div>
         </motion.section>
@@ -614,39 +502,16 @@ export default function GoldPriceTodayPage({
         >
           <RadialBackdrop />
           <div className="price-surface-content">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">
-                  Price Chart
-                </p>
-                <h2 className="text-3xl font-semibold tracking-tight text-slate-50">
-                  Live chart view
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                {LARGE_CHART_TABS.map((tab) => (
-                  <button
-                    key={tab.value}
-                    type="button"
-                    onClick={() => setSelectedRange(tab.value)}
-                    className={getChartTabClassName(tab.value === selectedRange, "gold")}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              </div>
-              
-            <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
-              <p className="text-2xl sm:text-4xl font-semibold tracking-tight text-slate-100 price-value-brand">
-                {goldQuote?.formatted.price ?? "—"}
+            <div>
+              <p className="price-eyebrow text-[11px] font-semibold uppercase tracking-[0.28em]">
+                Price Chart
               </p>
-            </div>
-              
+              <h2 className="text-3xl font-semibold tracking-tight text-slate-50">
+                Live chart view
+              </h2>
             </div>
             <div className="price-chart-shell mt-6 rounded-2xl p-4">
-              <TradingViewMiniChart
-                timeFrame={activeLargeChartTab.timeFrame}
-              />
+              <TradingViewSymbolOverview />
             </div>
           </div>
         </motion.section>

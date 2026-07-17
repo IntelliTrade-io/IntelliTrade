@@ -1,0 +1,12 @@
+{
+  "symbol": "EURUSD",
+  "timeframe": "M15",
+  "rows": 124092,
+  "date_range": [
+    "2021-01-03 17:00:00+00:00",
+    "2025-12-31 00:00:00+00:00"
+  ],
+  "source": "QuantConnect Oanda midpoint OHLC resampled from minute data",
+  "file": "eurusd_m15_2021_2025_quantconnect_oanda_mid.csv.gz",
+  "sha256": "f926a447a4305bf702976a15002f57de13ed85e8c4372bd410d00a058bc74ba6"
+}

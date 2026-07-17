@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { LucideIcon } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import Link from "next/link";
 import { client } from "@/sanity/client";
@@ -62,15 +63,33 @@ const POSTS_QUERY = `*[_type == "post" && defined(slug.current)]
 
 // ─── Tool cards ───────────────────────────────────────────────────────────────
 
-const FREE_TOOLS = [
+type ToolCardData = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  desc: string;
+  tag: string;
+  cta: string;
+  isPro: boolean;
+  meta?: string;
+  subLinks?: { label: string; href: string }[];
+};
+
+const FREE_TOOLS: ToolCardData[] = [
   {
     href: "/lotsizecalculator",
     icon: Calculator,
-    label: "Lot Size Calculator",
-    desc: "Stop guessing your position size. Manage risk like a professional with a clean calculator built for forex, gold, indices and crypto.",
-    tag: "FREE TOOL",
+    label: "Calculators",
+    desc: "Free risk and planning tools for forex, gold and crypto: position size, pip value, margin and account compounding.",
+    tag: "FREE",
     cta: "Open",
     isPro: false,
+    subLinks: [
+      { label: "Lot size", href: "/lotsizecalculator" },
+      { label: "Pip value", href: "/pipvaluecalculator" },
+      { label: "Margin", href: "/margincalculator" },
+      { label: "Compounding", href: "/compoundingcalculator" },
+    ],
   },
   {
     href: "/gold-price-today",
@@ -80,6 +99,12 @@ const FREE_TOOLS = [
     tag: "FREE",
     cta: "Open",
     isPro: false,
+    subLinks: [
+      { label: "Gold", href: "/gold-price-today" },
+      { label: "Silver", href: "/silver-price-today" },
+      { label: "Oil", href: "/oil-price-today" },
+      { label: "Bitcoin", href: "/bitcoin-price-today" },
+    ],
   },
   {
     href: "/blog",
@@ -93,7 +118,7 @@ const FREE_TOOLS = [
   },
 ];
 
-const PRO_TOOLS = [
+const PRO_TOOLS: ToolCardData[] = [
   {
     href: "/smart-support-zones",
     icon: LineChart,
@@ -134,13 +159,11 @@ const PRO_TOOLS = [
 
 // ─── Components ───────────────────────────────────────────────────────────────
 
-function ToolCard({ tool }: { tool: typeof FREE_TOOLS[number] & { meta?: string } }) {
+function ToolCard({ tool }: { tool: ToolCardData }) {
   const isPro = tool.isPro;
-  return (
-    <Link
-      href={tool.href}
-      className="group relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/[0.06]"
-    >
+
+  const cardBody = (
+    <>
       <div className="radial-backdrop" />
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-start justify-between mb-4">
@@ -167,13 +190,44 @@ function ToolCard({ tool }: { tool: typeof FREE_TOOLS[number] & { meta?: string 
           <span className="mt-2 inline-flex text-[10px] text-white/28 uppercase tracking-wider">{tool.meta}</span>
         )}
 
-        <div className={`mt-4 flex items-center gap-1 text-xs transition-colors ${
-          isPro ? "text-violet-400/60 group-hover:text-violet-300" : "text-brand/60 group-hover:text-brand/90"
-        }`}>
-          {tool.cta}
-          <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-        </div>
+        {tool.subLinks ? (
+          // Per-asset entry points. Rendered as sibling links (the wrapper is a
+          // div, not a Link) so we don't nest anchors.
+          <div className="mt-4 flex flex-wrap gap-2">
+            {tool.subLinks.map((sub) => (
+              <Link
+                key={sub.href}
+                href={sub.href}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs text-white/70 transition-all hover:border-brand/30 hover:bg-white/[0.07] hover:text-white"
+              >
+                {sub.label}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className={`mt-4 flex items-center gap-1 text-xs transition-colors ${
+            isPro ? "text-violet-400/60 group-hover:text-violet-300" : "text-brand/60 group-hover:text-brand/90"
+          }`}>
+            {tool.cta}
+            <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+        )}
       </div>
+    </>
+  );
+
+  const cardClass =
+    "group relative overflow-hidden rounded-[24px] border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-white/[0.06]";
+
+  // Cards with per-asset sub-links can't be a single anchor (no nested links),
+  // so they render as a div; the sub-links carry navigation instead.
+  if (tool.subLinks) {
+    return <div className={cardClass}>{cardBody}</div>;
+  }
+
+  return (
+    <Link href={tool.href} className={cardClass}>
+      {cardBody}
     </Link>
   );
 }
@@ -210,9 +264,6 @@ export default async function HomePage() {
 
         {/* ── Hero ── */}
         <section className="text-center mb-20">
-          <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-6">
-            INTELLITRADE
-          </div>
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white leading-tight mb-6">
             Stop trading blind.<br className="hidden sm:block" /> Start with context.
           </h1>

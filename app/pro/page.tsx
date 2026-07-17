@@ -43,6 +43,10 @@ const FEATURES = [
 
 const COMPARISON: { label: string; free: boolean; pro: boolean }[] = [
   { label: "Lot size calculator", free: true, pro: true },
+  { label: "Pip value calculator", free: true, pro: true },
+  { label: "Margin calculator", free: true, pro: true },
+  { label: "Compounding calculator", free: true, pro: true },
+  { label: "Forex market hours clock", free: true, pro: true },
   { label: "Prices today (Gold, Silver, Oil, Bitcoin)", free: true, pro: true },
   { label: "Macro blog", free: true, pro: true },
   { label: "Smart Support Zones (EURUSD)", free: false, pro: true },

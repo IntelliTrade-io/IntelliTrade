@@ -71,33 +71,34 @@ export function ZoneOverlayPreview({
         </div>
         {selectedZone && selectedTokens ? (
           <div
-            className="min-w-[240px] rounded-[18px] border px-4 py-3"
+            className="flex w-full items-center gap-4 rounded-[16px] border px-4 py-2.5 sm:w-[430px]"
             style={{
               borderColor: selectedTokens.border,
               background: `radial-gradient(circle at 12% 0%, ${selectedTokens.fill}, transparent 55%), rgba(255,255,255,0.02)`,
               boxShadow: selectedTokens.glow,
             }}
           >
-            <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">Selected zone</div>
-            <div className="mt-2">
-              <OpportunityGradeBadge grade={selectedZone.dynamicGrade} compact />
-            </div>
-            <div className="mt-2 min-h-[52px] text-sm text-white/82">
+            <div className="flex shrink-0 flex-col items-center gap-1">
+              <OpportunityGradeBadge
+                grade={selectedZone.dynamicGrade}
+                compact
+                className="w-[140px] justify-center"
+              />
               {selectedRate !== undefined ? (
-                <>
-                  <span className="text-2xl font-semibold tracking-tight" style={{ color: selectedTokens.text }}>
-                    {formatHistoricalReactionRate(selectedZone.dynamicGrade)}
-                  </span>{" "}
-                  <span className="text-white/74">historical 0.50R first-reaction rate</span>
-                </>
-              ) : (
-                gradeSummaryLine(selectedZone.dynamicGrade)
-              )}
+                <span className="text-lg font-semibold tracking-tight" style={{ color: selectedTokens.text }}>
+                  {formatHistoricalReactionRate(selectedZone.dynamicGrade)}
+                </span>
+              ) : null}
             </div>
-            <div className="mt-1 truncate text-[11px] text-white/44">
-              {selectedCohort
-                ? `${selectedCohort.label} · ${selectedCohort.resolvedSample} resolved events`
-                : selectedZone.zoneLabel}
+            <div className="flex min-h-[52px] min-w-0 flex-col justify-center text-sm leading-snug text-white/82">
+              <div>
+                {selectedRate !== undefined
+                  ? "historical 0.50R first-reaction rate"
+                  : gradeSummaryLine(selectedZone.dynamicGrade)}
+              </div>
+              <div className="mt-0.5 truncate text-[11px] text-white/44">
+                {selectedCohort ? selectedCohort.label : selectedZone.zoneLabel}
+              </div>
             </div>
           </div>
         ) : null}
@@ -150,7 +151,7 @@ export function ZoneOverlayPreview({
                   <>
                     <span className="text-base font-semibold text-white">{formatHistoricalReactionRate(zone.dynamicGrade)}</span>
                     <span className="text-[10px] leading-snug text-white/44">
-                      {cohort ? `${cohort.label} · ${cohort.resolvedSample} resolved` : "historical first-reaction rate"}
+                      {cohort ? cohort.label : "historical first-reaction rate"}
                     </span>
                   </>
                 ) : (

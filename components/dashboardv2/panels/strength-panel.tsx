@@ -751,6 +751,18 @@ interface StrengthPanelNativeProps {
   variant?: "daily" | "intraday";
 }
 
+// Stale thresholds by cadence: the daily scanner runs ~once/day (30h catches a
+// missed run without tripping on a normal overnight gap); intraday matches the
+// dedicated intraday panel's 20-minute window.
+const STALE_AGE_SECONDS = { daily: 30 * 3600, intraday: 20 * 60 } as const;
+
+function formatAge(seconds: number): string {
+  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)}h ago`;
+  return `${Math.round(seconds / 86400)}d ago`;
+}
+
 function useStrengthData(variant: "daily" | "intraday", tick: number) {
   const [data, setData] = useState<{ currencies: Scores; fetchedAt: string; cacheAgeSeconds: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -779,9 +791,9 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
   const expressions = data ? computeExpressions(scores) : [];
   const available = CURRENCIES.filter((c) => c in scores);
 
-  const ago = data
-    ? data.cacheAgeSeconds < 60 ? `${data.cacheAgeSeconds}s ago` : `${Math.round(data.cacheAgeSeconds / 60)}m ago`
-    : null;
+  const ago = data ? formatAge(data.cacheAgeSeconds) : null;
+  const isStale = data ? data.cacheAgeSeconds > STALE_AGE_SECONDS[variant] : false;
+  const subtitle = ago ? (isStale ? `${ago} · Data delayed` : ago) : undefined;
 
   return (
     <>
@@ -800,7 +812,7 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
     <WidgetShell
       title={variant === "intraday" ? "Currency strength · intraday" : "Currency strength · daily"}
       className="h-full"
-      subtitle={ago ?? undefined}
+      subtitle={subtitle}
       contentClassName="min-h-0 overflow-y-auto"
       headerRight={
         <>

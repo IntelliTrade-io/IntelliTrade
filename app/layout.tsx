@@ -12,6 +12,7 @@ import IntelliTradeLogo from "@/assets/images/intelliTrade.png";
 import { AuthButton } from "@/components/auth/AuthButton";
 import NavLinks from "@/components/layout/NavLinks";
 import MobileNav from "@/components/layout/MobileNav";
+import TradingViewNavTicker from "@/components/layout/TradingViewNavTicker";
 import { hasEnvVars } from "@/lib/utils";
 import { Analytics } from '@vercel/analytics/react';
 import Script from "next/script";
@@ -89,13 +90,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ParticlesBackground />
 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {/* Header */}
-            <nav className="sticky top-0 w-full h-16 bg-white/5 backdrop-blur-md border-b border-white/10 z-[9999]" style={{ overflow: "visible" }}>
-              <div className="w-full max-w-5xl flex items-center h-full px-5 mx-auto">
-                {/* Logo — left */}
-                <div className="flex-1">
-                  <div style={{ position: "relative", height: "48px", width: "150px", flexShrink: 0 }}>
-                    <Link href="/" aria-label="IntelliTrade home" style={{ position: "absolute", inset: 0, zIndex: 1 }} />
+          {/* Header — editorial flush bar (design 1B): full-width, quiet
+              border-bottom, underline nav links, live EURUSD chip. */}
+            <header className="sticky top-0 z-[9999] border-b border-white/[0.07] bg-[#08080c]/95 backdrop-blur-sm">
+              <nav className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-6">
+                {/* Left: logo + links */}
+                <div className="flex h-full items-center gap-10">
+                  <Link
+                    href="/"
+                    aria-label="IntelliTrade home"
+                    className="relative block h-12 w-[150px] shrink-0"
+                  >
                     <Image
                       src={IntelliTradeLogo}
                       width={500}
@@ -103,19 +108,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                       className="nav-header-logo"
                       alt="IntelliTrade"
                     />
+                  </Link>
+                  <div className="hidden h-full md:flex">
+                    <NavLinks />
                   </div>
                 </div>
-                {/* Nav links — center */}
-                <div className="hidden md:flex">
-                  <NavLinks />
+                {/* Right: ticker + auth */}
+                <div className="flex items-center gap-3.5">
+                  <TradingViewNavTicker />
+                  <div className="hidden md:flex">
+                    {!hasEnvVars ? null : <AuthButton />}
+                  </div>
+                  <MobileNav />
                 </div>
-                {/* Auth — right */}
-                <div className="flex-1 hidden md:flex justify-end">
-                  {!hasEnvVars ? null : <AuthButton />}
-                </div>
-                <MobileNav />
-              </div>
-            </nav>
+              </nav>
+            </header>
 
             {/* Main content */}
             <main className="w-full flex flex-col items-center relative z-10">
