@@ -41,17 +41,19 @@ describe("support resistance Alpha model", () => {
     expect(rows.map((row) => row.dynamicGrade)).toEqual([...GRADE_DISPLAY_ORDER].reverse());
   });
 
-  it("locks the final grade colour tokens (crimson/slate/amber/light green/emerald/violet)", () => {
+  it("locks the final grade colour tokens (crimson/slate/amber/emerald/mint/violet)", () => {
     expect(GRADE_TOKENS.blocked.text).toBe("#FB7185");
     expect(GRADE_TOKENS.blue.text).toBe("#94A3B8");
     expect(GRADE_TOKENS.watch.text).toBe("#F59E0B");
-    expect(GRADE_TOKENS.green.text).toBe("#86EFAC");
-    expect(GRADE_TOKENS.elite_green.text).toBe("#34D399");
+    // Green = deeper emerald (lower tier); Elite Green = brighter mint (higher
+    // tier), so the stronger grade always reads brighter than Green.
+    expect(GRADE_TOKENS.green.text).toBe("#34D399");
+    expect(GRADE_TOKENS.elite_green.text).toBe("#86EFAC");
     expect(GRADE_TOKENS.a_plus.text).toBe("#A78BFA");
 
     // Restrained glow ONLY for the top two tiers.
     expect(GRADE_TOKENS.a_plus.glow).toContain("rgba(124, 58, 237");
-    expect(GRADE_TOKENS.elite_green.glow).toContain("rgba(5, 150, 105");
+    expect(GRADE_TOKENS.elite_green.glow).toContain("rgba(74, 222, 128");
     expect(GRADE_TOKENS.blocked.glow).toBeUndefined();
     expect(GRADE_TOKENS.blue.glow).toBeUndefined();
     expect(GRADE_TOKENS.watch.glow).toBeUndefined();

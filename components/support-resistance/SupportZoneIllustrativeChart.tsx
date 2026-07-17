@@ -47,7 +47,7 @@ const COLORS: Record<
   }
 > = {
   blocked: {
-    label: "BLOCKED · WEAK",
+    label: "BLOCKED",
     color: "#FB7185",
     border: "rgba(251, 113, 133, 0.74)",
     fill: "rgba(190, 24, 93, 0.15)",
@@ -55,7 +55,7 @@ const COLORS: Record<
     badgeBackground: "rgba(7, 10, 17, 0.84)",
   },
   informational: {
-    label: "INFORMATIONAL · WEAK",
+    label: "INFORMATIONAL",
     color: "#94A3B8",
     border: "rgba(148, 163, 184, 0.60)",
     fill: "rgba(100, 116, 139, 0.12)",
@@ -63,31 +63,33 @@ const COLORS: Record<
     badgeBackground: "rgba(7, 10, 17, 0.84)",
   },
   watch: {
-    label: "WATCH · MEDIUM",
+    label: "WATCH",
     color: "#F59E0B",
     border: "rgba(245, 158, 11, 0.80)",
     fill: "rgba(245, 158, 11, 0.14)",
     glow: "rgba(245, 158, 11, 0.18)",
     badgeBackground: "rgba(7, 10, 17, 0.84)",
   },
+  // Green (lower tier) = deeper emerald; Elite Green (higher tier) = brighter
+  // mint, matching GRADE_TOKENS, so the stronger grade always reads brighter.
   green: {
-    label: "GREEN · STRONG",
-    color: "#86EFAC",
-    border: "rgba(134, 239, 172, 0.80)",
-    fill: "rgba(74, 222, 128, 0.14)",
-    glow: "rgba(74, 222, 128, 0.20)",
-    badgeBackground: "rgba(7, 10, 17, 0.84)",
-  },
-  elite: {
-    label: "ELITE GREEN · STRONG",
+    label: "GREEN",
     color: "#10B981",
     border: "rgba(16, 185, 129, 0.94)",
     fill: "rgba(4, 120, 87, 0.22)",
     glow: "rgba(16, 185, 129, 0.30)",
     badgeBackground: "rgba(6, 78, 59, 0.32)",
   },
+  elite: {
+    label: "ELITE GREEN",
+    color: "#86EFAC",
+    border: "rgba(134, 239, 172, 0.80)",
+    fill: "rgba(74, 222, 128, 0.14)",
+    glow: "rgba(74, 222, 128, 0.20)",
+    badgeBackground: "rgba(7, 10, 17, 0.84)",
+  },
   aPlus: {
-    label: "A+ · STRONG",
+    label: "A+",
     color: "#8B5CF6",
     border: "rgba(139, 92, 246, 0.98)",
     fill: "rgba(124, 58, 237, 0.22)",
@@ -306,6 +308,112 @@ function drawBadge(
   context.restore();
 }
 
+/**
+ * Zone badges live in a dedicated lane at the top of the canvas (one row on
+ * wide charts, two staggered rows on narrow ones) with a thin dashed leader
+ * line tracing down to each zone. Keeps the plot area itself uncluttered.
+ */
+function drawZoneBadgeLane(
+  context: CanvasRenderingContext2D,
+  x: (index: number) => number,
+  y: (price: number) => number,
+  width: number,
+  padding: { left: number; right: number },
+  rows: number
+) {
+  const laneTop = 10;
+  const badgeHeight = 24;
+  const rowGap = 6;
+  const gap = 8;
+  const minX = padding.left;
+  const maxX = width - padding.right;
+
+  context.save();
+  context.font = "800 10px Inter, ui-sans-serif, system-ui, sans-serif";
+
+  const items = ZONES.map((zone, index) => {
+    const grade = COLORS[zone.key];
+    const anchorX = (x(zone.start) + x(zone.end)) / 2;
+    const badgeWidth = context.measureText(grade.label).width + 20;
+
+    return {
+      zone,
+      grade,
+      anchorX,
+      width: badgeWidth,
+      x: anchorX - badgeWidth / 2,
+      row: rows === 2 ? index % 2 : 0,
+    };
+  });
+
+  // Per row: clamp into the plot, resolve overlaps left-to-right, then sweep
+  // back right-to-left so nothing hangs past the right edge.
+  for (let row = 0; row < rows; row += 1) {
+    const rowItems = items.filter((item) => item.row === row);
+
+    rowItems.forEach((item) => {
+      item.x = Math.min(Math.max(item.x, minX), maxX - item.width);
+    });
+
+    for (let i = 1; i < rowItems.length; i += 1) {
+      const previous = rowItems[i - 1]!;
+      const current = rowItems[i]!;
+
+      if (current.x < previous.x + previous.width + gap) {
+        current.x = previous.x + previous.width + gap;
+      }
+    }
+
+    let limit = maxX;
+    for (let i = rowItems.length - 1; i >= 0; i -= 1) {
+      const current = rowItems[i]!;
+      current.x = Math.min(current.x, limit - current.width);
+      limit = current.x - gap;
+    }
+  }
+
+  // Leader lines first, badges second, so a line never crosses over a badge.
+  items.forEach((item) => {
+    const badgeY = laneTop + item.row * (badgeHeight + rowGap);
+    const zoneTopY = y(item.zone.high);
+
+    context.save();
+    context.strokeStyle = item.grade.border;
+    context.globalAlpha = 0.45;
+    context.lineWidth = 1;
+    context.setLineDash([2, 4]);
+    context.beginPath();
+    context.moveTo(item.x + item.width / 2, badgeY + badgeHeight + 2);
+    context.lineTo(item.anchorX, zoneTopY - 4);
+    context.stroke();
+    context.setLineDash([]);
+
+    context.globalAlpha = 1;
+    context.fillStyle = item.grade.color;
+    context.beginPath();
+    context.arc(item.anchorX, zoneTopY - 4, 2.2, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  });
+
+  items.forEach((item) => {
+    const badgeY = laneTop + item.row * (badgeHeight + rowGap);
+
+    drawBadge(
+      context,
+      item.grade.label,
+      item.x,
+      badgeY,
+      item.grade.color,
+      item.grade.badgeBackground,
+      item.grade.border,
+      item.grade.glow
+    );
+  });
+
+  context.restore();
+}
+
 function drawCallout(
   context: CanvasRenderingContext2D,
   text: string,
@@ -381,9 +489,6 @@ function drawLongPosition(
   context.stroke();
 
   context.setLineDash([]);
-  context.fillStyle = grade.color;
-  context.font = "800 9px Inter, ui-sans-serif, system-ui, sans-serif";
-  context.fillText(position.label.toUpperCase(), startX + 6, targetY + 12);
 
   context.fillStyle = "rgba(226, 232, 240, 0.70)";
   context.font = "700 8px Inter, ui-sans-serif, system-ui, sans-serif";
@@ -391,6 +496,45 @@ function drawLongPosition(
   context.fillText("ENTRY", startX + width - 34, entryY - 4);
   context.fillText("STOP", startX + width - 28, stopY - 4);
 
+  context.restore();
+}
+
+/**
+ * "ILLUSTRATIVE LONG" title pill for a long position. Drawn in a late pass —
+ * after the candles and callouts — so it always sits on top (highest z), and
+ * positioned just above the reward box so it never overlaps the box contents.
+ */
+function drawLongLabel(
+  context: CanvasRenderingContext2D,
+  position: LongPosition,
+  x: (index: number) => number,
+  y: (price: number) => number
+) {
+  const grade = COLORS[position.key];
+  const startX = x(position.start);
+  const targetY = y(position.target);
+
+  const labelText = position.label.toUpperCase();
+  context.save();
+  context.font = "800 9px Inter, ui-sans-serif, system-ui, sans-serif";
+
+  const labelWidth = context.measureText(labelText).width + 14;
+  const labelHeight = 17;
+  const labelX = startX + 4;
+  const labelY = targetY - labelHeight - 4;
+
+  roundedRectPath(context, labelX, labelY, labelWidth, labelHeight, 8);
+  context.fillStyle = "rgba(5, 9, 20, 0.92)";
+  context.fill();
+  context.strokeStyle = grade.border;
+  context.globalAlpha = 0.75;
+  context.lineWidth = 1;
+  context.stroke();
+  context.globalAlpha = 1;
+
+  context.fillStyle = grade.color;
+  context.textBaseline = "middle";
+  context.fillText(labelText, labelX + 7, labelY + labelHeight / 2 + 0.5);
   context.restore();
 }
 
@@ -417,7 +561,16 @@ function drawChart(
 
   const width = rect.width;
   const height = rect.height;
-  const padding = { left: 28, right: 88, top: 38, bottom: 36 };
+
+  // Reserve room at the top for the zone-badge lane (two staggered rows on
+  // narrow charts, one row otherwise).
+  const badgeLaneRows = width < 700 ? 2 : 1;
+  const padding = {
+    left: 28,
+    right: 88,
+    top: badgeLaneRows === 2 ? 92 : 64,
+    bottom: 36,
+  };
   const plotWidth = width - padding.left - padding.right;
   const plotHeight = height - padding.top - padding.bottom;
 
@@ -522,17 +675,6 @@ function drawChart(
 
     context.stroke();
     context.restore();
-
-    drawBadge(
-      context,
-      grade.label,
-      Math.min(zoneX + 8, width - padding.right - 180),
-      Math.max(8, zoneY - 29),
-      grade.color,
-      grade.badgeBackground,
-      grade.border,
-      grade.glow
-    );
   });
 
   LONG_POSITIONS.forEach((position) => {
@@ -633,11 +775,18 @@ function drawChart(
 
   context.restore();
 
+  drawZoneBadgeLane(context, x, y, width, padding, badgeLaneRows);
+
   drawCallout(context, "weak zones break", x(20), y(1.08772), "#FB7185");
   drawCallout(context, "small hesitation", x(48), y(1.08525), "#F59E0B");
-  drawCallout(context, "higher bounce", x(89), y(1.08425), "#86EFAC");
-  drawCallout(context, "stronger bounce", x(112), y(1.08485), "#10B981");
+  drawCallout(context, "high bounce", x(89), y(1.08425), "#10B981");
+  drawCallout(context, "stronger bounce", x(112), y(1.08485), "#86EFAC");
   drawCallout(context, "largest bounce", x(139), y(1.0860), "#A78BFA");
+
+  // Top z-layer: long-position titles sit above their boxes, over everything.
+  LONG_POSITIONS.forEach((position) => {
+    drawLongLabel(context, position, x, y);
+  });
 }
 
 export type SupportZoneIllustrativeChartProps = {
@@ -729,7 +878,7 @@ const styles = `
 
   .it-support-zone-chart__caption {
     position: absolute;
-    top: 14px;
+    bottom: 12px;
     left: 16px;
     display: inline-flex;
     align-items: center;
