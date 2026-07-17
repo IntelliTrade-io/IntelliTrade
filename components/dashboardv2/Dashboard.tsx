@@ -136,25 +136,28 @@ export function Dashboard() {
     <div className="min-h-screen w-full bg-transparent px-4 pb-8 pt-4 text-white sm:px-8 lg:px-10">
       <div className="mx-auto w-full" style={{ maxWidth: isMobile ? "100%" : (focusedType !== null ? WORKSPACE_PRESETS.standard.maxWidth : workspaceConfig.maxWidth) }}>
 
-        {/* Panel switcher pill nav */}
+        {/* Panel switcher — segmented control (design 1D): one container, the
+            active tab is a solid violet gradient pill carrying its icon, and a
+            divider separates the live tabs from the coming-soon group. */}
         <div className="mb-4 flex justify-center">
-          <div className="flex max-w-full items-center gap-2 overflow-x-auto rounded-full border border-white/10 bg-black/55 p-2 shadow-[0_18px_48px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-            {PANEL_TABS.map((tab) => {
+          <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-[14px] border border-white/[0.07] bg-black/55 p-[5px] shadow-[0_18px_48px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+            {PANEL_TABS.map((tab, i) => {
               const Icon = tab.icon;
               const isActive = focusedType === tab.id;
+              const prev = PANEL_TABS[i - 1];
+              const startsSoonGroup = tab.comingSoon && prev && !prev.comingSoon;
               if (tab.comingSoon) {
                 return (
-                  <div
-                    key={String(tab.id)}
-                    className="inline-flex h-10 shrink-0 cursor-not-allowed select-none items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/[0.06] px-4 text-sm"
-                  >
-                    <span className="flex items-center gap-2 blur-sm pointer-events-none text-violet-300/60">
-                      <Icon className="h-4 w-4" />
+                  <div key={String(tab.id)} className="flex shrink-0 items-center gap-1">
+                    {startsSoonGroup && (
+                      <span className="mx-1 h-5 w-px shrink-0 bg-white/[0.08]" />
+                    )}
+                    <div className="inline-flex h-9 cursor-not-allowed select-none items-center gap-1.5 rounded-[10px] px-3 text-sm font-medium text-zinc-600">
                       {tab.label}
-                    </span>
-                    <span className="rounded-full border border-violet-400/30 bg-violet-500/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-violet-200">
-                      Soon
-                    </span>
+                      <span className="rounded-[5px] bg-violet-600/[0.14] px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-[#7c6aa8]">
+                        Soon
+                      </span>
+                    </div>
                   </div>
                 );
               }
@@ -164,14 +167,14 @@ export function Dashboard() {
                   key={String(tab.id)}
                   onClick={() => setFocusedType(tab.id)}
                   className={cn(
-                    "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm transition-all",
+                    "inline-flex h-9 shrink-0 items-center gap-2 rounded-[10px] px-3.5 text-sm transition-all",
                     tab.id === null && "hidden md:inline-flex",
                     isActive
-                      ? "border-violet-400/20 bg-violet-500/[0.12] text-white"
-                      : "border-white/10 bg-white/[0.04] text-white/68 hover:border-white/18 hover:text-white",
+                      ? "bg-gradient-to-br from-purple-500/90 to-violet-700/90 font-semibold text-white shadow-[0_6px_16px_-8px_rgba(168,85,247,0.7)]"
+                      : "font-medium text-zinc-400 hover:bg-white/5 hover:text-zinc-50",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  {isActive && <Icon className="h-4 w-4" />}
                   {tab.label}
                 </button>
               );

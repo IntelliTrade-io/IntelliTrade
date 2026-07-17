@@ -53,7 +53,7 @@ export function UserDropdown({ email, isSubscribed }: UserDropdownProps) {
     <div
       ref={dropdownRef}
       style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 99999 }}
-      className="w-52 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md overflow-hidden"
+      className="w-56 rounded-[14px] border border-white/10 bg-[#111117] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.8)] overflow-hidden"
     >
       {/* Email header */}
       <div className="px-4 py-3 border-b border-white/8">
@@ -105,7 +105,7 @@ export function UserDropdown({ email, isSubscribed }: UserDropdownProps) {
         )}
       >
         {/* Avatar */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brandLight text-sm font-semibold text-white shadow-md shadow-brand/30">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white/10 bg-gradient-to-br from-brand to-brandLight text-sm font-bold text-white shadow-md shadow-brand/30">
           {initial}
         </div>
         <ChevronDown className={cn("h-3.5 w-3.5 text-white/50 transition-transform duration-200", open ? "rotate-180" : "")} />

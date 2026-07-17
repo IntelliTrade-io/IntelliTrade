@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, Calculator, BookOpen, Info, TrendingUp, LogIn, UserPlus, Sparkles } from "lucide-react";
 
 const MAIN_LINKS = [
-  { label: "Lot size calculator", href: "/lotsizecalculator", icon: Calculator },
+  { label: "Calculator", href: "/lotsizecalculator", icon: Calculator },
   { label: "Blog", href: "/blog", icon: BookOpen },
   { label: "About", href: "/about", icon: Info },
   { label: "Pro", href: "/pro", icon: Sparkles },
@@ -35,8 +35,9 @@ export default function MobileNav() {
         onClick={() => setIsOpen(false)}
       />
 
-      {/* Dropdown panel — portaled to body to escape nav stacking context */}
-      <div className="fixed left-3 right-3 top-[68px] z-[99999] rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 overflow-hidden">
+      {/* Dropdown panel — portaled to body to escape nav stacking context.
+          Top offset = 68px bar + 8px gap. */}
+      <div className="fixed left-3 right-3 top-[76px] z-[99999] rounded-2xl border border-white/[0.07] bg-[#08080c]/95 backdrop-blur-sm overflow-hidden">
             <div className="p-3 space-y-1">
               {/* Main links */}
               {MAIN_LINKS.map(({ label, href, icon: Icon }) => (
