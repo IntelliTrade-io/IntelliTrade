@@ -114,6 +114,10 @@ export default function LotSizeFaqPage() {
             title: "Step 3: Position Size",
             desc: "Position Size (lots) = Risk Amount ÷ (Stop Loss in pips × Pip Value per 1.00 lot)",
           },
+          {
+            title: "Step 4: Broker-ready size",
+            desc: "The exact result is rounded DOWN to the nearest volume your broker accepts (minimum lot and lot step), and the calculator shows the actual risk of that executable size. It never rounds up past your target risk.",
+          },
         ],
       },
       {
@@ -154,8 +158,43 @@ export default function LotSizeFaqPage() {
         ],
       },
       {
-        id: "mistakes",
+        id: "broker-ready",
         eyebrow: "SECTION 05",
+        title: "Exact size vs broker-ready size",
+        body: [
+          "The mathematically correct position size is often not a size your broker will accept. Brokers only execute volumes on a grid defined by a minimum lot and a lot step, both commonly 0.01. The calculator therefore shows two numbers: the exact calculated size and the broker-ready position.",
+        ],
+        bullets: [
+          {
+            title: "Exact calculated size",
+            desc: "The pure mathematical answer, for example 0.0167 lots for a $100 risk on a $60 gold stop with a 100-ounce contract. It can have more decimals than your broker accepts.",
+          },
+          {
+            title: "Broker-ready position",
+            desc: "The largest valid volume at or below the exact size, for example 0.01 lots with a 0.01 step. Its actual risk ($60 in that example) is shown next to your target risk ($100), so you always see what the executable trade really risks.",
+          },
+          {
+            title: "Why rounding up is dangerous",
+            desc: "Rounding 0.0167 up to 0.02 looks harmless but risks $120 on a $100 target with a $60 gold stop. That is 20% more than you planned. The calculator shows the next valid size and its risk, and warns when it exceeds your target.",
+          },
+          {
+            title: "Lots vs exposure",
+            desc: "Units = lots x contract size. With a 100-ounce contract, 0.0167 lots is about 1.667 oz of gold. With a 10-ounce contract, the same 1.667 oz exposure needs 0.1667 lots. The lot number changes; the exposure does not.",
+          },
+          {
+            title: "Below the broker minimum",
+            desc: "When the exact size is smaller than the minimum lot, no valid position fits your target risk. The calculator shows the risk the minimum lot would carry instead of silently rounding up to it.",
+          },
+          {
+            title: "Entry and stop prices",
+            desc: "You can enter the stop as an entry price and stop-loss price instead of pips. The absolute price difference is converted into the stop distance: on gold, a move from 3350 to 3290 is $60, which equals 6,000 pips at $0.01 per pip.",
+          },
+        ],
+        tip: "Broker contract settings live in MT4/MT5: right-click the symbol and open Specification to see contract size, minimum lot and lot step.",
+      },
+      {
+        id: "mistakes",
+        eyebrow: "SECTION 06",
         title: "Common mistakes to avoid",
         bullets: [
           {
@@ -183,7 +222,7 @@ export default function LotSizeFaqPage() {
       },
       {
         id: "mini-faq",
-        eyebrow: "SECTION 06",
+        eyebrow: "SECTION 07",
         title: "Mini FAQ",
         bullets: [
           {

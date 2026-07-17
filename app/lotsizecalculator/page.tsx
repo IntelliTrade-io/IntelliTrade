@@ -49,7 +49,23 @@ const faqSchemaData = {
       name: "How do I use this position size calculator?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Select your account currency, choose the pair or instrument you want to trade, enter your account balance, enter your risk per trade as a percentage (e.g. 1%), and enter your stop loss distance in pips. The calculator returns your position size in lots, the risk amount in your account currency, and the pip value per lot.",
+        text: "Select your account currency, choose the pair or instrument you want to trade, enter your account balance, enter your risk per trade as a percentage (e.g. 1%), and enter your stop. You can enter the stop as a distance in pips or as an entry price and stop-loss price; prices are converted into the same stop distance automatically. The calculator returns the exact calculated size, the broker-ready position with its actual risk, the underlying exposure, and the pip value per lot.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Why does the calculator show an exact size and a broker-ready size?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "The exact calculated size is the pure mathematical answer, for example 0.0167 lots. Most brokers only accept volumes on a grid defined by a minimum lot and a lot step, often 0.01, so 0.0167 may not be executable. The broker-ready position is the largest valid volume at or below the exact size, so the actual risk never exceeds the target risk. Rounding 0.0167 up to 0.02 with a 100-ounce gold contract and a $60 stop would risk $120 instead of $100, which is why the calculator never rounds upward. When the exact size is below the broker minimum, no valid position fits the selected risk and the calculator says so instead of rounding up.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What are contract size, minimum lot and lot step?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Contract size is how many units one 1.00 lot represents: typically 100,000 units of base currency for forex and 100 troy ounces for gold. Minimum lot is the smallest volume your broker accepts, and lot step is the increment above it, commonly 0.01 for both. You can find all three in MT4/MT5 by right-clicking a symbol and opening Specification. Brokers can differ: with a 10-ounce gold contract you need 0.1667 lots for the same 1.667-ounce exposure that a 100-ounce contract reaches with 0.0167 lots. The lot number changes but the underlying exposure stays the same.",
       },
     },
     {
@@ -420,6 +436,10 @@ export default function Page() {
                       title: "Using fixed lot sizes instead of risk-based sizing",
                       desc: "A fixed lot size ignores your account size and stop loss distance. Two trades with the same lot size but different stops carry completely different risk amounts.",
                     },
+                    {
+                      title: "Rounding up to the next lot step",
+                      desc: "If the exact size is 0.0167 lots and your broker's step is 0.01, executing 0.02 lots risks more than you planned. Round down to stay within your target risk, and check the actual risk of the size you can execute.",
+                    },
                   ].map(({ title, desc }) => (
                     <div
                       key={title}
@@ -467,7 +487,15 @@ export default function Page() {
                     },
                     {
                       q: "How do I use this position size calculator?",
-                      a: "Select your account currency. Choose the pair or instrument you want to trade. Enter your account balance. Enter your risk per trade as a percentage (e.g. 1%). Enter your stop loss distance in pips. The calculator returns your position size in lots, the risk amount in your account currency, and the pip value per lot.",
+                      a: "Select your account currency. Choose the pair or instrument you want to trade. Enter your account balance. Enter your risk per trade as a percentage (e.g. 1%). Enter your stop either as a distance in pips or as an entry price and stop-loss price; prices are converted into the same stop distance automatically. The calculator returns the exact calculated size, the broker-ready position with its actual risk, the underlying exposure, and the pip value per lot.",
+                    },
+                    {
+                      q: "Why does the calculator show an exact size and a broker-ready size?",
+                      a: "The exact calculated size is the pure mathematical answer, for example 0.0167 lots. Most brokers only accept volumes on a grid defined by a minimum lot and a lot step, often 0.01, so 0.0167 may not be executable. The broker-ready position is the largest valid volume at or below the exact size, so the actual risk never exceeds the target risk. Rounding 0.0167 up to 0.02 with a 100-ounce gold contract and a $60 stop would risk $120 instead of $100, which is why the calculator never rounds upward. When the exact size is below the broker minimum, no valid position fits the selected risk and the calculator says so instead of rounding up.",
+                    },
+                    {
+                      q: "What are contract size, minimum lot and lot step?",
+                      a: "Contract size is how many units one 1.00 lot represents: typically 100,000 units of base currency for forex and 100 troy ounces for gold. Minimum lot is the smallest volume your broker accepts, and lot step is the increment above it, commonly 0.01 for both. You can find all three in MT4/MT5 by right-clicking a symbol and opening Specification. Brokers can differ: with a 10-ounce gold contract you need 0.1667 lots for the same 1.667-ounce exposure that a 100-ounce contract reaches with 0.0167 lots. The lot number changes but the underlying exposure stays the same.",
                     },
                     {
                       q: "How is lot size calculated?",
