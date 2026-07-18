@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { client } from "@/sanity/client";
+import { PER_PAIR_SYMBOLS, pairToSlug } from "@/lib/pair-meta";
 
 const BASE = "https://intellitrade.tech";
 
@@ -12,6 +13,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/smart-support-zones`, priority: 0.9, changeFrequency: "weekly" },
     { url: `${BASE}/lotsizecalculator`, priority: 0.9, changeFrequency: "monthly" },
     { url: `${BASE}/lotsizecalculator/faq`, priority: 0.7, changeFrequency: "monthly" },
+    // Per-pair calculator SEO pages (e.g. /lotsizecalculator/eurusd)
+    ...PER_PAIR_SYMBOLS.map((symbol) => ({
+      url: `${BASE}/lotsizecalculator/${pairToSlug(symbol)}`,
+      priority: 0.6,
+      changeFrequency: "monthly" as const,
+    })),
     { url: `${BASE}/pipvaluecalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/margincalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
