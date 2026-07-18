@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, ChevronDown, X, AlertTriangle, RotateCcw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, AlertTriangle, RotateCcw } from "lucide-react";
 import { apiGet } from "@/lib/api/client";
 import { trackEvent } from "@/lib/analytics";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
@@ -25,10 +25,12 @@ import {
   clearCalculatorState,
   loadCalculatorState,
   saveCalculatorState,
+  type RiskMode,
   type StopMode,
   type StoredBrokerOverride,
 } from "@/lib/calculator-storage";
 import { AccountTemplateBar } from "./AccountTemplateBar";
+import { SearchCombobox } from "./SearchCombobox";
 import type { AccountTemplate } from "@/lib/calculator-templates";
 
 // ---------- Dynamic pairs ----------
@@ -57,7 +59,11 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
   const [currency, setCurrencyRaw] = useState("EUR"); // account currency
   const [pair, setPairRaw] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [balance, setBalance] = useState("");
+
+  // Risk per trade: % of balance, or a fixed money amount in account currency.
+  const [riskMode, setRiskMode] = useState<RiskMode>("percent");
   const [riskPercent, setRiskPercent] = useState("");
+  const [riskAmount, setRiskAmount] = useState("");
 
   // Stop input: distance in pips, or entry + stop-loss prices.
   const [stopMode, setStopMode] = useState<StopMode>("pips");
@@ -111,7 +117,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
       // saved inputs still restore.
       setPairRaw(initialPair ? normalizePair(initialPair) : saved.pair);
       setBalance(saved.balance);
+      setRiskMode(saved.riskMode);
       setRiskPercent(saved.riskPercent);
+      setRiskAmount(saved.riskAmount);
       setStopMode(saved.stopMode);
       setStopLoss(saved.stopLossPips);
       setEntryPrice(saved.entryPrice);
@@ -136,7 +144,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
         currency,
         pair,
         balance,
+        riskMode,
         riskPercent,
+        riskAmount,
         stopMode,
         stopLossPips: stopLoss,
         entryPrice,
@@ -152,7 +162,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
     currency,
     pair,
     balance,
+    riskMode,
     riskPercent,
+    riskAmount,
     stopMode,
     stopLoss,
     entryPrice,
@@ -305,12 +317,23 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
 
   const handleCalculate = async (opts?: { silent?: boolean }) => {
     const balanceNum = parseFloat(balance);
-    const riskPercentNum = parseFloat(riskPercent);
 
     try {
       if (isNaN(balanceNum) || balanceNum <= 0) throw new Error("Enter an account balance greater than zero.");
-      if (isNaN(riskPercentNum) || riskPercentNum <= 0)
-        throw new Error("Enter a risk percentage greater than zero.");
+
+      // Fixed-money risk reduces to the equivalent percentage, so the pure
+      // sizing math stays a single code path.
+      let riskPercentNum: number;
+      if (riskMode === "percent") {
+        riskPercentNum = parseFloat(riskPercent);
+        if (isNaN(riskPercentNum) || riskPercentNum <= 0)
+          throw new Error("Enter a risk percentage greater than zero.");
+      } else {
+        const riskAmountNum = parseFloat(riskAmount);
+        if (isNaN(riskAmountNum) || riskAmountNum <= 0)
+          throw new Error("Enter a risk amount greater than zero.");
+        riskPercentNum = (riskAmountNum / balanceNum) * 100;
+      }
 
       const stop = buildStopInput();
       const broker = {
@@ -342,8 +365,12 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
           ? `${fmtPips(computed.stopDistancePips)} pip stop`
           : `entry ${entryPrice} / stop ${stopLossPrice}`;
       const conversionNote = currency !== quote ? " · live conversion applied" : "";
+      const riskSummary =
+        riskMode === "percent"
+          ? `${riskPercentNum}% risk`
+          : `${fmtMoney(computed.targetRisk)} ${currency} risk`;
       setCalcContext(
-        `${balanceNum.toLocaleString()} ${currency} balance · ${riskPercentNum}% risk · ${stopSummary} · ${cleanPair}${conversionNote}`,
+        `${balanceNum.toLocaleString()} ${currency} balance · ${riskSummary} · ${stopSummary} · ${cleanPair}${conversionNote}`,
       );
       // Funnel: a successful calculation is the high-intent moment. Only the
       // instrument is recorded — no balance/risk (no PII or financial data).
@@ -371,6 +398,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
   const applyTemplate = (t: AccountTemplate) => {
     setBalance(String(t.balance));
     setCurrencyRaw(t.currency);
+    setRiskMode("percent"); // templates define risk as a percentage
     setRiskPercent(String(t.riskPercent));
     // Merge the template's per-instrument overrides (as raw field strings).
     // Trade-specific entry, stop and pip-distance inputs are left untouched.
@@ -394,7 +422,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
     setCurrencyRaw(d.currency);
     setPairRaw(d.pair);
     setBalance(d.balance);
+    setRiskMode(d.riskMode);
     setRiskPercent(d.riskPercent);
+    setRiskAmount(d.riskAmount);
     setStopMode(d.stopMode);
     setStopLoss(d.stopLossPips);
     setEntryPrice(d.entryPrice);
@@ -427,123 +457,6 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
   }, [stopMode, entryPrice, stopLossPrice, cleanPair]);
 
   const isMetal = cleanPair.startsWith("XAU") || cleanPair.startsWith("XAG");
-
-  // ── Currency combobox ────────────────────────────────────────────────────
-  const [ccySearch, setCcySearch] = useState("");
-  const [ccyOpen, setCcyOpen] = useState(false);
-  const [ccyHighlightedIdx, setCcyHighlightedIdx] = useState(0);
-  const ccyInputRef = useRef<HTMLInputElement>(null);
-  const ccyDropdownRef = useRef<HTMLDivElement>(null);
-
-  const filteredCurrencies = useMemo(() => {
-    const q = ccySearch.trim().toUpperCase();
-    if (!q) return accountCurrencyOptions;
-    return accountCurrencyOptions.filter((c) => c.includes(q));
-  }, [accountCurrencyOptions, ccySearch]);
-
-  useEffect(() => {
-    if (!ccyOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        ccyInputRef.current?.closest("[data-ccy-combo]") &&
-        !ccyInputRef.current.closest("[data-ccy-combo]")!.contains(e.target as Node)
-      ) {
-        setCcyOpen(false);
-        setCcySearch("");
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [ccyOpen]);
-
-  const selectCcy = (c: string) => {
-    setCurrency(c);
-    setCcyOpen(false);
-    setCcySearch("");
-    setCcyHighlightedIdx(0);
-  };
-
-  const handleCcyKeyDown = (e: React.KeyboardEvent) => {
-    if (!ccyOpen) {
-      if (e.key === "ArrowDown" || e.key === "Enter") {
-        setCcyOpen(true);
-        setCcyHighlightedIdx(filteredCurrencies.indexOf(currency));
-      }
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setCcyHighlightedIdx((i) => Math.min(i + 1, filteredCurrencies.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setCcyHighlightedIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (filteredCurrencies[ccyHighlightedIdx]) selectCcy(filteredCurrencies[ccyHighlightedIdx]);
-    } else if (e.key === "Escape") {
-      setCcyOpen(false);
-      setCcySearch("");
-    }
-  };
-
-  // ── Pair search combobox ──────────────────────────────────────────────────
-  const [pairSearch, setPairSearch] = useState("");
-  const [pairOpen, setPairOpen] = useState(false);
-  const [highlightedIdx, setHighlightedIdx] = useState(0);
-  const pairInputRef = useRef<HTMLInputElement>(null);
-  const pairDropdownRef = useRef<HTMLDivElement>(null);
-
-  const filteredPairs = useMemo(() => {
-    const q = pairSearch.trim().toUpperCase().replace("/", "");
-    if (!q) return pairs;
-    return pairs.filter((p) => p.includes(q));
-  }, [pairs, pairSearch]);
-
-  // Close on outside click
-  useEffect(() => {
-    if (!pairOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        pairInputRef.current?.closest("[data-pair-combo]") &&
-        !pairInputRef.current.closest("[data-pair-combo]")!.contains(e.target as Node)
-      ) {
-        setPairOpen(false);
-        setPairSearch("");
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [pairOpen]);
-
-  const selectPair = (p: string) => {
-    setPair(p);
-    setPairOpen(false);
-    setPairSearch("");
-    setHighlightedIdx(0);
-  };
-
-  const handlePairKeyDown = (e: React.KeyboardEvent) => {
-    if (!pairOpen) {
-      if (e.key === "ArrowDown" || e.key === "Enter") {
-        setPairOpen(true);
-        setHighlightedIdx(filteredPairs.indexOf(pair));
-      }
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setHighlightedIdx((i) => Math.min(i + 1, filteredPairs.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setHighlightedIdx((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (filteredPairs[highlightedIdx]) selectPair(filteredPairs[highlightedIdx]);
-    } else if (e.key === "Escape") {
-      setPairOpen(false);
-      setPairSearch("");
-    }
-  };
 
   const inputClass =
     "min-h-[44px] w-full rounded-[16px] border border-white/10 bg-white/[0.035] px-4 text-sm text-white outline-none transition-all placeholder:text-white/24 focus:border-violet-400/22 focus:bg-white/[0.05] motion-reduce:transition-none";
@@ -595,88 +508,13 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               <label htmlFor="lotcalc-currency" className={labelClass}>
                 Account currency
               </label>
-              <div className="relative" data-ccy-combo>
-                {/* Left search icon */}
-                {ccyOpen && (
-                  <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
-                )}
-                {/* Input */}
-                <input
-                  autoComplete="off"
-                  id="lotcalc-currency"
-                  ref={ccyInputRef}
-                  value={ccyOpen ? ccySearch : currency}
-                  placeholder={ccyOpen ? "Search…" : ""}
-                  readOnly={!ccyOpen}
-                  role="combobox"
-                  aria-expanded={ccyOpen}
-                  aria-controls="lotcalc-currency-listbox"
-                  onClick={() => {
-                    setCcyOpen(true);
-                    setCcyHighlightedIdx(filteredCurrencies.indexOf(currency));
-                  }}
-                  onChange={(e) => { setCcySearch(e.target.value); setCcyHighlightedIdx(0); }}
-                  onKeyDown={handleCcyKeyDown}
-                  onFocus={() => {
-                    if (!ccyOpen) {
-                      setCcyOpen(true);
-                      setCcyHighlightedIdx(filteredCurrencies.indexOf(currency));
-                    }
-                  }}
-                  className={`min-h-[44px] w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 cursor-pointer motion-reduce:transition-none ${
-                    ccyOpen ? "border-violet-400/40 bg-white/[0.05] pl-9 pr-9" : "border-white/10 pl-4 pr-9"
-                  }`}
-                />
-                {/* Right icon */}
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                  {ccyOpen && ccySearch ? (
-                    <button
-                      type="button"
-                      aria-label="Clear search"
-                      className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setCcySearch(""); setCcyHighlightedIdx(0); ccyInputRef.current?.focus({ preventScroll: true }); }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : (
-                    <ChevronDown className={`h-4 w-4 text-white/38 transition-transform motion-reduce:transition-none ${ccyOpen ? "rotate-180" : ""}`} />
-                  )}
-                </div>
-
-                {ccyOpen && (
-                  <div
-                    ref={ccyDropdownRef}
-                    id="lotcalc-currency-listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-[16px] border border-white/10 bg-[#0b0b10]/96 py-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-                  >
-                    {filteredCurrencies.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-white/38">No match for &quot;{ccySearch}&quot;</div>
-                    ) : (
-                      filteredCurrencies.map((c, idx) => (
-                        <button
-                          key={c}
-                          type="button"
-                          data-ccy-idx={idx}
-                          onMouseDown={(e) => { e.preventDefault(); selectCcy(c); }}
-                          onMouseEnter={() => setCcyHighlightedIdx(idx)}
-                          className={`flex w-full items-center px-4 py-2 text-left text-sm font-medium transition-colors motion-reduce:transition-none ${
-                            idx === ccyHighlightedIdx
-                              ? "bg-violet-500/[0.14] text-white"
-                              : c === currency
-                              ? "text-violet-300"
-                              : "text-white/72 hover:bg-white/[0.04] hover:text-white"
-                          }`}
-                        >
-                          {c}
-                          {c === currency && (
-                            <span className="ml-auto text-[10px] text-violet-400/70">selected</span>
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+              <SearchCombobox
+                id="lotcalc-currency"
+                variant="currency"
+                value={currency}
+                options={accountCurrencyOptions}
+                onSelect={setCurrency}
+              />
             </div>
 
             {/* Currency pair — searchable combobox */}
@@ -684,92 +522,14 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               <label htmlFor="lotcalc-pair" className={labelClass}>
                 Currency pair
               </label>
-              <div className="relative" data-pair-combo>
-                {/* Left search icon */}
-                {pairOpen && (
-                  <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
-                )}
-                {/* Input */}
-                <input
-                  autoComplete="off"
-                  id="lotcalc-pair"
-                  ref={pairInputRef}
-                  value={pairOpen ? pairSearch : pair}
-                  placeholder={pairOpen ? "Search pair…" : ""}
-                  readOnly={!pairOpen || loadingPairs}
-                  role="combobox"
-                  aria-expanded={pairOpen}
-                  aria-controls="lotcalc-pair-listbox"
-                  onClick={() => {
-                    if (loadingPairs) return;
-                    setPairOpen(true);
-                    setHighlightedIdx(filteredPairs.indexOf(pair));
-                  }}
-                  onChange={(e) => { setPairSearch(e.target.value); setHighlightedIdx(0); }}
-                  onKeyDown={handlePairKeyDown}
-                  onFocus={() => {
-                    if (!pairOpen && !loadingPairs) {
-                      setPairOpen(true);
-                      setHighlightedIdx(filteredPairs.indexOf(pair));
-                    }
-                  }}
-                  className={`min-h-[44px] w-full rounded-[16px] border bg-white/[0.035] text-sm text-white outline-none transition-all placeholder:text-white/30 motion-reduce:transition-none ${
-                    loadingPairs ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-                  } ${pairOpen ? "border-violet-400/40 bg-white/[0.05] pl-9 pr-9" : "border-white/10 pl-4 pr-9"}`}
-                />
-                {/* Right icon */}
-                <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                  {pairOpen && pairSearch ? (
-                    <button
-                      type="button"
-                      aria-label="Clear search"
-                      className="pointer-events-auto text-white/30 hover:text-white/60"
-                      onClick={(e) => { e.stopPropagation(); setPairSearch(""); setHighlightedIdx(0); pairInputRef.current?.focus({ preventScroll: true }); }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  ) : (
-                    <ChevronDown className={`h-4 w-4 text-white/38 transition-transform motion-reduce:transition-none ${pairOpen ? "rotate-180" : ""}`} />
-                  )}
-                </div>
-
-                {/* Dropdown */}
-                {pairOpen && (
-                  <div
-                    ref={pairDropdownRef}
-                    id="lotcalc-pair-listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-56 overflow-y-auto rounded-[16px] border border-white/10 bg-[#0b0b10]/96 py-1.5 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-2xl"
-                  >
-                    {filteredPairs.length === 0 ? (
-                      <div className="px-4 py-3 text-sm text-white/38">No pairs match &quot;{pairSearch}&quot;</div>
-                    ) : (
-                      filteredPairs.map((p, idx) => (
-                        <button
-                          key={p}
-                          type="button"
-                          data-idx={idx}
-                          onMouseDown={(e) => { e.preventDefault(); selectPair(p); }}
-                          onMouseEnter={() => setHighlightedIdx(idx)}
-                          className={`flex w-full items-center px-4 py-2 text-left text-sm transition-colors motion-reduce:transition-none ${
-                            idx === highlightedIdx
-                              ? "bg-violet-500/[0.14] text-white"
-                              : p === pair
-                              ? "text-violet-300"
-                              : "text-white/72 hover:bg-white/[0.04] hover:text-white"
-                          }`}
-                        >
-                          <span className="font-medium">{p.slice(0, 3)}</span>
-                          <span className="text-white/38">/</span>
-                          <span className="font-medium">{p.slice(3)}</span>
-                          {p === pair && (
-                            <span className="ml-auto text-[10px] text-violet-400/70">selected</span>
-                          )}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+              <SearchCombobox
+                id="lotcalc-pair"
+                variant="pair"
+                value={pair}
+                options={pairs}
+                onSelect={setPair}
+                disabled={loadingPairs}
+              />
               {pairsError && <div className="text-xs text-white/46">{pairsError} · using fallback pairs</div>}
             </div>
 
@@ -794,24 +554,69 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               </div>
             </div>
 
-            {/* Risk % */}
+            {/* Risk per trade — % of balance or fixed money amount. The mode
+                toggle lives inside the input so the label stays a single line
+                and the field aligns with the balance input beside it. */}
             <div className="flex flex-col gap-2">
               <label htmlFor="lotcalc-risk" className={labelClass}>
                 Risk per trade
               </label>
               <div className="relative">
-                <input
-                  autoComplete="off"
-                  id="lotcalc-risk"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  value={riskPercent}
-                  onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
-                  placeholder="e.g. 1"
-                  className={`${inputClass} pr-10`}
-                />
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">%</div>
+                {riskMode === "percent" ? (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskPercent}
+                    onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
+                    placeholder="e.g. 1"
+                    className={`${inputClass} pr-20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                  />
+                ) : (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskAmount}
+                    onChange={(e) => { setRiskAmount(e.target.value); invalidate(); }}
+                    placeholder="e.g. 50"
+                    className={`${inputClass} pr-20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+                  />
+                )}
+                <div
+                  role="group"
+                  aria-label="Risk input mode"
+                  className="absolute right-1.5 top-1/2 flex -translate-y-1/2 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={riskMode === "percent"}
+                    onClick={() => { setRiskMode("percent"); invalidate(); }}
+                    className={`px-2 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                      riskMode === "percent"
+                        ? "bg-violet-500/[0.14] text-white"
+                        : "text-white/45 hover:text-white/75"
+                    }`}
+                  >
+                    %
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={riskMode === "money"}
+                    onClick={() => { setRiskMode("money"); invalidate(); }}
+                    className={`px-2 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                      riskMode === "money"
+                        ? "bg-violet-500/[0.14] text-white"
+                        : "text-white/45 hover:text-white/75"
+                    }`}
+                  >
+                    {currency}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -934,10 +739,13 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               <div id="lotcalc-broker-panel" className="border-t border-white/8 px-4 pb-4 pt-3">
                 <p className="mb-3 text-[11px] leading-relaxed text-white/40">
                   Brokers can define {cleanPair} differently. You can find these values in MT4/MT5 by
-                  right-clicking the symbol and opening Specification. Settings apply to {cleanPair} only.
+                  right-clicking the symbol and opening Specification. Contract size is the number of
+                  units per 1.00 lot. Settings apply to {cleanPair} only.
                 </p>
+                {/* justify-end keeps the three inputs on one line even when a
+                    label wraps in the narrow columns. */}
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-contract" className={labelClass}>
                       Contract size
                     </label>
@@ -949,14 +757,10 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       min="0"
                       value={brokerFieldValue("contractSize", instrumentDefaults.contractSize)}
                       onChange={(e) => setBrokerField("contractSize", e.target.value)}
-                      aria-describedby="lotcalc-contract-hint"
                       className={inputClass}
                     />
-                    <span id="lotcalc-contract-hint" className="text-[10px] text-white/32">
-                      Units per 1.00 lot
-                    </span>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-minlot" className={labelClass}>
                       Minimum lot
                     </label>
@@ -972,7 +776,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       className={inputClass}
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-lotstep" className={labelClass}>
                       Lot step
                     </label>
@@ -1088,7 +892,12 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                 <div className="mt-1.5 text-base sm:text-lg font-semibold text-white">
                   {fmtMoney(result.targetRisk)} {resultCurrency}
                 </div>
-                <div className="text-[11px] text-white/40">{fmtPct(parseFloat(riskPercent) || 0)} of balance</div>
+                {/* Derived from the result so it is correct in both risk modes;
+                    any input change clears the result, so balance here always
+                    matches the balance used in the calculation. */}
+                <div className="text-[11px] text-white/40">
+                  {fmtPct((result.targetRisk / parseFloat(balance)) * 100 || 0)} of balance
+                </div>
               </div>
             </div>
           )}

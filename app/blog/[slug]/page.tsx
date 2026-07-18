@@ -4,7 +4,7 @@ import { PortableText, type SanityDocument } from "next-sanity";
 import imageUrlBuilder from "@sanity/image-url";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import { client } from "@/sanity/client";
-import { cleanPostTitle, excerptFromPortableText } from "@/lib/blog";
+import { cleanPostTitle, excerptFromPortableText, slugifyTag } from "@/lib/blog";
 import Link from "next/link";
 import Image from "next/image";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
@@ -153,9 +153,18 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
 
         {/* Header Section */}
         <header className="mb-12">
-          <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-6">
-            {post.tags?.[0] || "ARTICLE"}
-          </div>
+          {post.tags?.[0] && slugifyTag(post.tags[0]) ? (
+            <Link
+              href={`/blog/tag/${slugifyTag(post.tags[0])}`}
+              className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-6 transition-colors hover:border-brand/50 hover:text-white"
+            >
+              {post.tags[0]}
+            </Link>
+          ) : (
+            <div className="inline-flex items-center rounded-full border border-brand/30 bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand/90 mb-6">
+              ARTICLE
+            </div>
+          )}
           
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-6 leading-tight">
             {title}

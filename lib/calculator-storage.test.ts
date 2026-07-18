@@ -35,7 +35,9 @@ const sampleState: StoredCalculatorState = {
   currency: "USD",
   pair: "XAUUSD",
   balance: "10000",
+  riskMode: "money",
   riskPercent: "1",
+  riskAmount: "50",
   stopMode: "price",
   entryPrice: "3350",
   stopLossPrice: "3290",
@@ -85,7 +87,9 @@ describe("calculator storage", () => {
         currency: "not-a-currency",
         pair: "<script>",
         balance: "1e309", // Infinity
+        riskMode: "yolo",
         riskPercent: "-3",
+        riskAmount: "-50",
         stopMode: "teleport",
         brokerOverrides: { XAUUSD: { contractSize: "abc" }, "bad key!": { minLot: "0.01" } },
         selectedTemplateId: 42,
@@ -95,10 +99,23 @@ describe("calculator storage", () => {
     expect(restored.currency).toBe(DEFAULT_CALCULATOR_STATE.currency);
     expect(restored.pair).toBe(DEFAULT_CALCULATOR_STATE.pair);
     expect(restored.balance).toBe("");
+    expect(restored.riskMode).toBe("percent");
     expect(restored.riskPercent).toBe("");
+    expect(restored.riskAmount).toBe("");
     expect(restored.stopMode).toBe("pips");
     expect(restored.brokerOverrides).toEqual({});
     expect(restored.selectedTemplateId).toBeNull();
+  });
+
+  it("restores pre-riskMode payloads in percent mode (backward compatible, no version bump)", () => {
+    const legacy = { ...sampleState } as Record<string, unknown>;
+    delete legacy.riskMode;
+    delete legacy.riskAmount;
+    const storage = fakeStorage({ [CALCULATOR_STORAGE_KEY]: JSON.stringify(legacy) });
+    const restored = loadCalculatorState(storage)!;
+    expect(restored.riskMode).toBe("percent");
+    expect(restored.riskAmount).toBe("");
+    expect(restored.riskPercent).toBe("1");
   });
 
   it("keeps valid override entries and drops invalid ones", () => {
