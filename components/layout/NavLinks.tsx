@@ -23,6 +23,7 @@ const PRICE_LINKS: MenuItem[] = [
 ];
 
 const PLAIN_LINKS: MenuItem[] = [
+  { label: "Calendar", href: "/economic-calendar" },
   { label: "Sessions", href: "/forex-market-hours" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },

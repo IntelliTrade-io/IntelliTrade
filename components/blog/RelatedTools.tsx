@@ -48,6 +48,7 @@ export function RelatedTools({ tags }: { tags: string[] }) {
       href: slug ? `/margincalculator/${slug}` : "/margincalculator",
       label: display ? `${display} margin calculator` : "Margin calculator",
     },
+    { href: "/economic-calendar", label: "Economic calendar" },
     { href: "/forex-market-hours", label: "Forex market hours" },
     { href: "/compoundingcalculator", label: "Compounding calculator" },
   ];

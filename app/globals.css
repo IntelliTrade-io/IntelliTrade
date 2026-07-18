@@ -195,6 +195,17 @@
 html,
 body {
   overflow-x: hidden;
+  /* Scroll anchoring is broken site-wide: sections sit inside opacity-0 /
+     transformed reveal wrappers (ScrollRevealSection), which are invalid
+     anchor candidates, so any DOM insertion/removal (accordions, dropdowns,
+     result cards) makes the browser re-anchor to a wrong node and teleport
+     the viewport to the top or bottom. Disabling the machinery means DOM
+     changes never move the scroll position. Set on both html and body:
+     Chrome reads the viewport's value from either. Keep this global — the
+     bug otherwise resurfaces on every new page that combines reveal
+     wrappers with interactive widgets (lot size calc 2026-07-17, economic
+     calendar FAQ 2026-07-18). */
+  overflow-anchor: none;
 }
 
 /* TradingView web component — prevent internal iframe from expanding page width */

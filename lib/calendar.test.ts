@@ -6,6 +6,8 @@ import {
   upcomingEnd,
   toImpactLevel,
   toCalendarEvent,
+  dedupeEventRows,
+  splitTodayUpcoming,
   buildListItems,
   matchesDateFilter,
   filterEvents,
@@ -83,6 +85,51 @@ describe("toCalendarEvent", () => {
       TZ,
     );
     expect(ev.extras.source_url_standardized).toBe("https://a");
+  });
+});
+
+describe("dedupeEventRows", () => {
+  it("keeps the first row per (country, title, UTC-date) group", () => {
+    const rows = [
+      { country: "EU", title: "HICP Flash", date_time_utc: "2026-07-01T09:00:00Z" },
+      { country: "EU", title: "HICP Flash", date_time_utc: "2026-07-01T11:00:00Z" },
+      { country: "US", title: "HICP Flash", date_time_utc: "2026-07-01T11:00:00Z" },
+      { country: "EU", title: "HICP Flash", date_time_utc: "2026-07-02T09:00:00Z" },
+    ];
+    const out = dedupeEventRows(rows);
+    expect(out).toHaveLength(3);
+    expect(out[0]?.date_time_utc).toBe("2026-07-01T09:00:00Z");
+  });
+
+  it("passes distinct rows through untouched", () => {
+    const rows = [
+      { country: "US", title: "CPI YoY", date_time_utc: "2026-07-01T12:30:00Z" },
+      { country: "US", title: "NFP", date_time_utc: "2026-07-03T12:30:00Z" },
+    ];
+    expect(dedupeEventRows(rows)).toEqual(rows);
+  });
+});
+
+describe("splitTodayUpcoming", () => {
+  it("splits on the UTC day boundary and drops past days", () => {
+    const rows = [
+      { date_time_utc: "2026-06-30T23:59:00Z" }, // yesterday UTC — dropped
+      { date_time_utc: "2026-07-01T00:30:00Z" },
+      { date_time_utc: "2026-07-01T23:30:00Z" },
+      { date_time_utc: "2026-07-02T00:15:00Z" },
+    ];
+    const { today, upcoming } = splitTodayUpcoming(rows, NOW);
+    expect(today.map((r) => r.date_time_utc)).toEqual([
+      "2026-07-01T00:30:00Z",
+      "2026-07-01T23:30:00Z",
+    ]);
+    expect(upcoming.map((r) => r.date_time_utc)).toEqual(["2026-07-02T00:15:00Z"]);
+  });
+
+  it("handles rows with a missing timestamp by dropping them", () => {
+    const { today, upcoming } = splitTodayUpcoming([{ date_time_utc: null }], NOW);
+    expect(today).toHaveLength(0);
+    expect(upcoming).toHaveLength(0);
   });
 });
 

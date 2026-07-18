@@ -1,0 +1,33 @@
+name: Scanner health watchdog
+
+# Off-box replacement for the VPS-resident watchdog (which dies with the VPS):
+# reads scanner_health and fails the run when a scanner family has not
+# reported within its market-open-hours threshold. A failing scheduled run
+# produces GitHub's workflow-failure email to the repo owner.
+
+on:
+  schedule:
+    # Every 2 hours. The script itself is weekend-aware (market-open time),
+    # so weekend runs pass quickly instead of false-alarming.
+    - cron: "17 */2 * * *"
+  workflow_dispatch:
+
+jobs:
+  scanner-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Scanner health staleness check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/ci/scanner-health-check.mjs
