@@ -138,12 +138,12 @@ const PRO_TOOLS: ToolCardData[] = [
     isPro: true,
   },
   {
-    href: "/pro",
+    href: "/currency-strength",
     icon: Radar,
     label: "Currency Strength Meter",
     desc: "Don't trade noise. Quickly spot which currencies are strong or weak across daily and intraday trends.",
     tag: "PRO",
-    cta: "Open",
+    cta: "Preview",
     isPro: true,
   },
   {

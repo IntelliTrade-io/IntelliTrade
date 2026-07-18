@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, CalendarDays, ChevronRight, Clock, History, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Calculator, CalendarDays, ChevronRight, Clock, History, Radar, Sparkles, Zap } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import {
   getFreeCalendarRecap,
@@ -363,14 +363,14 @@ export default async function Page() {
                 </div>
                 <ArrowRight className="h-4 w-4 text-white/30 transition-all group-hover:translate-x-0.5 group-hover:text-white/60" />
               </Link>
-              <Link href="/gold-price-today" className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06]">
+              <Link href="/currency-strength" className="group flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/20 hover:bg-white/[0.06]">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.05] text-white/70 group-hover:text-brand/80">
-                    <Zap className="h-4 w-4" />
+                    <Radar className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">Prices Today</p>
-                    <p className="text-xs text-white/45">Live gold, silver, oil, bitcoin.</p>
+                    <p className="text-sm font-semibold text-white">Currency Strength</p>
+                    <p className="text-xs text-white/45">Yesterday&apos;s strongest and weakest.</p>
                   </div>
                 </div>
                 <ArrowRight className="h-4 w-4 text-white/30 transition-all group-hover:translate-x-0.5 group-hover:text-white/60" />
