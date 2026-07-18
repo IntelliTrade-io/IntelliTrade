@@ -554,16 +554,43 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               </div>
             </div>
 
-            {/* Risk per trade — % of balance or fixed money amount */}
+            {/* Risk per trade — % of balance or fixed money amount. The mode
+                toggle lives inside the input so the label stays a single line
+                and the field aligns with the balance input beside it. */}
             <div className="flex flex-col gap-2">
-              <div className="flex items-end justify-between gap-2">
-                <label htmlFor="lotcalc-risk" className={labelClass}>
-                  Risk per trade
-                </label>
+              <label htmlFor="lotcalc-risk" className={labelClass}>
+                Risk per trade
+              </label>
+              <div className="relative">
+                {riskMode === "percent" ? (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskPercent}
+                    onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
+                    placeholder="e.g. 1"
+                    className={`${inputClass} pr-24`}
+                  />
+                ) : (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskAmount}
+                    onChange={(e) => { setRiskAmount(e.target.value); invalidate(); }}
+                    placeholder="e.g. 50"
+                    className={`${inputClass} pr-24`}
+                  />
+                )}
                 <div
                   role="group"
                   aria-label="Risk input mode"
-                  className="flex overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
+                  className="absolute right-2 top-1/2 flex -translate-y-1/2 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
                 >
                   <button
                     type="button"
@@ -589,36 +616,6 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                   >
                     {currency}
                   </button>
-                </div>
-              </div>
-              <div className="relative">
-                {riskMode === "percent" ? (
-                  <input
-                    autoComplete="off"
-                    id="lotcalc-risk"
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    value={riskPercent}
-                    onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
-                    placeholder="e.g. 1"
-                    className={`${inputClass} pr-10`}
-                  />
-                ) : (
-                  <input
-                    autoComplete="off"
-                    id="lotcalc-risk"
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    value={riskAmount}
-                    onChange={(e) => { setRiskAmount(e.target.value); invalidate(); }}
-                    placeholder="e.g. 50"
-                    className={`${inputClass} pr-14`}
-                  />
-                )}
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">
-                  {riskMode === "percent" ? "%" : currency}
                 </div>
               </div>
             </div>
