@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Main from "@/app/blog/_components/Main";
@@ -16,6 +15,13 @@ interface Post {
   image?: SanityImageSource | null;
 }
 
+interface BlogClientPageProps {
+  /** The posts for the current page only — slicing happens on the server. */
+  posts: Post[];
+  currentPage: number;
+  totalPages: number;
+}
+
 function getVisiblePages(current: number, total: number): (number | "…")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const pages: (number | "…")[] = [1];
@@ -26,23 +32,10 @@ function getVisiblePages(current: number, total: number): (number | "…")[] {
   return pages;
 }
 
-export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] }) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 6;
+/** Page 1 is the bare URL; deeper pages use ?page=N (matches the canonical). */
+const pageHref = (n: number) => (n === 1 ? "/blog/all" : `/blog/all?page=${n}`);
 
-  const totalPages = Math.ceil(initialPosts.length / postsPerPage);
-  
-  const currentPosts = useMemo(() => {
-    const start = (currentPage - 1) * postsPerPage;
-    return initialPosts.slice(start, start + postsPerPage);
-  }, [currentPage, initialPosts]);
-
-  const paginate = (num: number) => {
-    setCurrentPage(num);
-    // Smooth scroll to top when changing pages
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
+export default function BlogClientPage({ posts, currentPage, totalPages }: BlogClientPageProps) {
   return (
     <div className="relative bg-black text-slate-100 pb-12">
       <div className="relative z-10 w-full pt-10">
@@ -60,7 +53,7 @@ export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] 
           >
             INTELLITRADE INSIGHTS
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -68,62 +61,79 @@ export default function BlogClientPage({ initialPosts }: { initialPosts: Post[] 
           >
             All Blog Posts
           </motion.h1>
+          {currentPage > 1 && (
+            <p className="mt-3 text-sm text-slate-400">
+              Page {currentPage} of {totalPages}
+            </p>
+          )}
         </header>
 
-        {initialPosts.length > 0 ? (
+        {posts.length > 0 ? (
           <div className="space-y-12">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={currentPage}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
-              >
-                {/* Main will now receive the image property within currentPosts */}
-                <Main posts={currentPosts} showAll={true} />
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={currentPage}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Main posts={posts} showAll={true} />
+            </motion.div>
 
-            {/* Pagination Controls */}
+            {/* Pagination — real links so crawlers can walk every page */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-3 pt-12 border-t border-white/10">
-                <button
-                  onClick={() => paginate(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10 disabled:opacity-20"
-                >
-                  Prev
-                </button>
-                
+              <nav aria-label="Blog pages" className="flex justify-center items-center gap-3 pt-12 border-t border-white/10">
+                {currentPage === 1 ? (
+                  <span className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm opacity-20 select-none">
+                    Prev
+                  </span>
+                ) : (
+                  <Link
+                    href={pageHref(currentPage - 1)}
+                    rel="prev"
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
+                  >
+                    Prev
+                  </Link>
+                )}
+
                 <div className="flex gap-1.5 items-center">
                   {getVisiblePages(currentPage, totalPages).map((num, i) =>
                     num === "…" ? (
                       <span key={`ellipsis-${i}`} className="h-10 w-8 flex items-center justify-center text-sm text-slate-500 select-none">…</span>
-                    ) : (
-                      <button
+                    ) : num === currentPage ? (
+                      <span
                         key={num}
-                        onClick={() => paginate(num)}
-                        className={`h-10 w-10 rounded-xl border transition text-sm font-medium ${
-                          currentPage === num
-                            ? "border-brand bg-brand/10 text-brandLight/80"
-                            : "border-white/10 bg-white/5 hover:bg-white/10 text-slate-400"
-                        }`}
+                        aria-current="page"
+                        className="h-10 w-10 rounded-xl border border-brand bg-brand/10 text-brandLight/80 flex items-center justify-center text-sm font-medium"
                       >
                         {num}
-                      </button>
+                      </span>
+                    ) : (
+                      <Link
+                        key={num}
+                        href={pageHref(num)}
+                        className="h-10 w-10 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-400 flex items-center justify-center text-sm font-medium transition"
+                      >
+                        {num}
+                      </Link>
                     )
                   )}
                 </div>
 
-                <button
-                  onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10 disabled:opacity-20"
-                >
-                  Next
-                </button>
-              </div>
+                {currentPage === totalPages ? (
+                  <span className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm opacity-20 select-none">
+                    Next
+                  </span>
+                ) : (
+                  <Link
+                    href={pageHref(currentPage + 1)}
+                    rel="next"
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm transition hover:bg-white/10"
+                  >
+                    Next
+                  </Link>
+                )}
+              </nav>
             )}
           </div>
         ) : (
