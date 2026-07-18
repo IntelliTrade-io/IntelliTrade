@@ -98,7 +98,7 @@ describe("dedupeEventRows", () => {
     ];
     const out = dedupeEventRows(rows);
     expect(out).toHaveLength(3);
-    expect(out[0].date_time_utc).toBe("2026-07-01T09:00:00Z");
+    expect(out[0]?.date_time_utc).toBe("2026-07-01T09:00:00Z");
   });
 
   it("passes distinct rows through untouched", () => {

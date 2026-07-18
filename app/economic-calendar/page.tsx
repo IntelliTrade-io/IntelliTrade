@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, CalendarDays, Clock, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Calculator, CalendarDays, Clock, History, Sparkles, Zap } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
-import { getFreeCalendarHighImpact, type FreeCalendarEvent } from "@/lib/api/economicCalendar";
+import {
+  getFreeCalendarRecap,
+  type FreeCalendarEvent,
+  type RecapEvent,
+} from "@/lib/api/economicCalendar";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 import { EventTime } from "./_components/EventTime";
@@ -15,59 +19,59 @@ const URL = "https://intellitrade.tech/economic-calendar";
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "Economic Calendar Today | High-Impact Forex Events This Week | IntelliTrade",
+  title: "Economic Calendar Recap | How High-Impact Events Moved the Market | IntelliTrade",
   description:
-    "Free forex economic calendar with today's high-impact releases and the week ahead: CPI, NFP, rate decisions and central bank speeches, with times in your timezone.",
+    "Free recap of recent high-impact forex events: CPI, NFP and rate decisions from the last two weeks, each with how far the currency's major USD pair moved on release day.",
   alternates: { canonical: URL },
   openGraph: {
-    title: "Economic Calendar | High-Impact Forex Events | IntelliTrade",
+    title: "Economic Calendar Recap | High-Impact Events & Market Reaction | IntelliTrade",
     description:
-      "Today's high-impact economic releases and the week ahead, updated through the day.",
+      "Recent high-impact economic releases with the measured market reaction on release day.",
     url: URL,
     siteName: "IntelliTrade",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Economic Calendar | High-Impact Forex Events | IntelliTrade",
-    description: "Today's high-impact economic releases and the week ahead.",
+    title: "Economic Calendar Recap | High-Impact Events & Market Reaction | IntelliTrade",
+    description: "Recent high-impact releases with the measured release-day market reaction.",
   },
 };
 
 const FAQ_ITEMS = [
   {
-    question: "What is an economic calendar?",
+    question: "What does this economic calendar recap show?",
     answer:
-      "An economic calendar lists scheduled economic data releases and central bank events: inflation figures, employment reports, GDP, PMI surveys, interest rate decisions and speeches. Traders watch it because prices around these releases often move faster and spreads can widen, so knowing what is scheduled helps put market moves in context.",
+      "It lists the high-impact economic events of the last two weeks: interest rate decisions, CPI inflation prints, employment reports such as US non-farm payrolls, GDP releases and scheduled central bank speeches. Next to each past event you see how far the event currency's major USD pair moved on the day of the release, so you can review which events actually moved the market.",
   },
   {
-    question: "What counts as a high-impact event?",
+    question: "How is the market reaction measured?",
     answer:
-      "High-impact events are the releases that most often move currency markets: interest rate decisions, US non-farm payrolls, CPI inflation prints, GDP releases and scheduled remarks by central bank chairs. This page shows only high-impact events; the full IntelliTrade calendar also covers medium and low impact releases with filters per currency.",
+      "The reaction figure is the percent change of the pair's end-of-day price on the release day compared with the previous trading day's end-of-day price. It is a daily close-to-close figure: it captures the whole release day, so when several events land on the same day they share the same daily move. It is a historical measurement, not a prediction or a trade recommendation.",
   },
   {
-    question: "Which timezone does this calendar use?",
+    question: "Which pair is used for each event?",
     answer:
-      "Event times are converted to your device's local timezone as soon as the page loads, with the timezone name shown next to each time. Before that conversion runs, times are shown in UTC and labelled as such. Days are grouped on the UTC calendar day.",
+      "Each event is measured on the event currency's most traded USD pair: EUR/USD for euro area events, GBP/USD for the UK, USD/JPY for Japan, and so on. US events are shown via EUR/USD, the most liquid dollar pair. The pair is always labelled next to the figure.",
   },
   {
-    question: "How often is the calendar updated?",
+    question: "Where is the upcoming calendar?",
     answer:
-      "The schedule is collected continuously from official statistical agencies and central bank sources, and this page is re-rendered throughout the day. Release times can still change at short notice, so always confirm critical timings against the issuing agency shortly before the release.",
+      "The forward-looking calendar is part of IntelliTrade Pro: the full schedule of upcoming events across all impact levels, with currency filters, search, live countdowns per event, source-linked event detail and grouped PMI release clusters. This free page covers what already happened; Pro covers what is next.",
   },
   {
-    question: "Where can I see medium and low impact events?",
+    question: "Which timezone does this page use?",
     answer:
-      "The full economic calendar inside IntelliTrade Pro covers all impact levels with currency filters, search, live countdowns per event, source-linked detail pages and grouped PMI release clusters. This free page is limited to the high-impact schedule.",
+      "Event times are converted to your device's local timezone as soon as the page loads, with the timezone name shown next to each time. Before that conversion runs, times are shown in UTC and labelled as such. Days are grouped on the UTC calendar day, and reaction figures use end-of-day rates on that same UTC day.",
   },
 ];
 
 const webPageSchema = {
   "@context": "https://schema.org",
   "@type": "WebPage",
-  name: "Forex Economic Calendar | High-Impact Events",
+  name: "Economic Calendar Recap | High-Impact Events & Market Reaction",
   description:
-    "Today's high-impact economic releases and the week ahead for forex traders: CPI, NFP, rate decisions and central bank speeches.",
+    "Recent high-impact economic releases for forex traders, each with the measured release-day move of the currency's major USD pair.",
   url: URL,
 };
 
@@ -99,7 +103,26 @@ function formatUtcDay(iso: string): string {
   }).format(new Date(iso));
 }
 
-function EventRow({ event }: { event: FreeCalendarEvent }) {
+function MoveBadge({ event }: { event: RecapEvent }) {
+  if (event.pair === null || event.movePct === null) {
+    return <span className="text-xs text-white/30">no daily figure</span>;
+  }
+  const up = event.movePct > 0;
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[11px] tabular-nums ${
+        up
+          ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300/90"
+          : "border-red-400/25 bg-red-500/10 text-red-300/90"
+      }`}
+    >
+      {event.pair}
+      <span>{`${up ? "+" : ""}${event.movePct.toFixed(2)}%`}</span>
+    </span>
+  );
+}
+
+function EventRow({ event, right }: { event: FreeCalendarEvent; right: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
       <div className="w-24 shrink-0 sm:w-28">
@@ -115,23 +138,27 @@ function EventRow({ event }: { event: FreeCalendarEvent }) {
           {event.agency ? ` · ${event.agency}` : ""}
         </p>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300/90">
-        <Zap className="h-3 w-3" />
-        High
-      </span>
+      <div className="shrink-0">{right}</div>
     </div>
   );
 }
 
-export default async function Page() {
-  const { today, upcoming } = await getFreeCalendarHighImpact();
+const highBadge = (
+  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400/25 bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-300/90">
+    <Zap className="h-3 w-3" />
+    High
+  </span>
+);
 
-  const upcomingByDay: Array<{ day: string; events: FreeCalendarEvent[] }> = [];
-  for (const event of upcoming) {
+export default async function Page() {
+  const { todayReleased, recent } = await getFreeCalendarRecap();
+
+  const recentByDay: Array<{ day: string; events: RecapEvent[] }> = [];
+  for (const event of recent) {
     const day = formatUtcDay(event.dateTimeUtc);
-    const last = upcomingByDay[upcomingByDay.length - 1];
+    const last = recentByDay[recentByDay.length - 1];
     if (last?.day === day) last.events.push(event);
-    else upcomingByDay.push({ day, events: [event] });
+    else recentByDay.push({ day, events: [event] });
   }
 
   return (
@@ -144,56 +171,61 @@ export default async function Page() {
         {/* ── Hero ─────────────────────────────────────────────────────────── */}
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Economic Calendar
+            Economic Calendar Recap
           </h1>
           <p className="mt-1 text-[13px] uppercase tracking-[0.18em] text-white/40">
-            Today&apos;s high-impact forex events · week ahead
+            High-impact events · measured market reaction
           </p>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/50 sm:text-base">
-            The releases most likely to move currency markets: rate decisions, inflation prints,
-            employment reports and central bank speeches. Times switch to your timezone
-            automatically; days follow the UTC calendar.
+            The high-impact releases of the last two weeks, each with how far the currency&apos;s
+            major USD pair moved on release day. Review which events actually moved the market;
+            the upcoming schedule lives in Pro.
           </p>
         </div>
 
-        {/* ── Today ─────────────────────────────────────────────────────────── */}
+        {/* ── Released today ───────────────────────────────────────────────── */}
         <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-8">
           <div className="radial-backdrop" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-brand/80" />
-              <h2 className="text-lg font-semibold text-white">Today&apos;s high-impact events</h2>
+              <h2 className="text-lg font-semibold text-white">Released today</h2>
             </div>
-            {today.length === 0 ? (
+            {todayReleased.length === 0 ? (
               <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-center text-sm text-white/45">
-                No high-impact releases are scheduled for today (UTC). Markets are typically
-                quietest on weekends and public holidays; see the week ahead below.
+                No high-impact releases so far today (UTC). Today&apos;s reaction figures appear
+                once the trading day closes.
               </p>
             ) : (
-              <div className="space-y-2">
-                {today.map((event) => (
-                  <EventRow key={event.id} event={event} />
-                ))}
-              </div>
+              <>
+                <div className="space-y-2">
+                  {todayReleased.map((event) => (
+                    <EventRow key={event.id} event={event} right={highBadge} />
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-white/35">
+                  Reaction figures for these appear once the trading day closes.
+                </p>
+              </>
             )}
           </div>
         </div>
 
-        {/* ── Week ahead ───────────────────────────────────────────────────── */}
+        {/* ── Recent events & reaction ─────────────────────────────────────── */}
         <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-8">
           <div className="radial-backdrop" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center gap-2">
-              <Clock className="h-4 w-4 text-brand/80" />
-              <h2 className="text-lg font-semibold text-white">Coming up this week</h2>
+              <History className="h-4 w-4 text-brand/80" />
+              <h2 className="text-lg font-semibold text-white">Last two weeks: events and market reaction</h2>
             </div>
-            {upcomingByDay.length === 0 ? (
+            {recentByDay.length === 0 ? (
               <p className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-6 text-center text-sm text-white/45">
-                No further high-impact releases in the next seven days.
+                No high-impact releases in the last two weeks.
               </p>
             ) : (
               <div className="space-y-4">
-                {upcomingByDay.map((group) => (
+                {recentByDay.map((group) => (
                   <div key={group.day}>
                     <div className="mb-2 flex items-center gap-2 px-1">
                       <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.2em] text-white/32">
@@ -203,13 +235,19 @@ export default async function Page() {
                     </div>
                     <div className="space-y-2">
                       {group.events.map((event) => (
-                        <EventRow key={event.id} event={event} />
+                        <EventRow key={event.id} event={event} right={<MoveBadge event={event} />} />
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+            <p className="mt-4 text-xs leading-relaxed text-white/35">
+              Reaction = end-of-day price of the labelled pair on the release day vs the previous
+              trading day, in percent. Events sharing a release day share that day&apos;s move.
+              US events are shown via EUR/USD, the most liquid dollar pair. Historical
+              measurement only, not a recommendation.
+            </p>
           </div>
         </div>
 
@@ -220,12 +258,13 @@ export default async function Page() {
             <div>
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-brand/90" />
-                <h2 className="text-lg font-semibold text-white">The full calendar lives in Pro</h2>
+                <h2 className="text-lg font-semibold text-white">The upcoming calendar lives in Pro</h2>
               </div>
               <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/55">
-                Medium and low impact releases, currency filters and search, live countdowns per
-                event, source-linked event detail and grouped PMI clusters, alongside the rest of
-                the IntelliTrade dashboard.
+                This page reviews what already happened. Pro shows what is next: the full
+                schedule of upcoming events across all impact levels, currency filters and
+                search, live countdowns per event, source-linked event detail and grouped PMI
+                clusters, alongside the rest of the IntelliTrade dashboard.
               </p>
             </div>
             <Link
@@ -248,21 +287,20 @@ export default async function Page() {
                   SECTION 01
                 </div>
                 <h2 id="how-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
-                  How to read an economic calendar
+                  Why review past events?
                 </h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
-                  Each row is a scheduled release: the time it goes out, the currency it concerns
-                  most directly, and the publishing agency. High-impact events are the ones with a
-                  track record of moving markets: interest rate decisions, inflation (CPI),
-                  employment reports such as US non-farm payrolls, GDP and scheduled central bank
-                  speeches.
+                  Not every &quot;high impact&quot; label moves the market equally. A CPI print
+                  that lands on expectations can pass quietly, while a surprise rate decision can
+                  move a pair a full percent in a day. Reviewing the measured reaction next to
+                  each release builds a realistic sense of which events matter for the pairs you
+                  follow, and how large a typical reaction actually is.
                 </p>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
-                  Around a major release, spreads often widen and prices can gap in either
-                  direction. Many traders use the calendar defensively: knowing a release is
-                  minutes away explains sudden volatility and helps avoid being surprised by it.
-                  The calendar tells you when the market may move; it says nothing about
-                  direction.
+                  The figures here are daily close-to-close moves: they capture the whole release
+                  day, including everything else that happened in it. They are a review tool for
+                  context and expectation-setting, not a measurement of the event in isolation
+                  and not a prediction of the next release.
                 </p>
               </div>
             </div>
