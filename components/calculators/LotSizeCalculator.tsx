@@ -572,7 +572,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                     value={riskPercent}
                     onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
                     placeholder="e.g. 1"
-                    className={`${inputClass} pr-24`}
+                    className={`${inputClass} pr-20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                   />
                 ) : (
                   <input
@@ -584,19 +584,19 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                     value={riskAmount}
                     onChange={(e) => { setRiskAmount(e.target.value); invalidate(); }}
                     placeholder="e.g. 50"
-                    className={`${inputClass} pr-24`}
+                    className={`${inputClass} pr-20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                   />
                 )}
                 <div
                   role="group"
                   aria-label="Risk input mode"
-                  className="absolute right-2 top-1/2 flex -translate-y-1/2 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
+                  className="absolute right-1.5 top-1/2 flex -translate-y-1/2 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
                 >
                   <button
                     type="button"
                     aria-pressed={riskMode === "percent"}
                     onClick={() => { setRiskMode("percent"); invalidate(); }}
-                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                    className={`px-2 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
                       riskMode === "percent"
                         ? "bg-violet-500/[0.14] text-white"
                         : "text-white/45 hover:text-white/75"
@@ -608,7 +608,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                     type="button"
                     aria-pressed={riskMode === "money"}
                     onClick={() => { setRiskMode("money"); invalidate(); }}
-                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                    className={`px-2 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
                       riskMode === "money"
                         ? "bg-violet-500/[0.14] text-white"
                         : "text-white/45 hover:text-white/75"
@@ -739,10 +739,13 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               <div id="lotcalc-broker-panel" className="border-t border-white/8 px-4 pb-4 pt-3">
                 <p className="mb-3 text-[11px] leading-relaxed text-white/40">
                   Brokers can define {cleanPair} differently. You can find these values in MT4/MT5 by
-                  right-clicking the symbol and opening Specification. Settings apply to {cleanPair} only.
+                  right-clicking the symbol and opening Specification. Contract size is the number of
+                  units per 1.00 lot. Settings apply to {cleanPair} only.
                 </p>
+                {/* justify-end keeps the three inputs on one line even when a
+                    label wraps in the narrow columns. */}
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-contract" className={labelClass}>
                       Contract size
                     </label>
@@ -754,14 +757,10 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       min="0"
                       value={brokerFieldValue("contractSize", instrumentDefaults.contractSize)}
                       onChange={(e) => setBrokerField("contractSize", e.target.value)}
-                      aria-describedby="lotcalc-contract-hint"
                       className={inputClass}
                     />
-                    <span id="lotcalc-contract-hint" className="text-[10px] text-white/32">
-                      Units per 1.00 lot
-                    </span>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-minlot" className={labelClass}>
                       Minimum lot
                     </label>
@@ -777,7 +776,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       className={inputClass}
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col justify-end gap-2">
                     <label htmlFor="lotcalc-lotstep" className={labelClass}>
                       Lot step
                     </label>
