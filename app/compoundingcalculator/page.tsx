@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Calculator, Gauge, Scale, ArrowRight } from "lucide-react";
 import CompoundingCalculator from "@/components/calculators/CompoundingCalculator";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 
 const URL = "https://intellitrade.tech/compoundingcalculator";
 
@@ -279,6 +280,8 @@ export default function Page() {
             </div>
           </section>
         </ScrollRevealSection>
+
+        <LatestFromBlog />
       </div>
     </>
   );

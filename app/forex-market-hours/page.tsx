@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Calculator, Gauge, TrendingUp, ArrowRight } from "lucide-react";
 import MarketHoursClock from "@/components/tools/MarketHoursClock";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 
 const URL = "https://intellitrade.tech/forex-market-hours";
 
@@ -221,6 +222,8 @@ export default function Page() {
             </div>
           </section>
         </ScrollRevealSection>
+
+        <LatestFromBlog />
       </div>
     </>
   );

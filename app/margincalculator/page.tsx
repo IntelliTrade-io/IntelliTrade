@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Calculator, Gauge, TrendingUp, ArrowRight } from "lucide-react";
 import MarginCalculator from "@/components/calculators/MarginCalculator";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 import { describePair } from "@/lib/pair-meta";
 
 const URL = "https://intellitrade.tech/margincalculator";
@@ -327,6 +328,8 @@ export default function Page() {
             </div>
           </section>
         </ScrollRevealSection>
+
+        <LatestFromBlog />
       </div>
     </>
   );

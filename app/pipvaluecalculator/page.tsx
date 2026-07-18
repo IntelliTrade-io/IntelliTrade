@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Calculator, Scale, TrendingUp, ArrowRight } from "lucide-react";
 import PipValueCalculator from "@/components/calculators/PipValueCalculator";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 import { describePair } from "@/lib/pair-meta";
 
 const URL = "https://intellitrade.tech/pipvaluecalculator";
@@ -330,6 +331,8 @@ export default function Page() {
             </div>
           </section>
         </ScrollRevealSection>
+
+        <LatestFromBlog />
       </div>
     </>
   );

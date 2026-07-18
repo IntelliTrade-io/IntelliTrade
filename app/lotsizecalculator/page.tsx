@@ -5,6 +5,7 @@ import { BookOpen, ArrowRight } from "lucide-react";
 import LotSizeCalculator from "@/components/calculators/LotSizeCalculator";
 import NoSmoothScroll from "@/components/calculators/NoSmoothScroll";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 import { describePair } from "@/lib/pair-meta";
 
 // Popular per-pair calculator pages surfaced from the hub for internal linking
@@ -714,6 +715,8 @@ export default function Page() {
             </div>
           </section>
         </ScrollRevealSection>
+
+        <LatestFromBlog />
 
       </div>
     </>

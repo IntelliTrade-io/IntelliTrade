@@ -8,6 +8,7 @@ import { cleanPostTitle, excerptFromPortableText, slugifyTag } from "@/lib/blog"
 import Link from "next/link";
 import Image from "next/image";
 import ReadingProgressBar from "@/components/blog/ReadingProgressBar";
+import { RelatedTools } from "@/components/blog/RelatedTools";
 import { StrengthSnapshot } from "./_components/StrengthSnapshot";
 import { ArrowLeft } from "lucide-react";
 
@@ -221,6 +222,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
         </article>
 
         <StrengthSnapshot publishedAt={post.publishedAt} />
+
+        <RelatedTools tags={Array.isArray(post.tags) ? post.tags : []} />
 
         {/* Footer CTA */}
         <footer className=" pt-12 border-t border-white/10 text-center">
