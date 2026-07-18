@@ -27,6 +27,12 @@ const FALLBACK_PAIRS = [
 
 interface PipValueCalculatorProps {
   className?: string;
+  /**
+   * Pre-select this pair on first render (used by the per-pair SEO pages, e.g.
+   * /pipvaluecalculator/xauusd). Falls back to EURUSD once the live pair list
+   * loads if the symbol is not composable.
+   */
+  initialPair?: string;
 }
 
 type Results = {
@@ -37,9 +43,9 @@ type Results = {
   context: string;
 };
 
-export default function PipValueCalculator({ className }: PipValueCalculatorProps) {
+export default function PipValueCalculator({ className, initialPair }: PipValueCalculatorProps) {
   const [currency, setCurrency] = useState("USD"); // account currency
-  const [pair, setPair] = useState("EURUSD");
+  const [pair, setPair] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [lots, setLots] = useState("1");
 
   const [results, setResults] = useState<Results | null>(null);

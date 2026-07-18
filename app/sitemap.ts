@@ -20,6 +20,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
     })),
     { url: `${BASE}/pipvaluecalculator`, priority: 0.8, changeFrequency: "monthly" },
+    // Per-pair pip value SEO pages (e.g. /pipvaluecalculator/eurusd)
+    ...PER_PAIR_SYMBOLS.map((symbol) => ({
+      url: `${BASE}/pipvaluecalculator/${pairToSlug(symbol)}`,
+      priority: 0.6,
+      changeFrequency: "monthly" as const,
+    })),
     { url: `${BASE}/margincalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/forex-market-hours`, priority: 0.8, changeFrequency: "monthly" },

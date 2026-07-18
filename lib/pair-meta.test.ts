@@ -9,6 +9,7 @@ import {
   pipValuePerLotQuote,
   describePair,
   pairExample,
+  pipValueLots,
 } from "./pair-meta";
 
 describe("PER_PAIR_SYMBOLS", () => {
@@ -99,6 +100,25 @@ describe("describePair", () => {
   it("flags JPY quote convention", () => {
     expect(describePair("USDJPY").isJpy).toBe(true);
     expect(describePair("GBPJPY").isJpy).toBe(true);
+  });
+});
+
+describe("pipValueLots", () => {
+  it("scales standard/mini/micro in the quote currency", () => {
+    const v = pipValueLots("EURUSD");
+    expect(v.standard).toBeCloseTo(10, 10);
+    expect(v.mini).toBeCloseTo(1, 10);
+    expect(v.micro).toBeCloseTo(0.1, 10);
+    expect(v.quote).toBe("USD");
+  });
+  it("handles JPY quote (in JPY)", () => {
+    const v = pipValueLots("USDJPY");
+    expect(v.standard).toBeCloseTo(1000, 10);
+    expect(v.mini).toBeCloseTo(100, 10);
+    expect(v.quote).toBe("JPY");
+  });
+  it("handles gold", () => {
+    expect(pipValueLots("XAUUSD").standard).toBeCloseTo(1, 10);
   });
 });
 

@@ -118,6 +118,33 @@ export function describePair(pairInput: string): PairMeta {
   };
 }
 
+export interface PipValueLots {
+  /** pip value of a 1.00 (standard) lot, in the quote currency */
+  standard: number;
+  /** pip value of a 0.10 (mini) lot */
+  mini: number;
+  /** pip value of a 0.01 (micro) lot */
+  micro: number;
+  quote: string;
+}
+
+/**
+ * Pip value per standard / mini / micro lot, in the pair's quote currency
+ * (exact, no live rate). Standard is contractSize x pipSize; mini and micro
+ * scale linearly. For a USD-quoted pair these are already dollars; otherwise the
+ * pip value calculator converts them to the account currency live.
+ */
+export function pipValueLots(pairInput: string): PipValueLots {
+  const meta = describePair(pairInput);
+  const standard = meta.pipValueQuote;
+  return {
+    standard,
+    mini: standard / 10,
+    micro: standard / 100,
+    quote: meta.quote,
+  };
+}
+
 export interface PairExample {
   balance: number;
   riskPercent: number;
