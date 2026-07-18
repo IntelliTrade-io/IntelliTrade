@@ -3,6 +3,7 @@ import { jsonLd } from "@/lib/jsonLd";
 import BitcoinPriceTodayPage from "./_components/BitcoinPriceTodayPage";
 import { FAQ_ITEMS } from "./_components/faqData";
 import { fetchMarketContext } from "@/lib/api/marketContext";
+import { fetchPriceChangeFigures } from "@/lib/api/priceHistory";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -53,7 +54,10 @@ const faqSchema = {
 };
 
 export default async function Page() {
-  const marketContext = await fetchMarketContext("bitcoin");
+  const [marketContext, priceChanges] = await Promise.all([
+    fetchMarketContext("bitcoin"),
+    fetchPriceChangeFigures("BTC"),
+  ]);
   return (
     <>
       <script
@@ -64,7 +68,7 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
-      <BitcoinPriceTodayPage marketContext={marketContext} />
+      <BitcoinPriceTodayPage marketContext={marketContext} priceChanges={priceChanges} />
       <section className="w-full px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <ProCtaCard

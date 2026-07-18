@@ -9,7 +9,9 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 import type { MarketContext } from "@/lib/api/marketContext";
+import type { PriceChangeFigures } from "@/lib/api/priceHistory";
 import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { PriceChangeStats } from "@/components/price-pages/PriceChangeStats";
 import { PricePageFooterNote } from "@/components/price-pages/PricePageFooterNote";
 import { FAQ_ITEMS } from "./faqData";
 
@@ -312,8 +314,10 @@ function MiniPriceWidget() {
 
 export default function SilverPriceTodayPage({
   marketContext,
+  priceChanges,
 }: {
   marketContext: MarketContext | null;
+  priceChanges: PriceChangeFigures | null;
 }) {
   const marketData = useMarketData();
   const dxy = useDxy();
@@ -340,6 +344,7 @@ export default function SilverPriceTodayPage({
               <div className="mt-7 space-y-4 text-[15px] leading-relaxed text-slate-200/90 md:max-w-xl">
                 <p>Stay informed with the latest silver price in USD. Below is the live XAG/USD price, updated in real time, along with a chart, market analysis, and the main forces influencing silver today.</p>
               </div>
+              <PriceChangeStats figures={priceChanges} assetLabel="silver" />
             </div>
             <div><MiniPriceWidget /></div>
           </div>
