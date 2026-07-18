@@ -8,8 +8,8 @@ Format: what · why · rough approach. Date each entry.
 
 ## API / data
 
-- **`/api/scrape` is dead code** *(2026-07-04)*
-  It spawns `scraper/cli.py`, which does not exist in the repo — the route has 500'd on every call since inception. Now gated behind `SCRAPE_SECRET`, but the real question is remove-or-repoint (the actual scraper lives in `scripts/economic_calendar_scraper.py` and runs on the VPS). Candidate for deletion in Phase 4 verification pass.
+- ~~**`/api/scrape` is dead code**~~ *(deleted 2026-07-18)*
+  It spawned `scraper/cli.py`, which did not exist in the repo (no `scraper/` directory at all) — the route 500'd on every call since inception. Verified zero code references before removal; the real scraper lives in `scripts/economic_calendar_scraper.py` on the VPS. `SCRAPE_SECRET` env var can be removed from Vercel if it was ever set (→ OWNER_TODO not needed; it was never configured).
 
 - **CurrencyFreaks env rename + key rotation** *(2026-07-04)*
   `/api/rates` proxy + `/api/dxy` read `CURRENCYFREAKS_API_KEY` with a legacy fallback to `NEXT_PUBLIC_CURRENCYFREAKS_API_KEY`. In Vercel: add the non-public var, remove the `NEXT_PUBLIC_` one, then **rotate the key** at CurrencyFreaks (old one was browser-exposed). After rotation, delete the fallback from both routes.
