@@ -10,6 +10,7 @@ export const CALCULATOR_STORAGE_KEY = "intellitrade:lot-size-calculator:v1";
 export const CALCULATOR_STORAGE_VERSION = 1;
 
 export type StopMode = "pips" | "price";
+export type RiskMode = "percent" | "money";
 
 /** Per-instrument broker overrides, kept as the raw field strings the inputs hold. */
 export interface StoredBrokerOverride {
@@ -23,7 +24,10 @@ export interface StoredCalculatorState {
   currency: string;
   pair: string;
   balance: string;
+  /** Risk expressed as % of balance or as a fixed money amount in account currency. */
+  riskMode: RiskMode;
   riskPercent: string;
+  riskAmount: string;
   stopMode: StopMode;
   stopLossPips: string;
   entryPrice: string;
@@ -39,7 +43,9 @@ export const DEFAULT_CALCULATOR_STATE: StoredCalculatorState = {
   currency: "EUR",
   pair: "EURUSD",
   balance: "",
+  riskMode: "percent",
   riskPercent: "",
+  riskAmount: "",
   stopMode: "pips",
   stopLossPips: "",
   entryPrice: "",
@@ -114,7 +120,11 @@ export function loadCalculatorState(storage?: Storage | null): StoredCalculatorS
     currency: typeof p.currency === "string" && /^[A-Z]{3}$/.test(p.currency) ? p.currency : d.currency,
     pair: typeof p.pair === "string" && /^[A-Z0-9]{3,12}$/.test(p.pair) ? p.pair : d.pair,
     balance: sanitizeNumericField(p.balance),
+    // riskMode/riskAmount arrived after v1 shipped; older payloads simply lack
+    // them and fall back to percent mode, so no version bump is needed.
+    riskMode: p.riskMode === "money" ? "money" : "percent",
     riskPercent: sanitizeNumericField(p.riskPercent),
+    riskAmount: sanitizeNumericField(p.riskAmount),
     stopMode: p.stopMode === "price" ? "price" : "pips",
     stopLossPips: sanitizeNumericField(p.stopLossPips),
     entryPrice: sanitizeNumericField(p.entryPrice),

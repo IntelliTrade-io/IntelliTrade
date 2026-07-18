@@ -25,6 +25,7 @@ import {
   clearCalculatorState,
   loadCalculatorState,
   saveCalculatorState,
+  type RiskMode,
   type StopMode,
   type StoredBrokerOverride,
 } from "@/lib/calculator-storage";
@@ -58,7 +59,11 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
   const [currency, setCurrencyRaw] = useState("EUR"); // account currency
   const [pair, setPairRaw] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [balance, setBalance] = useState("");
+
+  // Risk per trade: % of balance, or a fixed money amount in account currency.
+  const [riskMode, setRiskMode] = useState<RiskMode>("percent");
   const [riskPercent, setRiskPercent] = useState("");
+  const [riskAmount, setRiskAmount] = useState("");
 
   // Stop input: distance in pips, or entry + stop-loss prices.
   const [stopMode, setStopMode] = useState<StopMode>("pips");
@@ -112,7 +117,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
       // saved inputs still restore.
       setPairRaw(initialPair ? normalizePair(initialPair) : saved.pair);
       setBalance(saved.balance);
+      setRiskMode(saved.riskMode);
       setRiskPercent(saved.riskPercent);
+      setRiskAmount(saved.riskAmount);
       setStopMode(saved.stopMode);
       setStopLoss(saved.stopLossPips);
       setEntryPrice(saved.entryPrice);
@@ -137,7 +144,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
         currency,
         pair,
         balance,
+        riskMode,
         riskPercent,
+        riskAmount,
         stopMode,
         stopLossPips: stopLoss,
         entryPrice,
@@ -153,7 +162,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
     currency,
     pair,
     balance,
+    riskMode,
     riskPercent,
+    riskAmount,
     stopMode,
     stopLoss,
     entryPrice,
@@ -306,12 +317,23 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
 
   const handleCalculate = async (opts?: { silent?: boolean }) => {
     const balanceNum = parseFloat(balance);
-    const riskPercentNum = parseFloat(riskPercent);
 
     try {
       if (isNaN(balanceNum) || balanceNum <= 0) throw new Error("Enter an account balance greater than zero.");
-      if (isNaN(riskPercentNum) || riskPercentNum <= 0)
-        throw new Error("Enter a risk percentage greater than zero.");
+
+      // Fixed-money risk reduces to the equivalent percentage, so the pure
+      // sizing math stays a single code path.
+      let riskPercentNum: number;
+      if (riskMode === "percent") {
+        riskPercentNum = parseFloat(riskPercent);
+        if (isNaN(riskPercentNum) || riskPercentNum <= 0)
+          throw new Error("Enter a risk percentage greater than zero.");
+      } else {
+        const riskAmountNum = parseFloat(riskAmount);
+        if (isNaN(riskAmountNum) || riskAmountNum <= 0)
+          throw new Error("Enter a risk amount greater than zero.");
+        riskPercentNum = (riskAmountNum / balanceNum) * 100;
+      }
 
       const stop = buildStopInput();
       const broker = {
@@ -343,8 +365,12 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
           ? `${fmtPips(computed.stopDistancePips)} pip stop`
           : `entry ${entryPrice} / stop ${stopLossPrice}`;
       const conversionNote = currency !== quote ? " · live conversion applied" : "";
+      const riskSummary =
+        riskMode === "percent"
+          ? `${riskPercentNum}% risk`
+          : `${fmtMoney(computed.targetRisk)} ${currency} risk`;
       setCalcContext(
-        `${balanceNum.toLocaleString()} ${currency} balance · ${riskPercentNum}% risk · ${stopSummary} · ${cleanPair}${conversionNote}`,
+        `${balanceNum.toLocaleString()} ${currency} balance · ${riskSummary} · ${stopSummary} · ${cleanPair}${conversionNote}`,
       );
       // Funnel: a successful calculation is the high-intent moment. Only the
       // instrument is recorded — no balance/risk (no PII or financial data).
@@ -372,6 +398,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
   const applyTemplate = (t: AccountTemplate) => {
     setBalance(String(t.balance));
     setCurrencyRaw(t.currency);
+    setRiskMode("percent"); // templates define risk as a percentage
     setRiskPercent(String(t.riskPercent));
     // Merge the template's per-instrument overrides (as raw field strings).
     // Trade-specific entry, stop and pip-distance inputs are left untouched.
@@ -395,7 +422,9 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
     setCurrencyRaw(d.currency);
     setPairRaw(d.pair);
     setBalance(d.balance);
+    setRiskMode(d.riskMode);
     setRiskPercent(d.riskPercent);
+    setRiskAmount(d.riskAmount);
     setStopMode(d.stopMode);
     setStopLoss(d.stopLossPips);
     setEntryPrice(d.entryPrice);
@@ -525,24 +554,72 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               </div>
             </div>
 
-            {/* Risk % */}
+            {/* Risk per trade — % of balance or fixed money amount */}
             <div className="flex flex-col gap-2">
-              <label htmlFor="lotcalc-risk" className={labelClass}>
-                Risk per trade
-              </label>
+              <div className="flex items-end justify-between gap-2">
+                <label htmlFor="lotcalc-risk" className={labelClass}>
+                  Risk per trade
+                </label>
+                <div
+                  role="group"
+                  aria-label="Risk input mode"
+                  className="flex overflow-hidden rounded-full border border-white/10 bg-white/[0.03]"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={riskMode === "percent"}
+                    onClick={() => { setRiskMode("percent"); invalidate(); }}
+                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                      riskMode === "percent"
+                        ? "bg-violet-500/[0.14] text-white"
+                        : "text-white/45 hover:text-white/75"
+                    }`}
+                  >
+                    %
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={riskMode === "money"}
+                    onClick={() => { setRiskMode("money"); invalidate(); }}
+                    className={`px-2.5 py-1 text-[10px] font-medium transition-colors motion-reduce:transition-none ${
+                      riskMode === "money"
+                        ? "bg-violet-500/[0.14] text-white"
+                        : "text-white/45 hover:text-white/75"
+                    }`}
+                  >
+                    {currency}
+                  </button>
+                </div>
+              </div>
               <div className="relative">
-                <input
-                  autoComplete="off"
-                  id="lotcalc-risk"
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  value={riskPercent}
-                  onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
-                  placeholder="e.g. 1"
-                  className={`${inputClass} pr-10`}
-                />
-                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">%</div>
+                {riskMode === "percent" ? (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskPercent}
+                    onChange={(e) => { setRiskPercent(e.target.value); invalidate(); }}
+                    placeholder="e.g. 1"
+                    className={`${inputClass} pr-10`}
+                  />
+                ) : (
+                  <input
+                    autoComplete="off"
+                    id="lotcalc-risk"
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    value={riskAmount}
+                    onChange={(e) => { setRiskAmount(e.target.value); invalidate(); }}
+                    placeholder="e.g. 50"
+                    className={`${inputClass} pr-14`}
+                  />
+                )}
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white/38">
+                  {riskMode === "percent" ? "%" : currency}
+                </div>
               </div>
             </div>
 
@@ -819,7 +896,12 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                 <div className="mt-1.5 text-base sm:text-lg font-semibold text-white">
                   {fmtMoney(result.targetRisk)} {resultCurrency}
                 </div>
-                <div className="text-[11px] text-white/40">{fmtPct(parseFloat(riskPercent) || 0)} of balance</div>
+                {/* Derived from the result so it is correct in both risk modes;
+                    any input change clears the result, so balance here always
+                    matches the balance used in the calculation. */}
+                <div className="text-[11px] text-white/40">
+                  {fmtPct((result.targetRisk / parseFloat(balance)) * 100 || 0)} of balance
+                </div>
               </div>
             </div>
           )}
