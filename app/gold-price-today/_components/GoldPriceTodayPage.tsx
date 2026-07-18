@@ -9,7 +9,9 @@ import {
 } from "@/components/price-pages/PricePageBrand";
 import { fetchUsdPrice, fetchDxy, fetchTenYearYield } from "@/lib/api/market";
 import type { MarketContext } from "@/lib/api/marketContext";
+import type { PriceChangeFigures } from "@/lib/api/priceHistory";
 import { MarketContextExtras } from "@/components/price-pages/MarketContextExtras";
+import { PriceChangeStats } from "@/components/price-pages/PriceChangeStats";
 import { PricePageFooterNote } from "@/components/price-pages/PricePageFooterNote";
 import { FAQ_ITEMS } from "./faqData";
 
@@ -404,8 +406,10 @@ function MiniPriceWidget() {
 
 export default function GoldPriceTodayPage({
   marketContext,
+  priceChanges,
 }: {
   marketContext: MarketContext | null;
+  priceChanges: PriceChangeFigures | null;
 }) {
   const marketData = useMarketData();
   const dxy = useDxy();
@@ -446,6 +450,7 @@ export default function GoldPriceTodayPage({
                   market analysis, and the main forces influencing gold today.
                 </p>
               </div>
+              <PriceChangeStats figures={priceChanges} assetLabel="gold" />
             </div>
             <div>
               <MiniPriceWidget />
@@ -549,9 +554,13 @@ export default function GoldPriceTodayPage({
                 subtle="Precious metals often move together."
               />
               <DriverCard
-                title="Oil Price"
-                value="$22.74"
-                subtle="Inflation-sensitive assets can affect sentiment."
+                title="Gold 30-Day Change"
+                value={
+                  priceChanges?.d30 != null
+                    ? `${priceChanges.d30 > 0 ? "+" : ""}${priceChanges.d30.toFixed(2)}%`
+                    : "—"
+                }
+                subtle="Momentum context for the current move."
               />
             </div>
           </div>

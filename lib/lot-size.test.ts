@@ -143,6 +143,17 @@ describe("computePipValue", () => {
     const r = computePipValue({ pair: "XAUUSD", lots: 1, quoteToAccount: 1 });
     expect(r.perStandardLot).toBe(1);
   });
+
+  it("honours a broker contract-size override (1,000 oz gold lot → pip value 10)", () => {
+    const r = computePipValue({ pair: "XAUUSD", lots: 1, quoteToAccount: 1, contractSize: 1000 });
+    expect(r.perStandardLot).toBe(10);
+  });
+
+  it("rejects a non-positive contract-size override", () => {
+    expect(() => computePipValue({ pair: "EURUSD", lots: 1, quoteToAccount: 1, contractSize: 0 })).toThrow(
+      /contract size/i,
+    );
+  });
 });
 
 describe("computeMargin", () => {
@@ -175,6 +186,19 @@ describe("computeMargin", () => {
     expect(r.units).toBe(100);
     expect(r.notional).toBeCloseTo(240_000);
     expect(r.margin).toBeCloseTo(12_000);
+  });
+
+  it("honours a broker contract-size override (10 oz gold lot)", () => {
+    const r = computeMargin({ pair: "XAUUSD", lots: 1, leverage: 20, baseToAccount: 2_400, contractSize: 10 });
+    expect(r.units).toBe(10);
+    expect(r.notional).toBeCloseTo(24_000);
+    expect(r.margin).toBeCloseTo(1_200);
+  });
+
+  it("rejects a non-positive contract-size override", () => {
+    expect(() =>
+      computeMargin({ pair: "EURUSD", lots: 1, leverage: 30, baseToAccount: 1.08, contractSize: -1 }),
+    ).toThrow(/contract size/i);
   });
 
   it("rejects non-positive leverage", () => {
