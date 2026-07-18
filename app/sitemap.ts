@@ -35,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/economic-calendar`, priority: 0.8, changeFrequency: "daily" },
+    { url: `${BASE}/currency-strength`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/forex-market-hours`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/gold-price-today`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/silver-price-today`, priority: 0.8, changeFrequency: "daily" },

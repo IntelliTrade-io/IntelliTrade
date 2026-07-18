@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Calculator, CalendarDays, Gauge, Scale, Clock, BookOpen, Info, TrendingUp, LogIn, UserPlus, Sparkles } from "lucide-react";
+import { Menu, X, Calculator, CalendarDays, Gauge, Scale, Clock, BookOpen, Info, TrendingUp, LogIn, UserPlus, Sparkles, Radar } from "lucide-react";
 
 const MAIN_LINKS = [
   { label: "Lot size calculator", href: "/lotsizecalculator", icon: Calculator },
@@ -12,6 +12,7 @@ const MAIN_LINKS = [
   { label: "Margin calculator", href: "/margincalculator", icon: Scale },
   { label: "Compounding calculator", href: "/compoundingcalculator", icon: TrendingUp },
   { label: "Economic calendar", href: "/economic-calendar", icon: CalendarDays },
+  { label: "Currency strength", href: "/currency-strength", icon: Radar },
   { label: "Forex market hours", href: "/forex-market-hours", icon: Clock },
   { label: "Blog", href: "/blog", icon: BookOpen },
   { label: "About", href: "/about", icon: Info },
