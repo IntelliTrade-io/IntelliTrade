@@ -75,3 +75,19 @@ skills-lock.json
 
 # local working files for Claude sessions (handoffs, fixtures, validation dumps)
 /claudeLoad/
+
+# internal docs — plans, backlogs, prompts, runbooks, handoffs. Not public-facing;
+# they live on disk (and in owner backups) but are not tracked in the repo.
+/BLOG_PROMPT.md
+/CLAUDE.md
+/CONVERSION_PLAN.md
+/GOOGLE_ADSENSE_APPROVAL.md
+/IMPROVEMENTS.md
+/MARKET_CONTEXT_AUTOMATION.md
+/OPUS_HANDOFF.md
+/OWNER_TODO.md
+/REFACTOR_PLAN.md
+/SANITY_SCHEMA_UPGRADE.md
+/docs/intraday-currency-strength-entry-assist.md
+/economic_calendar/SPLIT_MAP.md
+/scripts/vps/DEPLOY.md
