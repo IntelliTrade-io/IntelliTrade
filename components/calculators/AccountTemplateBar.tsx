@@ -456,6 +456,7 @@ export function AccountTemplateBar({
                   Template name
                 </label>
                 <input
+                  autoComplete="off"
                   id="template-name-input"
                   value={nameDraft}
                   maxLength={TEMPLATE_NAME_MAX}
@@ -470,6 +471,7 @@ export function AccountTemplateBar({
                     Broker name (optional)
                   </label>
                   <input
+                    autoComplete="off"
                     id="template-broker-input"
                     value={brokerDraft}
                     maxLength={80}

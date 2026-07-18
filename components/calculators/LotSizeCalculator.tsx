@@ -37,6 +37,14 @@ const CF_SUPPORTED_URL = "https://api.currencyfreaks.com/v2.0/supported-currenci
 
 interface LotSizeCalculatorProps {
   className?: string;
+  /**
+   * Pre-select this pair on first render (used by the per-pair SEO pages, e.g.
+   * /lotsizecalculator/xauusd). Overrides only the pair field; every other saved
+   * input (balance, risk, broker overrides) still restores normally. Must be a
+   * symbol composePairsFrom can produce, or it falls back to EURUSD once the live
+   * pair list loads.
+   */
+  initialPair?: string;
 }
 
 const fmtMoney = (x: number) =>
@@ -45,9 +53,9 @@ const fmtPct = (x: number) => `${x.toFixed(2)}%`;
 const fmtPips = (x: number) => x.toLocaleString("en-US", { maximumFractionDigits: 1 });
 
 // ---------- Component ----------
-export default function LotSizeCalculator({ className }: LotSizeCalculatorProps) {
+export default function LotSizeCalculator({ className, initialPair }: LotSizeCalculatorProps) {
   const [currency, setCurrencyRaw] = useState("EUR"); // account currency
-  const [pair, setPairRaw] = useState("EURUSD");
+  const [pair, setPairRaw] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [balance, setBalance] = useState("");
   const [riskPercent, setRiskPercent] = useState("");
 
@@ -99,7 +107,9 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     const saved = loadCalculatorState();
     if (saved) {
       setCurrencyRaw(saved.currency);
-      setPairRaw(saved.pair);
+      // On a per-pair page the URL pair wins over the persisted one; all other
+      // saved inputs still restore.
+      setPairRaw(initialPair ? normalizePair(initialPair) : saved.pair);
       setBalance(saved.balance);
       setRiskPercent(saved.riskPercent);
       setStopMode(saved.stopMode);
@@ -113,7 +123,9 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
     }
     setAllowAutoDefault(!saved || (saved.balance === "" && !saved.selectedTemplateId));
     setRestored(true);
-  }, []);
+    // initialPair is a stable route param; listed to satisfy exhaustive-deps but
+    // never actually changes for a mounted page.
+  }, [initialPair]);
 
   // ── persist inputs (never results or exchange rates), debounced ───────────
   useEffect(() => {
@@ -590,6 +602,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                 )}
                 {/* Input */}
                 <input
+                  autoComplete="off"
                   id="lotcalc-currency"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
@@ -678,6 +691,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                 )}
                 {/* Input */}
                 <input
+                  autoComplete="off"
                   id="lotcalc-pair"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
@@ -766,6 +780,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
               </label>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   id="lotcalc-balance"
                   type="number"
                   inputMode="decimal"
@@ -786,6 +801,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
               </label>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   id="lotcalc-risk"
                   type="number"
                   inputMode="decimal"
@@ -831,6 +847,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                 </label>
                 <div className="relative">
                   <input
+                    autoComplete="off"
                     id="lotcalc-stoploss"
                     type="number"
                     inputMode="decimal"
@@ -855,6 +872,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                     Entry price
                   </label>
                   <input
+                    autoComplete="off"
                     id="lotcalc-entry"
                     type="number"
                     inputMode="decimal"
@@ -870,6 +888,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                     Stop-loss price
                   </label>
                   <input
+                    autoComplete="off"
                     id="lotcalc-slprice"
                     type="number"
                     inputMode="decimal"
@@ -923,6 +942,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       Contract size
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-contract"
                       type="number"
                       inputMode="decimal"
@@ -941,6 +961,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       Minimum lot
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-minlot"
                       type="number"
                       inputMode="decimal"
@@ -956,6 +977,7 @@ export default function LotSizeCalculator({ className }: LotSizeCalculatorProps)
                       Lot step
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-lotstep"
                       type="number"
                       inputMode="decimal"

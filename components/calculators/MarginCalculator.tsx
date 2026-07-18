@@ -26,6 +26,12 @@ const FALLBACK_PAIRS = [
 
 interface MarginCalculatorProps {
   className?: string;
+  /**
+   * Pre-select this pair on first render (used by the per-pair SEO pages, e.g.
+   * /margincalculator/xauusd). Falls back to EURUSD once the live pair list
+   * loads if the symbol is not composable.
+   */
+  initialPair?: string;
 }
 
 type Results = {
@@ -35,9 +41,9 @@ type Results = {
   context: string;
 };
 
-export default function MarginCalculator({ className }: MarginCalculatorProps) {
+export default function MarginCalculator({ className, initialPair }: MarginCalculatorProps) {
   const [currency, setCurrency] = useState("USD"); // account currency
-  const [pair, setPair] = useState("EURUSD");
+  const [pair, setPair] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [lots, setLots] = useState("1");
   const [leverage, setLeverage] = useState("30");
 
@@ -223,6 +229,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
                   placeholder={ccyOpen ? "Search…" : ""}
@@ -276,6 +283,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
                   placeholder={pairOpen ? "Search pair…" : ""}
@@ -329,6 +337,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Position size</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={lots}
                   onChange={(e) => setLots(e.target.value)}
@@ -345,6 +354,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
               <div className="relative">
                 <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-white/38">1:</div>
                 <input
+                  autoComplete="off"
                   type="number"
                   value={leverage}
                   onChange={(e) => setLeverage(e.target.value)}

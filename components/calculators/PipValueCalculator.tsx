@@ -27,6 +27,12 @@ const FALLBACK_PAIRS = [
 
 interface PipValueCalculatorProps {
   className?: string;
+  /**
+   * Pre-select this pair on first render (used by the per-pair SEO pages, e.g.
+   * /pipvaluecalculator/xauusd). Falls back to EURUSD once the live pair list
+   * loads if the symbol is not composable.
+   */
+  initialPair?: string;
 }
 
 type Results = {
@@ -37,9 +43,9 @@ type Results = {
   context: string;
 };
 
-export default function PipValueCalculator({ className }: PipValueCalculatorProps) {
+export default function PipValueCalculator({ className, initialPair }: PipValueCalculatorProps) {
   const [currency, setCurrency] = useState("USD"); // account currency
-  const [pair, setPair] = useState("EURUSD");
+  const [pair, setPair] = useState(initialPair ? normalizePair(initialPair) : "EURUSD");
   const [lots, setLots] = useState("1");
 
   const [results, setResults] = useState<Results | null>(null);
@@ -224,6 +230,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
                   placeholder={ccyOpen ? "Search…" : ""}
@@ -277,6 +284,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
                   placeholder={pairOpen ? "Search pair…" : ""}
@@ -330,6 +338,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Position size</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={lots}
                   onChange={(e) => setLots(e.target.value)}

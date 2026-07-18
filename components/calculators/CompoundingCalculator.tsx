@@ -110,6 +110,7 @@ export default function CompoundingCalculator({ className }: CompoundingCalculat
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Starting balance</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={startingBalance}
                   onChange={(e) => setStartingBalance(e.target.value)}
@@ -125,6 +126,7 @@ export default function CompoundingCalculator({ className }: CompoundingCalculat
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Return per {unit.toLowerCase()}</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={ratePercent}
                   onChange={(e) => setRatePercent(e.target.value)}
@@ -139,6 +141,7 @@ export default function CompoundingCalculator({ className }: CompoundingCalculat
             <div className="flex flex-col gap-2">
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Number of {unit.toLowerCase()}s</div>
               <input
+                autoComplete="off"
                 type="number"
                 value={periods}
                 onChange={(e) => setPeriods(e.target.value)}
@@ -152,6 +155,7 @@ export default function CompoundingCalculator({ className }: CompoundingCalculat
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Add per {unit.toLowerCase()} <span className="text-white/28">(optional)</span></div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={contribution}
                   onChange={(e) => setContribution(e.target.value)}
