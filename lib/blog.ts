@@ -20,6 +20,42 @@ export function cleanPostTitle(rawTitle: string | null | undefined): string {
   return parts.filter(Boolean).join(" | ");
 }
 
+/**
+ * URL slug for a Sanity post tag. Tags are stored as plain English strings
+ * ("EUR/USD outlook", "forex market update"), so tag pages address them by a
+ * normalized slug and match posts by comparing slugified values — spacing,
+ * case or punctuation variants of the same tag land on the same page.
+ */
+export function slugifyTag(tag: string): string {
+  return tag
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export interface TagCount {
+  /** Display text, verbatim from Sanity (first spelling seen wins). */
+  label: string;
+  /** URL slug from slugifyTag. */
+  slug: string;
+  count: number;
+}
+
+/** Aggregate tag lists into unique tags (deduped by slug), most-used first. */
+export function collectTagCounts(tagLists: string[][]): TagCount[] {
+  const bySlug = new Map<string, TagCount>();
+  for (const tags of tagLists) {
+    for (const tag of tags) {
+      const slug = slugifyTag(tag);
+      if (!slug) continue;
+      const existing = bySlug.get(slug);
+      if (existing) existing.count += 1;
+      else bySlug.set(slug, { label: tag, slug, count: 1 });
+    }
+  }
+  return Array.from(bySlug.values()).sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
 type PortableTextChild = { text?: string };
 type PortableTextBlock = { _type?: string; children?: PortableTextChild[] };
 

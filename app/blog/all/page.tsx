@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { client } from "@/sanity/client";
-import { cleanPostTitle } from "@/lib/blog";
+import { cleanPostTitle, collectTagCounts } from "@/lib/blog";
 import { jsonLd } from "@/lib/jsonLd";
 import { type SanityDocument } from "next-sanity";
 import type { SanityImageSource } from "@sanity/image-url/lib/types/types";
 import BlogClientPage from "./_components/BlogClientPage";
+import { TagChips } from "@/components/blog/TagChips";
 
 // Server-side pagination (?page=N): every page is real crawlable HTML with
 // plain <a> links between pages, instead of the previous client-only slicing
@@ -125,6 +126,9 @@ export default async function AllBlogsPage({ searchParams }: PageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(collectionSchema) }} />
       <BlogClientPage posts={currentPosts} currentPage={page} totalPages={totalPages} />
+      <div className="relative bg-black pb-12 text-slate-100">
+        <TagChips tags={collectTagCounts(posts.map((p) => p.tags))} />
+      </div>
     </>
   );
 }

@@ -1,5 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { cleanPostTitle, excerptFromPortableText } from "./blog";
+import { cleanPostTitle, excerptFromPortableText, slugifyTag } from "./blog";
+
+describe("slugifyTag", () => {
+  it("slugifies plain multi-word tags", () => {
+    expect(slugifyTag("forex market update")).toBe("forex-market-update");
+  });
+
+  it("handles slashes and mixed case (real Sanity tag values)", () => {
+    expect(slugifyTag("EUR/USD outlook")).toBe("eur-usd-outlook");
+    expect(slugifyTag("US dollar outlook")).toBe("us-dollar-outlook");
+    expect(slugifyTag("CPI and forex")).toBe("cpi-and-forex");
+  });
+
+  it("collapses punctuation runs and trims edge hyphens", () => {
+    expect(slugifyTag("  oil, prices & currencies! ")).toBe("oil-prices-currencies");
+  });
+
+  it("maps spacing/case variants of the same tag to the same slug", () => {
+    expect(slugifyTag("Forex  Market Update")).toBe(slugifyTag("forex market update"));
+  });
+});
 
 describe("cleanPostTitle", () => {
   it("strips the daily-update template suffix", () => {
