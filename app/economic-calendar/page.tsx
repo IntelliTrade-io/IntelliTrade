@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Calculator, CalendarDays, Clock, History, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, Calculator, CalendarDays, ChevronRight, Clock, History, Sparkles, Zap } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import {
   getFreeCalendarRecap,
@@ -283,10 +283,7 @@ export default async function Page() {
             <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10">
               <div className="radial-backdrop" />
               <div className="relative z-10">
-                <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand-200/90">
-                  SECTION 01
-                </div>
-                <h2 id="how-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
+                <h2 id="how-heading" className="text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
                   Why review past events?
                 </h2>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
@@ -313,10 +310,7 @@ export default async function Page() {
             <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10">
               <div className="radial-backdrop" />
               <div className="relative z-10">
-                <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand-200/90">
-                  SECTION 02
-                </div>
-                <h2 id="faq-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
+                <h2 id="faq-heading" className="text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
                   Economic calendar questions
                 </h2>
                 <div className="mt-6 space-y-3">
@@ -324,7 +318,10 @@ export default async function Page() {
                     <details key={item.question} className="group rounded-2xl border border-white/12 bg-white/[0.03] p-5">
                       <summary className="flex cursor-pointer items-center justify-between gap-4 text-[15px] font-medium text-slate-100 marker:content-['']">
                         {item.question}
-                        <span className="shrink-0 text-white/40 transition-transform group-open:rotate-45">+</span>
+                        <ChevronRight
+                          aria-hidden
+                          className="h-5 w-5 shrink-0 text-slate-300 transition-transform duration-300 group-open:rotate-90"
+                        />
                       </summary>
                       <p className="mt-3 text-[14px] leading-relaxed text-white/60">{item.answer}</p>
                     </details>
