@@ -161,6 +161,46 @@ export function toCalendarEvent(e: ApiEvent, tz: string = USER_TZ): CalendarEven
   };
 }
 
+/**
+ * Dedup safety net shared by the premium events route and the free teaser:
+ * groups on (country, title, UTC-date) and keeps the first row per group.
+ * Input must be ordered by date_time_utc ascending — the earliest time per
+ * group is the corrected version (e.g. 09:00 UTC not 11:00 UTC for fixed
+ * Eurostat events).
+ */
+export function dedupeEventRows<T extends { country?: string | null; title?: string | null; date_time_utc?: string | null }>(
+  rows: T[],
+): T[] {
+  const seen = new Map<string, T>();
+  for (const row of rows) {
+    const dateStr = row.date_time_utc?.slice(0, 10) ?? "";
+    const key = `${row.country}|${row.title}|${dateStr}`;
+    if (!seen.has(key)) seen.set(key, row);
+  }
+  return Array.from(seen.values());
+}
+
+/**
+ * Splits rows into today's events and later upcoming events on the UTC day
+ * boundary. The free teaser renders on the server without knowing the
+ * visitor's timezone, so "today" must be a zone everyone agrees on — UTC,
+ * stated on the page. Rows before the current UTC day are dropped.
+ */
+export function splitTodayUpcoming<T extends { date_time_utc?: string | null }>(
+  rows: T[],
+  now: Date = new Date(),
+): { today: T[]; upcoming: T[] } {
+  const todayUtc = now.toISOString().slice(0, 10);
+  const today: T[] = [];
+  const upcoming: T[] = [];
+  for (const row of rows) {
+    const day = row.date_time_utc?.slice(0, 10) ?? "";
+    if (day === todayUtc) today.push(row);
+    else if (day > todayUtc) upcoming.push(row);
+  }
+  return { today, upcoming };
+}
+
 // -- PMI clustering --
 export const IMPACT_RANK: Record<ImpactLevel, number> = { high: 3, medium: 2, low: 1 };
 

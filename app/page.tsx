@@ -129,12 +129,12 @@ const PRO_TOOLS: ToolCardData[] = [
     isPro: true,
   },
   {
-    href: "/pro",
+    href: "/economic-calendar",
     icon: CalendarDays,
     label: "Economic Calendar",
     desc: "Avoid unpleasant surprises. Plan ahead with a clean view of the economic events that can move markets.",
     tag: "PRO",
-    cta: "Open",
+    cta: "Preview",
     isPro: true,
   },
   {
