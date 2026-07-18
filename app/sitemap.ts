@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { client } from "@/sanity/client";
 import { PER_PAIR_SYMBOLS, pairToSlug } from "@/lib/pair-meta";
+import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs";
 
 const BASE = "https://intellitrade.tech";
 
@@ -36,6 +37,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/economic-calendar`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/currency-strength`, priority: 0.8, changeFrequency: "daily" },
+    // Per-pair strength SEO pages (e.g. /currency-strength/eurusd)
+    ...STRENGTH_PAIR_SYMBOLS.map((symbol) => ({
+      url: `${BASE}/currency-strength/${strengthPairToSlug(symbol)}`,
+      priority: 0.6,
+      changeFrequency: "daily" as const,
+    })),
     { url: `${BASE}/forex-market-hours`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/gold-price-today`, priority: 0.8, changeFrequency: "daily" },
     { url: `${BASE}/silver-price-today`, priority: 0.8, changeFrequency: "daily" },

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ArrowRight, Calculator, CalendarDays, ChevronRight, Clock, Radar, Sparkles } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import { getStrengthTeaser } from "@/lib/api/currencyStrengthTeaser";
-import { summariseExtremes, type TeaserReading } from "@/lib/strength-teaser";
+import { summariseExtremes } from "@/lib/strength-teaser";
+import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs";
+import { StrengthBarList } from "@/components/strength/StrengthBarList";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
 
@@ -91,13 +93,6 @@ const breadcrumbSchema = {
   ],
 };
 
-// Diverging poles validated for the dark surface (same pair as the blog
-// StrengthSnapshot): teal = stronger, orange = weaker. Polarity is never
-// color-alone — bars extend left/right of the zero line and every row
-// carries a signed value.
-const POSITIVE = "#0d9488";
-const NEGATIVE = "#ea580c";
-
 function formatUtcDate(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
@@ -106,38 +101,6 @@ function formatUtcDate(iso: string): string {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(iso));
-}
-
-function ReadingRow({ reading, showDelta }: { reading: TeaserReading; showDelta: boolean }) {
-  const { code, score, delta } = reading;
-  const halfWidth = Math.abs(score) / 2; // % of the full track
-  const positive = score >= 0;
-  return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="w-10 shrink-0 font-mono text-slate-300">{code}</span>
-      <div className="relative h-3 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
-        <span className="absolute inset-y-0 left-1/2 w-px bg-white/20" aria-hidden />
-        <span
-          className="absolute inset-y-[2px] rounded-[4px]"
-          style={{
-            backgroundColor: positive ? POSITIVE : NEGATIVE,
-            left: positive ? "50%" : `${50 - halfWidth}%`,
-            width: `${halfWidth}%`,
-          }}
-          aria-hidden
-        />
-      </div>
-      <span className="w-14 shrink-0 text-right font-mono text-xs text-slate-200">
-        {score > 0 ? "+" : ""}
-        {score.toFixed(1)}
-      </span>
-      {showDelta && (
-        <span className="w-14 shrink-0 text-right font-mono text-[11px] text-white/40">
-          {delta === null ? "·" : `${delta > 0 ? "+" : ""}${delta.toFixed(1)}`}
-        </span>
-      )}
-    </div>
-  );
 }
 
 export default async function Page() {
@@ -190,17 +153,7 @@ export default async function Page() {
                   (strongest).
                 </p>
 
-                <div className="mb-2 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/32">
-                  <span className="w-10 shrink-0">Ccy</span>
-                  <span className="flex-1" />
-                  <span className="w-14 shrink-0 text-right">Score</span>
-                  {showDelta && <span className="w-14 shrink-0 text-right">1d change</span>}
-                </div>
-                <div className="space-y-2">
-                  {readings.map((reading) => (
-                    <ReadingRow key={reading.code} reading={reading} showDelta={showDelta} />
-                  ))}
-                </div>
+                <StrengthBarList readings={readings} showDelta={showDelta} />
 
                 {(strongest.length > 0 || weakest.length > 0) && (
                   <p className="mt-5 text-sm text-white/55">
@@ -305,6 +258,36 @@ export default async function Page() {
                       </summary>
                       <p className="mt-3 text-[14px] leading-relaxed text-white/60">{item.answer}</p>
                     </details>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </ScrollRevealSection>
+
+        {/* ── By pair ──────────────────────────────────────────────────────── */}
+        <ScrollRevealSection className="mt-8">
+          <section aria-labelledby="pairs-heading">
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10">
+              <div className="radial-backdrop" />
+              <div className="relative z-10">
+                <h2 id="pairs-heading" className="text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
+                  Strength by pair
+                </h2>
+                <p className="mt-3 text-[15px] leading-relaxed text-slate-200/90">
+                  Every pair sets its own two currencies against each other. Each pair page shows
+                  both sides of yesterday&apos;s reading, the strength differential between them,
+                  and the scanner&apos;s daily and 4-hour trend detail for that pair.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {STRENGTH_PAIR_SYMBOLS.map((symbol) => (
+                    <Link
+                      key={symbol}
+                      href={`/currency-strength/${strengthPairToSlug(symbol)}`}
+                      className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-4 py-2 font-mono text-[13px] text-slate-200/90 transition hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+                    >
+                      {symbol.slice(0, 3)}/{symbol.slice(3)}
+                    </Link>
                   ))}
                 </div>
               </div>

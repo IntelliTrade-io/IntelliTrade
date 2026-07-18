@@ -9,10 +9,14 @@ import {
   type SnapshotCurrencies,
   type TeaserReading,
 } from "@/lib/strength-teaser";
+import type { SnapshotPairs } from "@/lib/strength-pairs";
 
 export interface StrengthTeaserData {
   /** Ranked readings, strongest first. */
   readings: TeaserReading[];
+  /** Raw per-pair scanner detail from the same snapshot (trends, confidence,
+   *  BOS marks), for the per-pair pages; null when the snapshot has none. */
+  pairs: SnapshotPairs | null;
   /** Creation time of the snapshot shown (yesterday's last daily run), ISO. */
   snapshotAtUtc: string;
   /** Creation time of the delta baseline (the prior day's last reading), ISO;
@@ -27,12 +31,13 @@ const MAX_BASELINE_GAP_DAYS = 4;
 interface SnapshotRow {
   created_at: string;
   currencies_weighted: SnapshotCurrencies | null;
+  pairs: SnapshotPairs | null;
 }
 
 async function lastDailyRowBefore(isoCutoff: string): Promise<SnapshotRow | null> {
   const { data, error } = await supabaseAdmin
     .from("currency_strength_snapshots")
-    .select("created_at, currencies_weighted")
+    .select("created_at, currencies_weighted, pairs")
     .eq("type", "daily")
     .lt("created_at", isoCutoff)
     .order("created_at", { ascending: false })
@@ -78,6 +83,7 @@ export async function getStrengthTeaser(now: Date = new Date()): Promise<Strengt
 
     return {
       readings,
+      pairs: snapshot.pairs ?? null,
       snapshotAtUtc: snapshot.created_at,
       previousAtUtc: usableBaseline?.created_at ?? null,
     };
