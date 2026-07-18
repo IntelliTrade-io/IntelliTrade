@@ -602,6 +602,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                 )}
                 {/* Input */}
                 <input
+                  autoComplete="off"
                   id="lotcalc-currency"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
@@ -690,6 +691,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                 )}
                 {/* Input */}
                 <input
+                  autoComplete="off"
                   id="lotcalc-pair"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
@@ -778,6 +780,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               </label>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   id="lotcalc-balance"
                   type="number"
                   inputMode="decimal"
@@ -798,6 +801,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
               </label>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   id="lotcalc-risk"
                   type="number"
                   inputMode="decimal"
@@ -843,6 +847,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                 </label>
                 <div className="relative">
                   <input
+                    autoComplete="off"
                     id="lotcalc-stoploss"
                     type="number"
                     inputMode="decimal"
@@ -867,6 +872,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                     Entry price
                   </label>
                   <input
+                    autoComplete="off"
                     id="lotcalc-entry"
                     type="number"
                     inputMode="decimal"
@@ -882,6 +888,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                     Stop-loss price
                   </label>
                   <input
+                    autoComplete="off"
                     id="lotcalc-slprice"
                     type="number"
                     inputMode="decimal"
@@ -935,6 +942,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       Contract size
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-contract"
                       type="number"
                       inputMode="decimal"
@@ -953,6 +961,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       Minimum lot
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-minlot"
                       type="number"
                       inputMode="decimal"
@@ -968,6 +977,7 @@ export default function LotSizeCalculator({ className, initialPair }: LotSizeCal
                       Lot step
                     </label>
                     <input
+                      autoComplete="off"
                       id="lotcalc-lotstep"
                       type="number"
                       inputMode="decimal"

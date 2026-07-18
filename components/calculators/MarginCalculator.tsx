@@ -223,6 +223,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
                   placeholder={ccyOpen ? "Search…" : ""}
@@ -276,6 +277,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
                   placeholder={pairOpen ? "Search pair…" : ""}
@@ -329,6 +331,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Position size</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={lots}
                   onChange={(e) => setLots(e.target.value)}
@@ -345,6 +348,7 @@ export default function MarginCalculator({ className }: MarginCalculatorProps) {
               <div className="relative">
                 <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-white/38">1:</div>
                 <input
+                  autoComplete="off"
                   type="number"
                   value={leverage}
                   onChange={(e) => setLeverage(e.target.value)}

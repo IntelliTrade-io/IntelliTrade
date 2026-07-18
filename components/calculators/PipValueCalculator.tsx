@@ -224,6 +224,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={ccyInputRef}
                   value={ccyOpen ? ccySearch : currency}
                   placeholder={ccyOpen ? "Search…" : ""}
@@ -277,6 +278,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
                   <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 z-10" />
                 )}
                 <input
+                  autoComplete="off"
                   ref={pairInputRef}
                   value={pairOpen ? pairSearch : pair}
                   placeholder={pairOpen ? "Search pair…" : ""}
@@ -330,6 +332,7 @@ export default function PipValueCalculator({ className }: PipValueCalculatorProp
               <div className="text-[11px] uppercase tracking-[0.18em] text-white/46">Position size</div>
               <div className="relative">
                 <input
+                  autoComplete="off"
                   type="number"
                   value={lots}
                   onChange={(e) => setLots(e.target.value)}
