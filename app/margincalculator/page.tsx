@@ -4,8 +4,16 @@ import Link from "next/link";
 import { Calculator, Gauge, TrendingUp, ArrowRight } from "lucide-react";
 import MarginCalculator from "@/components/calculators/MarginCalculator";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
+import { describePair } from "@/lib/pair-meta";
 
 const URL = "https://intellitrade.tech/margincalculator";
+
+// Popular per-pair margin pages surfaced from the hub for internal linking.
+const POPULAR_PAIRS = [
+  "EURUSD", "GBPUSD", "USDJPY", "XAUUSD",
+  "GBPJPY", "AUDUSD", "USDCAD", "EURJPY",
+  "XAGUSD", "BTCUSD", "EURGBP", "NZDUSD",
+];
 
 export const metadata: Metadata = {
   title: "Margin Calculator | Forex Leverage & Required Margin | IntelliTrade",
@@ -232,6 +240,41 @@ export default function Page() {
                       <p className="mt-3 text-[14px] leading-relaxed text-white/60">{item.answer}</p>
                     </details>
                   ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </ScrollRevealSection>
+
+        {/* ── Margin by pair ───────────────────────────────────────────────── */}
+        <ScrollRevealSection className="mt-8">
+          <section aria-labelledby="by-pair-heading">
+            <div className="relative overflow-hidden rounded-3xl border border-white/20 bg-clip-padding p-6 shadow-[0_32px_80px_rgba(0,0,0,0.85)] md:p-10">
+              <div className="radial-backdrop" />
+              <div className="relative z-10">
+                <div className="inline-flex items-center rounded-full border border-brand bg-white/5 px-4 py-1 text-[11px] font-medium tracking-[0.22em] text-brand-200/90">
+                  BY PAIR
+                </div>
+                <h2 id="by-pair-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 md:text-[26px]">
+                  Margin calculator by pair
+                </h2>
+                <p className="mt-4 text-[15px] leading-relaxed text-slate-200/90">
+                  Jump to a margin calculator pre-set to a specific instrument, each with its own
+                  contract specification and margin-by-leverage reference.
+                </p>
+                <div className="mt-8 flex flex-wrap gap-2">
+                  {POPULAR_PAIRS.map((symbol) => {
+                    const m = describePair(symbol);
+                    return (
+                      <Link
+                        key={symbol}
+                        href={`/margincalculator/${m.slug}`}
+                        className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[13px] text-slate-200/90 transition hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+                      >
+                        {m.display}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </div>

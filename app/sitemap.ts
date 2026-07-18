@@ -27,6 +27,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
     })),
     { url: `${BASE}/margincalculator`, priority: 0.8, changeFrequency: "monthly" },
+    // Per-pair margin SEO pages (e.g. /margincalculator/eurusd)
+    ...PER_PAIR_SYMBOLS.map((symbol) => ({
+      url: `${BASE}/margincalculator/${pairToSlug(symbol)}`,
+      priority: 0.6,
+      changeFrequency: "monthly" as const,
+    })),
     { url: `${BASE}/compoundingcalculator`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/forex-market-hours`, priority: 0.8, changeFrequency: "monthly" },
     { url: `${BASE}/gold-price-today`, priority: 0.8, changeFrequency: "daily" },
