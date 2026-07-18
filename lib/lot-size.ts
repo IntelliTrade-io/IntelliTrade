@@ -134,6 +134,8 @@ export interface PipValueInputs {
   lots: number;
   /** Rate converting the pair's quote currency into the account currency (1 when identical). */
   quoteToAccount: number;
+  /** Broker units per 1.00 lot; the instrument default when omitted. */
+  contractSize?: number;
 }
 
 export interface PipValueResult {
@@ -153,9 +155,11 @@ export interface PipValueResult {
  * the pip value calculator: pip value per lot = pipSize x contractSize x
  * (quote->account rate), then scaled by the number of lots.
  */
-export function computePipValue({ pair, lots, quoteToAccount }: PipValueInputs): PipValueResult {
+export function computePipValue({ pair, lots, quoteToAccount, contractSize }: PipValueInputs): PipValueResult {
   const cleanPair = normalizePair(pair);
-  const perStandardLot = pipSizeFor(cleanPair) * contractSizeFor(cleanPair) * quoteToAccount;
+  const cs = contractSize ?? contractSizeFor(cleanPair);
+  if (!isFinite(cs) || cs <= 0) throw new Error("Contract size must be greater than zero.");
+  const perStandardLot = pipSizeFor(cleanPair) * cs * quoteToAccount;
 
   if (!isFinite(perStandardLot) || perStandardLot <= 0) {
     throw new Error("Calculated pip value is invalid.");
@@ -178,6 +182,8 @@ export interface MarginInputs {
   leverage: number;
   /** Rate converting the pair's BASE currency into the account currency (1 when identical). */
   baseToAccount: number;
+  /** Broker units per 1.00 lot; the instrument default when omitted. */
+  contractSize?: number;
 }
 
 export interface MarginResult {
@@ -197,11 +203,13 @@ export interface MarginResult {
  * Base-to-account (not quote-to-account) because the position's notional value
  * is measured in the base currency.
  */
-export function computeMargin({ pair, lots, leverage, baseToAccount }: MarginInputs): MarginResult {
+export function computeMargin({ pair, lots, leverage, baseToAccount, contractSize }: MarginInputs): MarginResult {
   if (!isFinite(leverage) || leverage <= 0) {
     throw new Error("Leverage must be greater than zero.");
   }
-  const units = lots * contractSizeFor(normalizePair(pair));
+  const cs = contractSize ?? contractSizeFor(normalizePair(pair));
+  if (!isFinite(cs) || cs <= 0) throw new Error("Contract size must be greater than zero.");
+  const units = lots * cs;
   const notional = units * baseToAccount;
   if (!isFinite(notional) || notional <= 0) {
     throw new Error("Calculated notional value is invalid.");

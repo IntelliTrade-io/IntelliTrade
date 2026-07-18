@@ -7,11 +7,15 @@ import { ProCtaCard } from "@/components/pro/ProCtaCard";
 import {
   composePairsFrom,
   computeMargin,
+  contractSizeFor,
   normalizePair,
   parsePair,
   rateFromUsdRates,
 } from "@/lib/lot-size";
+import { loadCalculatorState } from "@/lib/calculator-storage";
+import type { AccountTemplate } from "@/lib/calculator-templates";
 import { SearchCombobox } from "./SearchCombobox";
+import { TemplateSelectBar } from "./TemplateSelectBar";
 
 // Same supported-codes source and rate orientation as the other calculators;
 // this one takes position size + leverage and converts the pair's BASE currency
@@ -52,6 +56,31 @@ export default function MarginCalculator({ className, initialPair }: MarginCalcu
   const [pairs, setPairs] = useState<string[]>([]);
   const [loadingPairs, setLoadingPairs] = useState(true);
   const [pairsError, setPairsError] = useState<string | null>(null);
+
+  // Per-instrument broker contract sizes: seeded from the lot size calculator's
+  // saved MT4/MT5 overrides (free, localStorage), then extended by an applied
+  // Pro account template. Editing lives on the lot size calculator.
+  const [contractOverrides, setContractOverrides] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const saved = loadCalculatorState();
+    if (!saved) return;
+    const out: Record<string, number> = {};
+    for (const [key, o] of Object.entries(saved.brokerOverrides)) {
+      const n = Number(o.contractSize);
+      if (o.contractSize !== undefined && isFinite(n) && n > 0) out[key] = n;
+    }
+    if (Object.keys(out).length > 0) setContractOverrides((prev) => ({ ...out, ...prev }));
+  }, []);
+
+  const applyTemplate = (t: AccountTemplate) => {
+    setCurrency(t.currency);
+    setContractOverrides((prev) => {
+      const next = { ...prev };
+      for (const [key, o] of Object.entries(t.instrumentOverrides)) next[key] = o.contractSize;
+      return next;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +132,8 @@ export default function MarginCalculator({ className, initialPair }: MarginCalcu
   const fmt = (n: number) =>
     `${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
 
+  const cleanPair = normalizePair(pair);
+
   const handleCalculate = async () => {
     const lotsNum = parseFloat(lots);
     const leverageNum = parseFloat(leverage);
@@ -111,17 +142,21 @@ export default function MarginCalculator({ className, initialPair }: MarginCalcu
       return;
     }
     try {
-      const cleanPair = normalizePair(pair);
       const { base } = parsePair(cleanPair);
       const baseToAccount = currency !== base ? await convertRate(base, currency) : 1;
-      const r = computeMargin({ pair: cleanPair, lots: lotsNum, leverage: leverageNum, baseToAccount });
+      const contractSize = contractOverrides[cleanPair];
+      const r = computeMargin({ pair: cleanPair, lots: lotsNum, leverage: leverageNum, baseToAccount, contractSize });
 
       const conversionNote = currency !== base ? " · live conversion applied" : "";
+      const contractNote =
+        contractSize !== undefined && contractSize !== contractSizeFor(cleanPair)
+          ? ` · contract size ${contractSize.toLocaleString("en-US")}`
+          : "";
       setResults({
         margin: fmt(r.margin),
         notional: fmt(r.notional),
         marginPercent: `${r.marginPercent.toFixed(2)}%`,
-        context: `${lotsNum} lot${lotsNum === 1 ? "" : "s"} ${cleanPair} at 1:${leverageNum} · account in ${currency}${conversionNote}`,
+        context: `${lotsNum} lot${lotsNum === 1 ? "" : "s"} ${cleanPair} at 1:${leverageNum} · account in ${currency}${contractNote}${conversionNote}`,
       });
       trackEvent("calculator_result", { instrument: cleanPair });
     } catch (e: unknown) {
@@ -132,8 +167,23 @@ export default function MarginCalculator({ className, initialPair }: MarginCalcu
 
   const accountCurrencyOptions = useMemo(() => ["EUR", "USD", "JPY", "CHF", "GBP"], []);
 
+  // Non-standard contract size in effect for the selected pair, if any.
+  const overrideInEffect =
+    contractOverrides[cleanPair] !== undefined && contractOverrides[cleanPair] !== contractSizeFor(cleanPair)
+      ? contractOverrides[cleanPair]
+      : null;
+
+  const clearOverride = () => {
+    setContractOverrides((prev) => {
+      const next = { ...prev };
+      delete next[cleanPair];
+      return next;
+    });
+  };
+
   return (
     <div className={`w-full text-white ${className || ""}`}>
+      <TemplateSelectBar onApply={applyTemplate} proSrc="margincalc-templates" />
       <div className="grid gap-3 lg:grid-cols-[1fr_0.92fr]">
         {/* Inputs */}
         <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(18,18,24,0.82),rgba(10,10,14,0.86))] p-3 sm:p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] backdrop-blur-xl">
@@ -169,6 +219,18 @@ export default function MarginCalculator({ className, initialPair }: MarginCalcu
                 heightClass="h-9 sm:h-11"
               />
               {pairsError && <div className="text-xs text-white/46">{pairsError} · using fallback pairs</div>}
+              {overrideInEffect !== null && (
+                <div className="text-[11px] text-white/32">
+                  Contract size {overrideInEffect.toLocaleString("en-US")} per lot (your broker setting) ·{" "}
+                  <button
+                    type="button"
+                    onClick={clearOverride}
+                    className="text-violet-300/80 underline-offset-2 hover:underline"
+                  >
+                    use standard
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Position size */}
