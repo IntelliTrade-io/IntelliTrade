@@ -82,6 +82,22 @@ function formatUtcDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+function formatUtcDateTime(iso: string): string {
+  const d = new Date(iso);
+  const day = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(d);
+  const time = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "UTC",
+  }).format(d);
+  return `${day}, ${time} UTC`;
+}
+
 function formatUtcDay(iso: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -165,11 +181,11 @@ export default async function PairStrengthPage({
     },
     {
       q: `What do the daily and 4-hour trend reads for ${display} mean?`,
-      a: `Alongside the per-currency scores, the scanner records the trend direction it measured on the ${display} daily and 4-hour charts, a combined read when both agree, a multi-timeframe confidence figure, and the price level of the last break of structure it detected on each timeframe. These describe the state of the ${display} chart at the time of the reading.`,
+      a: `Alongside the per-currency scores, the scanner records the trend direction it measured on the ${display} daily and 4-hour charts, a combined read when both agree, a multi-timeframe confidence figure, and the price level of the last break of structure it detected on each timeframe. These describe the state of the ${display} chart at the exact time of the reading, which is shown on the page. Because this free page carries yesterday's reading, several 4-hour candles have closed since: the daily read usually still applies the next day, but the live 4-hour state can already differ from the chip shown here.`,
     },
     {
       q: `How current is this ${display} data, and is it a signal?`,
-      a: `This free page shows yesterday's final daily reading and updates once per day; the live and intraday meter is part of IntelliTrade Pro. Nothing here is a trade signal or recommendation: strength readings measure what already happened in the market and are meant as context for your own ${display} analysis.`,
+      a: `This free page shows yesterday's final daily reading and updates once per day, so everything on it, including the 4-hour detail, is a snapshot from the reading time shown, not the current chart. The live meter updated through the trading day is part of IntelliTrade Pro. Nothing here is a trade signal or recommendation: strength readings measure what already happened in the market and are meant as context for your own ${display} analysis.`,
     },
   ];
 
@@ -279,7 +295,9 @@ export default async function PairStrengthPage({
                 Scanner detail for {display}
               </h2>
               <p className="mt-1 mb-5 text-xs text-slate-400">
-                What the scanner measured on the {display} chart itself in this reading.
+                State of the {display} chart <span className="text-slate-300">at the time of this reading
+                {data ? ` (${formatUtcDateTime(data.snapshotAtUtc)})` : ""}</span>, not your live chart.
+                Candles have closed since; the fast timeframes below can differ from what you see now.
               </p>
 
               <dl className="grid gap-4 sm:grid-cols-2">
@@ -300,6 +318,10 @@ export default async function PairStrengthPage({
                       <span className="text-xs text-white/45">Combined</span>
                       <TrendChip trend={view.detail.combined} />
                     </span>
+                    <span className="block w-full text-xs text-white/45">
+                      Measured at the reading time. The daily read typically holds for a day; the
+                      4-hour read is several closed bars old by now and may have flipped since.
+                    </span>
                   </dd>
                 </div>
 
@@ -315,7 +337,7 @@ export default async function PairStrengthPage({
                         <span className="font-mono text-lg text-white">{view.detail.confidence}</span>
                         <span className="text-white/45"> / 100</span>
                         <span className="block mt-1 text-xs text-white/45">
-                          How strongly the daily and 4-hour reads agreed.
+                          How strongly the daily and 4-hour reads agreed at the reading time.
                         </span>
                       </>
                     )}
@@ -361,8 +383,10 @@ export default async function PairStrengthPage({
 
               <p className="mt-4 text-xs leading-relaxed text-white/35">
                 A break of structure is the most recent price level where the scanner measured the
-                {" "}{display} trend breaking a prior swing point. Chart-state description from
-                yesterday&apos;s reading, not a level recommendation.
+                {" "}{display} trend breaking a prior swing point, as of the reading time; newer
+                breaks may have happened since. Chart-state description from yesterday&apos;s
+                reading, not a level recommendation. The current chart state updates through the
+                day in Pro.
               </p>
             </div>
           </div>
