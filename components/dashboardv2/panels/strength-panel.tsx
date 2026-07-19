@@ -32,6 +32,7 @@ import {
   type SummaryStrip,
   type ExpressionMeta,
 } from "@/lib/strengthInterpretation";
+import { latestRegimeFlips, type RegimeBand } from "@/lib/strengthRegime";
 
 const CURRENCY_COLORS: Record<string, string> = {
   USD: "#60a5fa", // blue-400
@@ -494,9 +495,19 @@ function formatChartTime(ts: string): string {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
-function StrengthChart({ type }: { type: "daily" | "intraday" }) {
-  const hours = type === "intraday" ? 24 : 7 * 24;
-  const { points, loading } = useStrengthHistory(type, hours);
+function formatChartDay(ts: string): string {
+  const d = new Date(ts);
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function StrengthLinesChart({ points, loading, label, dayTicks }: {
+  points: HistoryPoint[];
+  loading: boolean;
+  label: string;
+  /** Tick/tooltip labels as dates instead of times (multi-day ranges). */
+  dayTicks?: boolean;
+}) {
+  const fmt = dayTicks ? formatChartDay : formatChartTime;
 
   if (loading) {
     return (
@@ -521,7 +532,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
   return (
     <div className="relative overflow-hidden rounded-[18px] border border-white/8 bg-white/[0.02] px-2 pb-2 pt-3">
       <div className="mb-1 px-1 text-[9px] uppercase tracking-[0.18em] text-white/30">
-        Strength · {type === "intraday" ? "last 24h" : "last 7d"}
+        {label}
       </div>
       {/* Legend */}
       <div className="mb-2 flex flex-wrap gap-x-3 gap-y-1 px-1">
@@ -536,7 +547,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
         <LineChart data={thinned} margin={{ top: 2, right: 4, left: -24, bottom: 0 }}>
           <XAxis
             dataKey="ts"
-            tickFormatter={formatChartTime}
+            tickFormatter={fmt}
             tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 9 }}
             axisLine={false}
             tickLine={false}
@@ -565,7 +576,7 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
               fontSize: 10,
               lineHeight: 1.25,
             }}
-            labelFormatter={(ts: unknown) => formatChartTime(String(ts))}
+            labelFormatter={(ts: unknown) => fmt(String(ts))}
             formatter={(value, name) => [`${Number(value) > 0 ? "+" : ""}${Number(value).toFixed(1)}`, String(name)]}
             itemStyle={{ color: "rgba(255,255,255,0.7)", padding: 0 }}
             labelStyle={{ color: "rgba(255,255,255,0.45)", marginBottom: 2 }}
@@ -584,6 +595,108 @@ function StrengthChart({ type }: { type: "daily" | "intraday" }) {
         </LineChart>
       </ResponsiveContainer>
     </div>
+  );
+}
+
+function StrengthChart({ type }: { type: "daily" | "intraday" }) {
+  const hours = type === "intraday" ? 24 : 7 * 24;
+  const { points, loading } = useStrengthHistory(type, hours);
+  return (
+    <StrengthLinesChart
+      points={points}
+      loading={loading}
+      label={`Strength · ${type === "intraday" ? "last 24h" : "last 7d"}`}
+      dayTicks={type !== "intraday"}
+    />
+  );
+}
+
+// ─── Daily history + regime changes ──────────────────────────────────────────
+
+const HISTORY_RANGES = [
+  { label: "30d", hours: 30 * 24 },
+  { label: "90d", hours: 90 * 24 },
+] as const;
+
+const REGIME_BAND_CLASS: Record<RegimeBand, string> = {
+  Strong: "border-emerald-400/25 bg-emerald-500/10 text-emerald-300/90",
+  Weak: "border-orange-400/25 bg-orange-500/10 text-orange-300/90",
+  Neutral: "border-white/15 bg-white/[0.05] text-white/55",
+};
+
+function RegimeBandChip({ band }: { band: RegimeBand }) {
+  return (
+    <span className={`inline-flex items-center rounded-full border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider ${REGIME_BAND_CLASS[band]}`}>
+      {band}
+    </span>
+  );
+}
+
+function DailyHistorySection() {
+  const [range, setRange] = useState<(typeof HISTORY_RANGES)[number]>(HISTORY_RANGES[0]);
+  const { points, loading } = useStrengthHistory("daily", range.hours);
+  const flips = useMemo(() => latestRegimeFlips(points, CURRENCIES, 8), [points]);
+
+  return (
+    <section>
+      <div className="mb-2 flex items-end justify-between gap-2">
+        <div>
+          <div className="text-[9px] uppercase tracking-[0.18em] text-white/40">History</div>
+          <div className="mt-0.5 text-sm font-semibold text-white">Strength history</div>
+        </div>
+        <div className="flex gap-1">
+          {HISTORY_RANGES.map((r) => (
+            <button
+              key={r.label}
+              type="button"
+              onClick={() => setRange(r)}
+              className={`inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-semibold transition-all ${
+                r.label === range.label
+                  ? "border-white/25 bg-white/10 text-white/85"
+                  : "border-white/10 bg-black/30 text-white/45 hover:border-white/20 hover:text-white/70"
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <StrengthLinesChart
+        points={points}
+        loading={loading}
+        label={`Strength · last ${range.label}`}
+        dayTicks
+      />
+
+      {/* Regime changes: band crossings (±15) in the selected window */}
+      {flips.length > 0 && (
+        <div className="mt-2 rounded-[18px] border border-white/8 bg-white/[0.02] px-3 py-2.5">
+          <div className="mb-1.5 text-[9px] uppercase tracking-[0.18em] text-white/30">
+            Regime changes · newest first
+          </div>
+          <div className="space-y-1">
+            {flips.map((f) => (
+              <div key={`${f.code}-${f.ts}`} className="flex items-center justify-between gap-2 text-[10px]">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-flex min-w-[2.4rem] items-center justify-center rounded-full border border-white/10 bg-black/30 px-1.5 py-px font-mono text-[10px] font-semibold text-white/85">
+                    {f.code}
+                  </span>
+                  <RegimeBandChip band={f.from} />
+                  <span className="text-white/30">→</span>
+                  <RegimeBandChip band={f.to} />
+                </span>
+                <span className="shrink-0 font-mono text-white/38">{formatChartDay(f.ts)}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2 text-[9px] leading-snug text-white/30">
+            A regime change is the score crossing the ±15 band (Strong / Neutral / Weak) between
+            snapshots. Historical measurement, not a recommendation.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -695,6 +808,9 @@ function DailyStrengthView({ scores, pairs, sorted, expressions, available, show
           </div>
         </section>
       )}
+
+      {/* ── Strength history + regime changes ── */}
+      <DailyHistorySection />
 
       {/* ── Matrix toggle ── */}
       <div className="flex justify-center">

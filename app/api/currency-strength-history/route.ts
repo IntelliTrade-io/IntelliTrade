@@ -6,6 +6,12 @@ export const dynamic = "force-dynamic";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"] as const;
 
+// Per-type window caps chosen so row volume stays under PostgREST's 1000-row
+// response cap (ascending order + limit would otherwise drop the NEWEST rows):
+// daily snapshots arrive every 4h (~540 rows / 90d); intraday every 15 min,
+// so a week (~672 rows) is the intraday ceiling.
+const MAX_HOURS = { daily: 90 * 24, intraday: 168 } as const;
+
 export type HistoryPoint = {
   ts: string;
 } & Record<(typeof CURRENCIES)[number], number>;
@@ -17,15 +23,19 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") === "daily" ? "daily" : "intraday";
   const hoursStr = searchParams.get("hours");
-  const hours = Math.min(Math.max(parseInt(hoursStr ?? "24", 10) || 24, 1), 168);
-  const limit = type === "intraday" ? hours * 4 : hours; // 15-min vs 1h cadence
+  const hours = Math.min(Math.max(parseInt(hoursStr ?? "24", 10) || 24, 1), MAX_HOURS[type]);
+
+  // Time-window filter instead of row-count math: cadence differs per type
+  // (and per feed) and a wrong row estimate silently truncated the window.
+  const cutoff = new Date(Date.now() - hours * 3600 * 1000).toISOString();
 
   const { data, error } = await supabaseAdmin
     .from("currency_strength_snapshots")
     .select("currencies_weighted, created_at")
     .eq("type", type)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .gte("created_at", cutoff)
+    .order("created_at", { ascending: true })
+    .limit(1000);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -35,8 +45,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ points: [] });
   }
 
-  // Reverse so oldest → newest (left → right on chart)
-  const points: HistoryPoint[] = data.reverse().map((row) => {
+  // Already oldest → newest (left → right on chart)
+  const points: HistoryPoint[] = data.map((row) => {
     const cw = row.currencies_weighted ?? {};
     const point: Partial<HistoryPoint> = { ts: row.created_at };
     for (const c of CURRENCIES) {
