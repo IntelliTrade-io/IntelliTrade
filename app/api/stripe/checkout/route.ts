@@ -46,6 +46,9 @@ export async function POST() {
     mode: "subscription",
     payment_method_types: ["card"],
     line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+    // Alpha access runs on Stripe promotion codes (100%-off coupon); this only
+    // shows the code field, pricing is unchanged without a code.
+    allow_promotion_codes: true,
     success_url: `${baseUrl}/upgrade/success`,
     cancel_url: `${baseUrl}/upgrade?canceled=true`,
     subscription_data: { metadata: { user_id: user.id } },
