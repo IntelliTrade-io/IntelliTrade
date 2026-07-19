@@ -15,8 +15,8 @@ import { FAQ_ITEMS } from "./faqData";
 
 // ─── DXY ─────────────────────────────────────────────────────────────────────
 
-function useDxy(): string | null {
-  const [value, setValue] = useState<string | null>(null);
+function useDxy(initialDxy: number | null): string | null {
+  const [value, setValue] = useState<string | null>(initialDxy === null ? null : initialDxy.toFixed(2));
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -24,10 +24,10 @@ function useDxy(): string | null {
       if (dxy == null || cancelled) return;
       setValue(dxy.toFixed(2));
     };
-    load();
+    if (initialDxy === null) load();
     const id = window.setInterval(load, 300_000);
     return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
+  }, [initialDxy]);
   return value;
 }
 
@@ -256,10 +256,12 @@ function MiniPriceWidget() {
 
 export default function OilPriceTodayPage({
   marketContext,
+  initialDxy,
 }: {
   marketContext: MarketContext | null;
+  initialDxy: number | null;
 }) {
-  const dxy = useDxy();
+  const dxy = useDxy(initialDxy);
   const [openFaq, setOpenFaq] = useState(-1);
 
   return (

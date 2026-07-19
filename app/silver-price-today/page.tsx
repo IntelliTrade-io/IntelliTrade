@@ -4,6 +4,7 @@ import SilverPriceTodayPage from "./_components/SilverPriceTodayPage";
 import { FAQ_ITEMS } from "./_components/faqData";
 import { fetchMarketContext } from "@/lib/api/marketContext";
 import { fetchPriceChangeFigures } from "@/lib/api/priceHistory";
+import { getDxy, getTenYearYield, getUsdPrice } from "@/lib/api/marketServer";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -54,9 +55,12 @@ const faqSchema = {
 };
 
 export default async function Page() {
-  const [marketContext, priceChanges] = await Promise.all([
+  const [marketContext, priceChanges, goldPrice, tenYearYield, dxy] = await Promise.all([
     fetchMarketContext("silver"),
     fetchPriceChangeFigures("XAG"),
+    getUsdPrice("XAU"),
+    getTenYearYield(),
+    getDxy(),
   ]);
   return (
     <>
@@ -68,7 +72,13 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
-      <SilverPriceTodayPage marketContext={marketContext} priceChanges={priceChanges} />
+      <SilverPriceTodayPage
+        marketContext={marketContext}
+        priceChanges={priceChanges}
+        initialGoldPrice={goldPrice}
+        initialTenYearYield={tenYearYield}
+        initialDxy={dxy}
+      />
       <section className="w-full px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <ProCtaCard

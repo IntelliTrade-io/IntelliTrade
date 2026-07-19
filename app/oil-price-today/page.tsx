@@ -3,6 +3,7 @@ import { jsonLd } from "@/lib/jsonLd";
 import OilPriceTodayPage from "./_components/OilPriceTodayPage";
 import { FAQ_ITEMS } from "./_components/faqData";
 import { fetchMarketContext } from "@/lib/api/marketContext";
+import { getDxy } from "@/lib/api/marketServer";
 import { ProCtaCard } from "@/components/pro/ProCtaCard";
 
 export const metadata: Metadata = {
@@ -53,7 +54,7 @@ const faqSchema = {
 };
 
 export default async function Page() {
-  const marketContext = await fetchMarketContext("oil");
+  const [marketContext, dxy] = await Promise.all([fetchMarketContext("oil"), getDxy()]);
   return (
     <>
       <script
@@ -64,7 +65,7 @@ export default async function Page() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
-      <OilPriceTodayPage marketContext={marketContext} />
+      <OilPriceTodayPage marketContext={marketContext} initialDxy={dxy} />
       <section className="w-full px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <ProCtaCard

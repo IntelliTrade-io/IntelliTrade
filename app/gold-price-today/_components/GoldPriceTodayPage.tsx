@@ -49,8 +49,14 @@ type MarketData = {
   tenYearYield: string | null;
 };
 
-function useMarketData(): MarketData {
-  const [data, setData] = useState<MarketData>({ silverPrice: null, tenYearYield: null });
+function useMarketData(
+  initialSilverPrice: number | null,
+  initialTenYearYield: number | null,
+): MarketData {
+  const [data, setData] = useState<MarketData>({
+    silverPrice: initialSilverPrice === null ? null : formatCurrency(roundToTwo(initialSilverPrice)),
+    tenYearYield: initialTenYearYield === null ? null : `${initialTenYearYield.toFixed(2)}%`,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -60,17 +66,19 @@ function useMarketData(): MarketData {
       return price === null ? null : formatCurrency(roundToTwo(price));
     };
 
-    const fetchYield = async () => {
-      const y = await fetchTenYearYield();
-      return y === null ? null : `${y.toFixed(2)}%`;
-    };
+    // The server render seeds both values; the browser only fetches immediately
+    // when the server had nothing, then refreshes the silver quote on a timer.
+    if (initialTenYearYield === null) {
+      fetchTenYearYield().then((y) => {
+        if (!cancelled && y !== null) setData((prev) => ({ ...prev, tenYearYield: `${y.toFixed(2)}%` }));
+      });
+    }
+    if (initialSilverPrice === null) {
+      fetchSilver().then((silverPrice) => {
+        if (!cancelled && silverPrice) setData((prev) => ({ ...prev, silverPrice }));
+      });
+    }
 
-    const load = async () => {
-      const [silverPrice, tenYearYield] = await Promise.all([fetchSilver(), fetchYield()]);
-      if (!cancelled) setData({ silverPrice, tenYearYield });
-    };
-
-    load();
     const id = window.setInterval(() => {
       fetchSilver().then((silverPrice) => {
         if (!cancelled) setData((prev) => ({ ...prev, silverPrice: silverPrice ?? prev.silverPrice }));
@@ -81,15 +89,15 @@ function useMarketData(): MarketData {
       cancelled = true;
       window.clearInterval(id);
     };
-  }, []);
+  }, [initialSilverPrice, initialTenYearYield]);
 
   return data;
 }
 
 // ─── DXY ─────────────────────────────────────────────────────────────────────
 
-function useDxy(): string | null {
-  const [value, setValue] = useState<string | null>(null);
+function useDxy(initialDxy: number | null): string | null {
+  const [value, setValue] = useState<string | null>(initialDxy === null ? null : initialDxy.toFixed(2));
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -97,10 +105,10 @@ function useDxy(): string | null {
       if (dxy == null || cancelled) return;
       setValue(dxy.toFixed(2));
     };
-    load();
+    if (initialDxy === null) load();
     const id = window.setInterval(load, 300_000);
     return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
+  }, [initialDxy]);
   return value;
 }
 
@@ -407,12 +415,18 @@ function MiniPriceWidget() {
 export default function GoldPriceTodayPage({
   marketContext,
   priceChanges,
+  initialSilverPrice,
+  initialTenYearYield,
+  initialDxy,
 }: {
   marketContext: MarketContext | null;
   priceChanges: PriceChangeFigures | null;
+  initialSilverPrice: number | null;
+  initialTenYearYield: number | null;
+  initialDxy: number | null;
 }) {
-  const marketData = useMarketData();
-  const dxy = useDxy();
+  const marketData = useMarketData(initialSilverPrice, initialTenYearYield);
+  const dxy = useDxy(initialDxy);
   const [openFaq, setOpenFaq] = useState(-1);
 
   return (

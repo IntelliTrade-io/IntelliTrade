@@ -23,8 +23,8 @@ const LARGE_CHART_TIMEOUT_MS = 6000;
 
 // ─── DXY ─────────────────────────────────────────────────────────────────────
 
-function useDxy(): string | null {
-  const [value, setValue] = useState<string | null>(null);
+function useDxy(initialDxy: number | null): string | null {
+  const [value, setValue] = useState<string | null>(initialDxy === null ? null : initialDxy.toFixed(2));
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -32,19 +32,23 @@ function useDxy(): string | null {
       if (dxy == null || cancelled) return;
       setValue(dxy.toFixed(2));
     };
-    load();
+    if (initialDxy === null) load();
     const id = window.setInterval(load, 300_000);
     return () => { cancelled = true; window.clearInterval(id); };
-  }, []);
+  }, [initialDxy]);
   return value;
 }
 
 // ─── Market data (10Y yield) ──────────────────────────────────────────────────
 
-function useTenYearYield(): string | null {
-  const [value, setValue] = useState<string | null>(null);
+function useTenYearYield(initialTenYearYield: number | null): string | null {
+  const [value, setValue] = useState<string | null>(
+    initialTenYearYield === null ? null : `${initialTenYearYield.toFixed(2)}%`,
+  );
 
   useEffect(() => {
+    // The server render seeds the value; only fetch when it had nothing.
+    if (initialTenYearYield !== null) return;
     let cancelled = false;
     const fetch_ = async () => {
       const y = await fetchTenYearYield();
@@ -53,7 +57,7 @@ function useTenYearYield(): string | null {
     };
     fetch_();
     return () => { cancelled = true; };
-  }, []);
+  }, [initialTenYearYield]);
 
   return value;
 }
@@ -277,12 +281,16 @@ function MiniPriceWidget() {
 export default function BitcoinPriceTodayPage({
   marketContext,
   priceChanges,
+  initialTenYearYield,
+  initialDxy,
 }: {
   marketContext: MarketContext | null;
   priceChanges: PriceChangeFigures | null;
+  initialTenYearYield: number | null;
+  initialDxy: number | null;
 }) {
-  const tenYearYield = useTenYearYield();
-  const dxy = useDxy();
+  const tenYearYield = useTenYearYield(initialTenYearYield);
+  const dxy = useDxy(initialDxy);
   const [openFaq, setOpenFaq] = useState(-1);
 
   return (
