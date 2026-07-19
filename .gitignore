@@ -83,11 +83,12 @@ skills-lock.json
 /CONVERSION_PLAN.md
 /GOOGLE_ADSENSE_APPROVAL.md
 /IMPROVEMENTS.md
-/MARKET_CONTEXT_AUTOMATION.md
 /OPUS_HANDOFF.md
 /OWNER_TODO.md
 /REFACTOR_PLAN.md
+/ROADMAP.md
 /SANITY_SCHEMA_UPGRADE.md
+/docs/MARKET_CONTEXT_AUTOMATION.md
 /docs/intraday-currency-strength-entry-assist.md
 /economic_calendar/SPLIT_MAP.md
 /scripts/vps/DEPLOY.md
