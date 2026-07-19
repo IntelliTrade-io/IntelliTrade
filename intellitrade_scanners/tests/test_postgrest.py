@@ -111,6 +111,43 @@ def test_delete_with_range_and_not_in(client):
     assert ("scraperID", 'not.in.("a","b")') in call["params"]
 
 
+class PagingSession:
+    """Returns full pages until a short one, so select() must paginate."""
+
+    def __init__(self, page_sizes):
+        self.headers = {}
+        self.page_sizes = list(page_sizes)
+        self.calls = []
+
+    def request(self, method, url, params=None, json=None, headers=None, timeout=None):
+        self.calls.append({"params": params, "headers": headers})
+        n = self.page_sizes[len(self.calls) - 1]
+        return FakeResponse(payload=[{"i": i} for i in range(n)])
+
+
+def test_select_paginates_past_the_1000_row_cap(client):
+    db, _ = client()
+    paging = PagingSession([1000, 1000, 500])  # 2500 rows across 3 pages
+    db._session = paging
+    rows = db.select("fx_ohlc_candles", "open_time", [eq("symbol", "EURJPY")])
+    assert len(rows) == 2500
+    assert len(paging.calls) == 3
+    # Range header advances each page; filter params are unchanged.
+    assert paging.calls[0]["headers"]["Range"] == "0-999"
+    assert paging.calls[1]["headers"]["Range"] == "1000-1999"
+    assert paging.calls[2]["headers"]["Range"] == "2000-2999"
+    assert paging.calls[0]["params"] == [("select", "open_time"), ("symbol", "eq.EURJPY")]
+
+
+def test_select_single_page_stops_after_one_call(client):
+    db, _ = client()
+    paging = PagingSession([10])  # short first page -> no second call
+    db._session = paging
+    rows = db.select("scanner_health")
+    assert len(rows) == 10
+    assert len(paging.calls) == 1
+
+
 def test_quote_escapes_embedded_quotes():
     assert postgrest._quote('va"l') == '"va\\"l"'
 
