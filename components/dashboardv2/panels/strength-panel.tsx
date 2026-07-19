@@ -20,6 +20,7 @@ import {
   type Scores,
   type Expression,
   type CellData,
+  type PairsDetail,
 } from "@/lib/strength";
 import {
   computeMovements,
@@ -590,8 +591,11 @@ function IntradayExpressionRow({ expr }: { expr: Expression }) {
   const isBullish = expr.state === "Bullish";
   const stateColor = isBullish ? "text-emerald-300 border-emerald-400/20 bg-emerald-500/10"
     : "text-red-300 border-red-400/20 bg-red-500/10";
-  // H1 / M15 approximated from bias — needs real MTFA data
-  const tfState = isBullish ? "BULLISH / BULLISH" : "BEARISH / BEARISH";
+  // Real H1/M15 states from the scanner when present; bias approximation otherwise.
+  const tfState =
+    expr.source === "scanner" && expr.tfSlow && expr.tfFast
+      ? `${expr.tfSlow.toUpperCase()} / ${expr.tfFast.toUpperCase()}`
+      : isBullish ? "BULLISH / BULLISH" : "BEARISH / BEARISH";
 
   return (
     <div className="rounded-[16px] border border-white/[0.07] bg-[linear-gradient(180deg,rgba(11,12,15,0.9),rgba(9,10,13,0.92))] px-3 py-2.5">
@@ -616,6 +620,7 @@ function IntradayExpressionRow({ expr }: { expr: Expression }) {
 
 interface DailyStrengthViewProps {
   scores: Scores;
+  pairs: PairsDetail | null;
   sorted: [string, CurrencyStrength][];
   expressions: Expression[];
   available: string[];
@@ -623,7 +628,7 @@ interface DailyStrengthViewProps {
   onToggleMatrix: () => void;
 }
 
-function DailyStrengthView({ scores, sorted, expressions, available, showMatrix, onToggleMatrix }: DailyStrengthViewProps) {
+function DailyStrengthView({ scores, pairs, sorted, expressions, available, showMatrix, onToggleMatrix }: DailyStrengthViewProps) {
   // Movement context from the existing history endpoint (7 days of daily
   // snapshots). Purely additive: labels degrade gracefully to score-only
   // wording while history loads or when it is empty.
@@ -727,7 +732,7 @@ function DailyStrengthView({ scores, sorted, expressions, available, showMatrix,
                       <td key={quote} className="p-0">
                         {base === quote
                           ? <MatrixCell isBlank />
-                          : <MatrixCell cell={computeMatrixCell(base, quote, scores)} />}
+                          : <MatrixCell cell={computeMatrixCell(base, quote, scores, pairs)} />}
                       </td>
                     ))}
                   </tr>
@@ -763,8 +768,15 @@ function formatAge(seconds: number): string {
   return `${Math.round(seconds / 86400)}d ago`;
 }
 
+type StrengthResponse = {
+  currencies: Scores;
+  pairs?: PairsDetail | null;
+  fetchedAt: string;
+  cacheAgeSeconds: number;
+};
+
 function useStrengthData(variant: "daily" | "intraday", tick: number) {
-  const [data, setData] = useState<{ currencies: Scores; fetchedAt: string; cacheAgeSeconds: number } | null>(null);
+  const [data, setData] = useState<StrengthResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -772,7 +784,7 @@ function useStrengthData(variant: "daily" | "intraday", tick: number) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    apiGet<{ currencies: Scores; fetchedAt: string; cacheAgeSeconds: number }>(`/api/currency-strength?type=${variant}`)
+    apiGet<StrengthResponse>(`/api/currency-strength?type=${variant}`)
       .then((json) => { if (!cancelled) { setData(json); setLoading(false); } })
       .catch((e) => { if (!cancelled) { setError(e.message); setLoading(false); } });
     return () => { cancelled = true; };
@@ -787,8 +799,9 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
   const { data, loading, error } = useStrengthData(variant, tick);
 
   const scores = data?.currencies ?? {};
+  const pairs = data?.pairs ?? null;
   const sorted = Object.entries(scores).sort((a, b) => b[1].score - a[1].score);
-  const expressions = data ? computeExpressions(scores) : [];
+  const expressions = data ? computeExpressions(scores, pairs) : [];
   const available = CURRENCIES.filter((c) => c in scores);
 
   const ago = data ? formatAge(data.cacheAgeSeconds) : null;
@@ -853,7 +866,7 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
                   <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/10 bg-black/30 font-mono text-[11px] text-white/50 hover:border-white/20 hover:text-white/70">i</span>
                 </summary>
                 <div className="mt-2 rounded-2xl border border-white/8 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-white/46">
-                  <p>Strength is derived from cross-pair aggregation, centered on a fixed -100 to 100 scale. H1/M15 states are approximated from current scores; real multi-timeframe data requires the OANDA scanner.</p>
+                  <p>Strength is derived from cross-pair aggregation, centered on a fixed -100 to 100 scale. Pair states and confidence come from the scanner&apos;s multi-timeframe read when available; otherwise they are approximated from current scores.</p>
                 </div>
               </details>
             </section>
@@ -865,6 +878,7 @@ export function StrengthPanelNative({ panel, onToggleLock, onRemove, variant = "
       {data && variant === "daily" && (
         <DailyStrengthView
           scores={scores}
+          pairs={pairs}
           sorted={sorted}
           expressions={expressions}
           available={available}

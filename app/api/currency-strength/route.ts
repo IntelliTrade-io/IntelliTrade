@@ -20,6 +20,11 @@ type StrengthPayload = {
   intraday: Record<Currency, CurrencyStrength>;
   fetchedAt: string;          // daily run timestamp (legacy field, kept for cache compat)
   fetchedAtIntraday?: string; // intraday run timestamp
+  // Stored per-pair MTFA detail (combined state, confidence, timeframe states,
+  // BOS marks) straight from the snapshot's `pairs` JSONB. Absent on cache rows
+  // written before this field existed — clients fall back to approximations.
+  pairsDaily?: Record<string, unknown>;
+  pairsIntraday?: Record<string, unknown>;
 };
 
 // ─── Transform scanner output → CurrencyStrength ─────────────────────────────
@@ -47,14 +52,14 @@ async function fetchFromScanner(): Promise<
   const [dailyRes, intradayRes] = await Promise.all([
     supabaseAdmin
       .from("currency_strength_snapshots")
-      .select("currencies_weighted, run_info")
+      .select("currencies_weighted, run_info, pairs")
       .eq("type", "daily")
       .order("created_at", { ascending: false })
       .limit(1)
       .single(),
     supabaseAdmin
       .from("currency_strength_snapshots")
-      .select("currencies_weighted, run_info")
+      .select("currencies_weighted, run_info, pairs")
       .eq("type", "intraday")
       .order("created_at", { ascending: false })
       .limit(1)
@@ -79,6 +84,8 @@ async function fetchFromScanner(): Promise<
       intraday,
       fetchedAt: dailyRow.run_info?.ts_utc ?? new Date().toISOString(),
       fetchedAtIntraday: intradayRow?.run_info?.ts_utc ?? dailyRow.run_info?.ts_utc ?? new Date().toISOString(),
+      pairsDaily: dailyRow.pairs ?? undefined,
+      pairsIntraday: intradayRow?.pairs ?? undefined,
     },
   };
 }
@@ -139,6 +146,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     currencies: type === "intraday" ? payload.intraday : payload.daily,
+    pairs: (type === "intraday" ? payload.pairsIntraday : payload.pairsDaily) ?? null,
     type,
     fetchedAt,
     cacheAgeSeconds: Math.round((Date.now() - new Date(fetchedAt).getTime()) / 1000),

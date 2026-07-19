@@ -16,6 +16,24 @@ export const STANDARD_PAIRS = new Set([
 export type CurrencyStrength = { score: number; bias: "Strong" | "Weak" | "Neutral"; rawScore: number };
 export type Scores = Record<string, CurrencyStrength>;
 
+export type PairScanState = "Bullish" | "Bearish" | "Neutral";
+
+/**
+ * Per-pair detail as stored in the scanner snapshot's `pairs` JSONB. Daily
+ * snapshots carry d1/h4 timeframe states; intraday snapshots carry h1/m15.
+ * `pair` is the scanner's combined (MTFA-confirmed) read and `confidence` its
+ * multi-timeframe confidence on a 0-100 scale (0 when timeframes conflict).
+ */
+export type PairDetail = {
+  pair?: string;
+  confidence?: number;
+  d1?: string;
+  h4?: string;
+  h1?: string;
+  m15?: string;
+};
+export type PairsDetail = Record<string, PairDetail | undefined>;
+
 export type Expression = {
   symbol: string;
   baseCode: string;
@@ -25,6 +43,11 @@ export type Expression = {
   confidence: number;
   spread: number;
   opportunity: number;
+  /** "scanner" when built from stored MTFA pair data; "approximation" otherwise. */
+  source: "scanner" | "approximation";
+  /** Real timeframe states when source is "scanner" (D1/H4 daily, H1/M15 intraday). */
+  tfSlow?: PairScanState;
+  tfFast?: PairScanState;
 };
 
 export type CellData = {
@@ -33,11 +56,36 @@ export type CellData = {
   confidence: number;
   spread: number;
   isInverse: boolean;
+  /** "scanner" when state/confidence come from stored MTFA data. */
+  source: "scanner" | "approximation";
 };
 
 /** Approximate confidence from score magnitudes. Requires MTFA for accuracy. */
 export function approxConf(scoreA: number, scoreB: number): number {
   return Math.round((Math.abs(scoreA) + Math.abs(scoreB)) / 2);
+}
+
+/** Scanner trend string ("bullish") → display state, or null when unparseable. */
+export function scanState(raw: string | undefined): PairScanState | null {
+  if (raw === "bullish") return "Bullish";
+  if (raw === "bearish") return "Bearish";
+  if (raw === "neutral") return "Neutral";
+  return null;
+}
+
+/** Scanner confidence (0-100 float) → clamped integer, or null when absent. */
+export function scanConfidence(raw: number | undefined): number | null {
+  if (typeof raw !== "number" || !isFinite(raw)) return null;
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
+
+/** True when at least one entry in `pairs` has a parseable combined state. */
+function hasUsablePairData(pairs: PairsDetail | null | undefined): pairs is PairsDetail {
+  if (!pairs) return false;
+  for (const detail of Object.values(pairs)) {
+    if (detail && scanState(detail.pair) !== null) return true;
+  }
+  return false;
 }
 
 export function pairState(baseScore: number, quoteScore: number): "Bullish" | "Bearish" | "Neutral" {
@@ -53,7 +101,7 @@ export function getCanonicalPair(a: string, b: string): { base: string; quote: s
   return a < b ? { base: a, quote: b } : { base: b, quote: a };
 }
 
-export function computeExpressions(scores: Scores): Expression[] {
+function computeExpressionsApprox(scores: Scores): Expression[] {
   const exprs: Expression[] = [];
   const list = CURRENCIES.filter((c) => c in scores);
 
@@ -85,6 +133,7 @@ export function computeExpressions(scores: Scores): Expression[] {
         state,
         summary: `${strongCode} strong vs ${weakCode} weak`,
         confidence, spread, opportunity,
+        source: "approximation",
       });
     }
   }
@@ -92,12 +141,77 @@ export function computeExpressions(scores: Scores): Expression[] {
   return exprs.sort((a, b) => b.opportunity - a.opportunity).slice(0, 6);
 }
 
-export function computeMatrixCell(base: string, quote: string, scores: Scores): CellData {
+function computeExpressionsFromPairs(scores: Scores, pairs: PairsDetail): Expression[] {
+  const exprs: Expression[] = [];
+  const list = CURRENCIES.filter((c) => c in scores);
+
+  for (let i = 0; i < list.length; i++) {
+    for (let j = i + 1; j < list.length; j++) {
+      const a = list[i], b = list[j];
+      if (a === undefined || b === undefined) continue;
+
+      const { base, quote } = getCanonicalPair(a, b);
+      const detail = pairs[base + quote];
+      const state = scanState(detail?.pair);
+      const confidence = detail === undefined ? null : scanConfidence(detail.confidence);
+      // Only pairs the scanner confirmed (both timeframes aligned) qualify.
+      if (!detail || state === null || state === "Neutral" || confidence === null) continue;
+
+      const sa = scores[a]?.score ?? 0;
+      const sb = scores[b]?.score ?? 0;
+      const spread = Math.round((Math.abs(sa) + Math.abs(sb)) * 10) / 10;
+      const opportunity = Math.round(spread * confidence / 100 * 10) / 10;
+      const strongCode = state === "Bullish" ? base : quote;
+      const weakCode = state === "Bullish" ? quote : base;
+
+      exprs.push({
+        symbol: `${base}/${quote}`,
+        baseCode: base, quoteCode: quote,
+        state,
+        summary: `${strongCode} strong vs ${weakCode} weak`,
+        confidence, spread, opportunity,
+        source: "scanner",
+        tfSlow: scanState(detail.d1 ?? detail.h1) ?? undefined,
+        tfFast: scanState(detail.h4 ?? detail.m15) ?? undefined,
+      });
+    }
+  }
+
+  return exprs.sort((a, b) => b.opportunity - a.opportunity).slice(0, 6);
+}
+
+/**
+ * Best expressions. With usable stored pair data the scanner's combined state
+ * and MTFA confidence rank the pairs (an empty result then means "nothing
+ * confirmed", not missing data); otherwise falls back to the score-magnitude
+ * approximation.
+ */
+export function computeExpressions(scores: Scores, pairs?: PairsDetail | null): Expression[] {
+  if (hasUsablePairData(pairs)) return computeExpressionsFromPairs(scores, pairs);
+  return computeExpressionsApprox(scores);
+}
+
+export function computeMatrixCell(
+  base: string,
+  quote: string,
+  scores: Scores,
+  pairs?: PairsDetail | null,
+): CellData {
   const { base: cb, quote: cq } = getCanonicalPair(base, quote);
   const bs = scores[cb]?.score ?? 0;
   const qs = scores[cq]?.score ?? 0;
-  const state = pairState(bs, qs);
   const spread = Math.round((Math.abs(bs) + Math.abs(qs)) * 10) / 10;
+
+  // Real scanner read per cell when stored; approximation otherwise. A stored
+  // Neutral with confidence 0 is a truthful "timeframes conflict" read.
+  const detail = pairs?.[cb + cq];
+  const realState = scanState(detail?.pair);
+  const realConfidence = detail === undefined ? null : scanConfidence(detail?.confidence);
+  if (realState !== null && realConfidence !== null) {
+    return { symbol: `${cb}/${cq}`, state: realState, confidence: realConfidence, spread, isInverse: false, source: "scanner" };
+  }
+
+  const state = pairState(bs, qs);
   const confidence = approxConf(bs, qs);
-  return { symbol: `${cb}/${cq}`, state, confidence, spread, isInverse: false };
+  return { symbol: `${cb}/${cq}`, state, confidence, spread, isInverse: false, source: "approximation" };
 }
