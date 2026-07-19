@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Calculator, CalendarDays, ChevronRight, Clock, Radar, Sparkles } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import { getStrengthTeaser } from "@/lib/api/currencyStrengthTeaser";
+import { isCsmReviewsEnabled } from "@/lib/api/csmReviews";
 import { summariseExtremes } from "@/lib/strength-teaser";
 import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs";
 import { StrengthBarList } from "@/components/strength/StrengthBarList";
@@ -236,6 +237,19 @@ export default async function Page() {
             </Link>
           </div>
         </div>
+
+        {/* ── Historical reviews (flag-gated) ──────────────────────────────── */}
+        {isCsmReviewsEnabled() && (
+          <div className="mt-8 text-center">
+            <Link
+              href="/currency-strength/reviews"
+              className="inline-flex items-center gap-1.5 text-sm text-brand-200/90 transition hover:text-white"
+            >
+              See what happened after past readings: Historical reviews
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
 
         {/* ── How to read it ───────────────────────────────────────────────── */}
         <ScrollRevealSection className="mt-20">

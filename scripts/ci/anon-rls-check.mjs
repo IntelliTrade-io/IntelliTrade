@@ -24,6 +24,16 @@ const PREMIUM_TABLES = [
   "scanner_results",
   "currency_strength_snapshots",
   "economic_events",
+  // CSM public reviews (migrations 007-009): all anon-denied, incl. the
+  // "public" projection tables (pages read them server-side via supabaseAdmin).
+  "fx_ohlc_candles",
+  "csm_review_snapshots",
+  "csm_review_job_runs",
+  "csm_review_cases",
+  "csm_review_evaluations",
+  "csm_public_reviews",
+  "csm_review_monthly_summaries",
+  "csm_review_aggregate_stats",
 ];
 
 if (!URL_ENV || !ANON) {

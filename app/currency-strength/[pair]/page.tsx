@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, Radar, Sparkles } from "lucide-react";
 import { jsonLd } from "@/lib/jsonLd";
 import { getStrengthTeaser } from "@/lib/api/currencyStrengthTeaser";
+import { isCsmReviewsEnabled } from "@/lib/api/csmReviews";
 import {
   STRENGTH_PAIR_SYMBOLS,
   buildPairStrengthView,
@@ -471,6 +472,15 @@ export default async function PairStrengthPage({
                     All eight majors
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
+                  {isCsmReviewsEnabled() && (
+                    <Link
+                      href="/currency-strength/reviews"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[13px] text-slate-200/90 transition hover:border-white/25 hover:text-white"
+                    >
+                      Historical reviews
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  )}
                 </div>
 
                 <div className="mt-8 grid gap-4 sm:grid-cols-3">
