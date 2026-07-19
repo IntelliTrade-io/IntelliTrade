@@ -37,6 +37,7 @@ LOG_DIR = config.log_dir()
 
 STALE_INTRADAY_MINUTES = 30
 STALE_DAILY_HOURS = 5
+STALE_REVIEW_HOURS = 5
 # Configurable per feed: MetaQuotes-Demo serves API history for only 22 of the 28
 # pairs, so 28 would false-alert every run there. config.load_env() (above) has
 # already loaded the .env, so this picks up INTELLITRADE_MIN_SYMBOLS if set.
@@ -146,6 +147,63 @@ def check_health() -> list[str]:
     return issues
 
 
+def check_review_pipeline() -> list[str]:
+    """CSM review pipeline health: runner freshness, stage errors, stale pending
+    cases, candle gaps, and public/private count agreement. Best-effort — a
+    missing review schema (feature not deployed) is not an alert."""
+    from intellitrade_scanners.postgrest import Postgrest, eq
+
+    db = Postgrest()
+    issues: list[str] = []
+    now = dt.datetime.now(dt.timezone.utc)
+
+    def _parse(ts: str | None):
+        if not ts:
+            return None
+        try:
+            return dt.datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        except Exception:
+            return None
+
+    try:
+        runs = db.select("csm_review_job_runs", columns="job_name,status,finished_at,error")
+    except Exception:
+        return issues  # review tables absent (not yet deployed) — nothing to check
+
+    if not runs:
+        return issues
+
+    ok_finishes = [_parse(r.get("finished_at")) for r in runs if r.get("status") == "ok"]
+    ok_finishes = [t for t in ok_finishes if t]
+    if ok_finishes:
+        age_h = (now - max(ok_finishes)).total_seconds() / 3600
+        if age_h > STALE_REVIEW_HOURS:
+            issues.append(f"[review] pipeline STALE — last ok run {age_h:.1f}h ago "
+                          f"(threshold: {STALE_REVIEW_HOURS}h)")
+    else:
+        issues.append("[review] no successful pipeline run recorded")
+
+    for r in runs:
+        if r.get("status") == "error":
+            issues.append(f"[review/{r.get('job_name')}] stage error — {r.get('error') or 'no details'}")
+
+    try:
+        cases = db.select("csm_review_cases", columns="status")
+        withheld = sum(1 for c in cases if c["status"] == "withheld_missing_data")
+        if withheld:
+            issues.append(f"[review] {withheld} case(s) withheld for missing candle data")
+
+        published = sum(1 for c in cases if c["status"] == "published")
+        public_rows = len(db.select("csm_public_reviews", columns="id"))
+        if published != public_rows:
+            issues.append(f"[review] public/private mismatch — {published} published cases "
+                          f"vs {public_rows} public rows")
+    except Exception:
+        pass
+
+    return issues
+
+
 def main() -> int:
     setup_logging()
     log = logging.getLogger("watchdog")
@@ -157,6 +215,11 @@ def main() -> int:
         log.error(f"Could not read scanner_health: {e}")
         alert(f"Watchdog could not read Supabase scanner_health: {e}")
         return 1
+
+    try:
+        issues += check_review_pipeline()
+    except Exception as e:
+        log.error(f"Review pipeline check failed: {e}")
 
     if issues:
         for issue in issues:

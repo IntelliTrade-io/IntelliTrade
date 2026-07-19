@@ -134,6 +134,44 @@ Register-ScheduledTask `
 
 Write-Host "  Created: IntelliTrade Scanner Watchdog (every 5 minutes)"
 
+# ── CSM Review Runner — every 4 hours at :20 (15 min after the scanner) ──────
+# Invoked as a module so the intellitrade_scanners package resolves. WorkingDir
+# must be the directory that CONTAINS the intellitrade_scanners package.
+Write-Host "`nCreating: IntelliTrade CSM Review Runner"
+Remove-TaskIfExists "IntelliTrade CSM Review Runner"
+
+$reviewAction = New-ScheduledTaskAction `
+    -Execute $PythonExe `
+    -Argument "-m intellitrade_scanners.review.runner" `
+    -WorkingDirectory $ScannerDir
+
+# Six daily triggers: 00:20, 04:20, 08:20, 12:20, 16:20, 20:20
+$reviewTriggers = @(
+    (New-ScheduledTaskTrigger -Daily -At "00:20"),
+    (New-ScheduledTaskTrigger -Daily -At "04:20"),
+    (New-ScheduledTaskTrigger -Daily -At "08:20"),
+    (New-ScheduledTaskTrigger -Daily -At "12:20"),
+    (New-ScheduledTaskTrigger -Daily -At "16:20"),
+    (New-ScheduledTaskTrigger -Daily -At "20:20")
+)
+
+$reviewSettings = New-ScheduledTaskSettingsSet `
+    -ExecutionTimeLimit (New-TimeSpan -Hours 1) `
+    -RestartCount 2 `
+    -RestartInterval (New-TimeSpan -Minutes 5) `
+    -StartWhenAvailable `
+    -MultipleInstances IgnoreNew
+
+Register-ScheduledTask `
+    -TaskName "IntelliTrade CSM Review Runner" `
+    -Action $reviewAction `
+    -Trigger $reviewTriggers `
+    -Settings $reviewSettings `
+    -RunLevel Highest `
+    -Force | Out-Null
+
+Write-Host "  Created: IntelliTrade CSM Review Runner (00:20 / 04:20 / 08:20 / 12:20 / 16:20 / 20:20)"
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 Write-Host "`n=== Scheduled tasks created ==="
 Get-ScheduledTask -TaskName "IntelliTrade*" | Select-Object TaskName, State | Format-Table
