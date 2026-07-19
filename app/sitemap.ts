@@ -2,6 +2,11 @@ import type { MetadataRoute } from "next";
 import { client } from "@/sanity/client";
 import { PER_PAIR_SYMBOLS, pairToSlug } from "@/lib/pair-meta";
 import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs";
+import {
+  getPublishedMonths,
+  getPublishedSlugs,
+  isCsmReviewsEnabled,
+} from "@/lib/api/csmReviews";
 
 const BASE = "https://intellitrade.tech";
 
@@ -74,5 +79,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Sanity unavailable — serve static routes only
   }
 
-  return [...staticRoutes, ...blogRoutes];
+  // CSM public reviews — flag-gated. Zero entries when the feature is in shadow.
+  let reviewRoutes: MetadataRoute.Sitemap = [];
+  if (isCsmReviewsEnabled()) {
+    try {
+      const [slugs, months] = await Promise.all([getPublishedSlugs(), getPublishedMonths()]);
+      if (slugs.length > 0) {
+        reviewRoutes = [
+          { url: `${BASE}/currency-strength/reviews`, priority: 0.7, changeFrequency: "daily" },
+          { url: `${BASE}/currency-strength/reviews/methodology`, priority: 0.5, changeFrequency: "monthly" },
+          { url: `${BASE}/currency-strength/reviews/scorecard`, priority: 0.6, changeFrequency: "weekly" },
+          ...slugs.map((s) => ({
+            url: `${BASE}/currency-strength/reviews/${s.slug}`,
+            lastModified: s.updatedAt ? new Date(s.updatedAt) : undefined,
+            priority: 0.6,
+            changeFrequency: "monthly" as const,
+          })),
+          ...months.map((m) => {
+            const [year, month] = m.split("-");
+            return {
+              url: `${BASE}/currency-strength/reviews/monthly/${year}/${month}`,
+              priority: 0.5,
+              changeFrequency: "monthly" as const,
+            };
+          }),
+        ];
+      }
+    } catch {
+      // Review tables unavailable — omit review routes.
+    }
+  }
+
+  return [...staticRoutes, ...blogRoutes, ...reviewRoutes];
 }

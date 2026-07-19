@@ -12,6 +12,12 @@ import pandas as pd
 
 SCANNER_VERSION = "1.5.2-vps"
 
+# Model version for the downstream CSM public-review lineage. Distinct from
+# SCANNER_VERSION (which has drifted before): a change here starts a new review
+# generation and never recomputes older cases. Additive metadata only — it does
+# not affect any scan calculation.
+MODEL_VERSION = "csm-daily-v43-softgate-1"
+
 CURRENCIES = ["USD","EUR","GBP","JPY","AUD","NZD","CAD","CHF"]
 
 DEFAULT_PAIRS = [
@@ -235,6 +241,9 @@ def scan_pair(symbol:str,
         "last_candle_tf1_time": str(d1["time"].iloc[-1]) if not d1.empty else None,
         "last_candle_tf2_time": str(h4["time"].iloc[-1]) if not h4.empty else None,
         "last_candle_tf1_close": float(d1["close"].iloc[-1]) if not d1.empty else 0.0,
+        # tf2 (H4) close capture for the review reference price. Reading the last
+        # H4 close is data capture, not a calculation change.
+        "last_candle_tf2_close": float(h4["close"].iloc[-1]) if not h4.empty else 0.0,
     }
     return info
 
