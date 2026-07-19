@@ -73,6 +73,24 @@ def detect_gaps(open_times: list[dt.datetime],
 
 # ── IO stage ────────────────────────────────────────────────────────────────
 
+def _init_mt5():
+    """Initialize MT5 for a standalone runner process (the review runner is a
+    separate process from the scanner and must connect to MT5 itself). Mirrors
+    scanner_d1h4.main's connection setup. Returns the feed_adapter module so the
+    caller can shut it down."""
+    import os
+
+    from intellitrade_scanners import feed_adapter
+
+    login_str = os.environ.get("MT5_LOGIN", "") or None
+    feed_adapter.initialize(
+        server=os.environ.get("MT5_SERVER", "") or None,
+        login=int(login_str) if login_str else None,
+        password=os.environ.get("MT5_PASSWORD", "") or None,
+    )
+    return feed_adapter
+
+
 def run(feed_name: str, bars: int = 200, now: dt.datetime | None = None,
         client=None, fetch_fn=None) -> dict:
     """Fetch + upsert recent H4 bars for all 28 pairs. `bars` controls depth
@@ -80,36 +98,43 @@ def run(feed_name: str, bars: int = 200, now: dt.datetime | None = None,
     db_client = client or db.get_client()
     now = now or dt.datetime.now(UTC)
 
+    # When no fetch_fn is injected (production), own the MT5 lifecycle for this
+    # process. Tests pass fetch_fn and never touch MT5.
+    managed_feed = None
     if fetch_fn is None:
-        from intellitrade_scanners import feed_adapter
-        fetch_fn = feed_adapter.make_fetch_fn()
+        managed_feed = _init_mt5()
+        fetch_fn = managed_feed.make_fetch_fn()
 
     summary = {"pairs_covered": 0, "pairs_uncovered": [], "rows_upserted": 0, "gaps": {}}
-    for symbol in DEFAULT_PAIRS:
-        try:
-            df = fetch_fn(symbol, CANDLE_TIMEFRAME, bars)
-        except Exception as exc:  # noqa: BLE001 - a pair the feed cannot serve stays uncovered
-            log.warning("candles fetch failed for %s: %s", symbol, exc)
-            summary["pairs_uncovered"].append(symbol)
-            continue
+    try:
+        for symbol in DEFAULT_PAIRS:
+            try:
+                df = fetch_fn(symbol, CANDLE_TIMEFRAME, bars)
+            except Exception as exc:  # noqa: BLE001 - a pair the feed cannot serve stays uncovered
+                log.warning("candles fetch failed for %s: %s", symbol, exc)
+                summary["pairs_uncovered"].append(symbol)
+                continue
 
-        records = candle_records(df, feed_name, symbol, now)
-        if not records:
-            summary["pairs_uncovered"].append(symbol)
-            continue
+            records = candle_records(df, feed_name, symbol, now)
+            if not records:
+                summary["pairs_uncovered"].append(symbol)
+                continue
 
-        try:
-            db_client.upsert("fx_ohlc_candles", records,
-                             on_conflict="feed_name,symbol,timeframe,open_time")
-            summary["rows_upserted"] += len(records)
-            summary["pairs_covered"] += 1
-        except Exception as exc:  # noqa: BLE001 - isolate per-pair failures
-            log.error("fx_ohlc_candles upsert failed for %s: %s", symbol, exc)
-            continue
+            try:
+                db_client.upsert("fx_ohlc_candles", records,
+                                 on_conflict="feed_name,symbol,timeframe,open_time")
+                summary["rows_upserted"] += len(records)
+                summary["pairs_covered"] += 1
+            except Exception as exc:  # noqa: BLE001 - isolate per-pair failures
+                log.error("fx_ohlc_candles upsert failed for %s: %s", symbol, exc)
+                continue
 
-        open_times = [timeutil.parse_ts(r["open_time"]) for r in records]
-        gaps = detect_gaps(open_times, min(open_times), max(open_times))
-        if gaps:
-            summary["gaps"][symbol] = [g.isoformat().replace("+00:00", "Z") for g in gaps]
+            open_times = [timeutil.parse_ts(r["open_time"]) for r in records]
+            gaps = detect_gaps(open_times, min(open_times), max(open_times))
+            if gaps:
+                summary["gaps"][symbol] = [g.isoformat().replace("+00:00", "Z") for g in gaps]
+    finally:
+        if managed_feed is not None:
+            managed_feed.shutdown()
 
     return summary
