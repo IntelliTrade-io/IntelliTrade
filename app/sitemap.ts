@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { client } from "@/sanity/client";
+import { slugifyTag } from "@/lib/blog";
 import { PER_PAIR_SYMBOLS, pairToSlug } from "@/lib/pair-meta";
 import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs";
 import {
@@ -61,10 +62,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   let blogRoutes: MetadataRoute.Sitemap = [];
+  let tagRoutes: MetadataRoute.Sitemap = [];
 
   try {
-    const posts = await client.fetch<{ slug: string; publishedAt: string | null }[]>(
-      `*[_type == "post" && defined(slug.current)]{ "slug": slug.current, publishedAt }`,
+    const posts = await client.fetch<{ slug: string; publishedAt: string | null; tags?: string[] }[]>(
+      `*[_type == "post" && defined(slug.current)]{ "slug": slug.current, publishedAt, tags }`,
       {},
       { next: { revalidate: 3600 } }
     );
@@ -74,6 +76,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: post.publishedAt ? new Date(post.publishedAt) : undefined,
       priority: 0.7,
       changeFrequency: "monthly" as const,
+    }));
+
+    // One /blog/tag/<slug> route per unique tag (previously only in the nested
+    // /blog/sitemap.xml, which robots never referenced — this sitemap is now
+    // the single owner of every blog URL).
+    const tagSlugs = new Set<string>();
+    for (const post of posts) {
+      for (const tag of post.tags ?? []) {
+        const slug = slugifyTag(tag);
+        if (slug) tagSlugs.add(slug);
+      }
+    }
+    tagRoutes = Array.from(tagSlugs).map((slug) => ({
+      url: `${BASE}/blog/tag/${slug}`,
+      priority: 0.5,
+      changeFrequency: "weekly" as const,
     }));
   } catch {
     // Sanity unavailable — serve static routes only
@@ -110,5 +128,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticRoutes, ...blogRoutes, ...reviewRoutes];
+  return [...staticRoutes, ...blogRoutes, ...tagRoutes, ...reviewRoutes];
 }
