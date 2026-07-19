@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { CheckCircle2, LayoutDashboard, CalendarDays, CandlestickChart, BookOpen, Gamepad2, FileText, Radar, Globe2, Calculator, LineChart } from "lucide-react";
-import { UpgradeButton } from "./_components/UpgradeButton";
+import { PlanPicker, type PlanPrice } from "./_components/PlanPicker";
 import { PricingBeacon } from "@/components/pro/PricingBeacon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -26,9 +26,14 @@ export default async function UpgradePage({
   searchParams: Promise<{ canceled?: string }>;
 }) {
   const { canceled } = await searchParams;
-  const [supabase, price] = await Promise.all([
+  // Annual is env-gated: no STRIPE_PRICE_ID_ANNUAL → monthly-only page,
+  // exactly as before. A retrieve failure on the annual price degrades the
+  // same way instead of breaking the whole page.
+  const annualPriceId = process.env.STRIPE_PRICE_ID_ANNUAL;
+  const [supabase, price, annualPrice] = await Promise.all([
     createClient(),
     stripe.prices.retrieve(process.env.STRIPE_PRICE_ID!),
+    annualPriceId ? stripe.prices.retrieve(annualPriceId).catch(() => null) : Promise.resolve(null),
   ]);
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -44,8 +49,13 @@ export default async function UpgradePage({
     if (isActive) redirect("/dashboardv2");
   }
 
-  const amount = price.unit_amount ? (price.unit_amount / 100).toFixed(2) : "n/a";
-  const currency = price.currency.toUpperCase();
+  const monthly: PlanPrice = {
+    amount: price.unit_amount ? price.unit_amount / 100 : 0,
+    currency: price.currency.toUpperCase(),
+  };
+  const annual: PlanPrice | null = annualPrice?.unit_amount
+    ? { amount: annualPrice.unit_amount / 100, currency: annualPrice.currency.toUpperCase() }
+    : null;
 
   return (
     <div className="relative min-h-screen w-full px-4 py-20 text-white">
@@ -72,22 +82,7 @@ export default async function UpgradePage({
               IntelliTrade Pro · Founding Member
             </div>
 
-            {/* Price */}
-            <div className="mb-2 flex items-end gap-1">
-              <span className="text-5xl font-bold tracking-tight text-white">
-                {currency === "EUR" ? "€" : currency === "USD" ? "$" : currency}
-                {amount}
-              </span>
-              <span className="mb-1.5 text-white/40">/month</span>
-            </div>
-            <p className="mb-1 text-sm text-white/55">
-              Founding price for the first 100 members; keep it for as long as you stay subscribed.
-            </p>
-            <p className="mb-8 text-sm text-white/40">
-              Cancel anytime. No contracts.
-            </p>
-
-            <UpgradeButton isLoggedIn={!!user} />
+            <PlanPicker monthly={monthly} annual={annual} isLoggedIn={!!user} />
 
             <div className="mt-3 text-center text-[11px] text-white/30">
               Powered by Stripe · Secured payment

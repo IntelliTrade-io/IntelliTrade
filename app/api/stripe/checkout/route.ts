@@ -6,12 +6,29 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
   ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
-export async function POST() {
+export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Optional body: { interval: "monthly" | "annual" }. Absent/invalid body =
+  // monthly (the route's original contract). Annual is env-gated: the option
+  // only exists once the owner creates the yearly price in Stripe.
+  let interval: "monthly" | "annual" = "monthly";
+  try {
+    const body = await request.json();
+    if (body?.interval === "annual") interval = "annual";
+  } catch {
+    // no JSON body — monthly
+  }
+
+  const priceId =
+    interval === "annual" ? process.env.STRIPE_PRICE_ID_ANNUAL : process.env.STRIPE_PRICE_ID;
+  if (!priceId) {
+    return NextResponse.json({ error: "This plan is not available" }, { status: 400 });
   }
 
   // Look up existing Stripe customer
@@ -45,7 +62,7 @@ export async function POST() {
     customer: customerId,
     mode: "subscription",
     payment_method_types: ["card"],
-    line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     // Alpha access runs on Stripe promotion codes (100%-off coupon); this only
     // shows the code field, pricing is unchanged without a code.
     allow_promotion_codes: true,

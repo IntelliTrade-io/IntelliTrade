@@ -5,7 +5,15 @@ import { Loader2 } from "lucide-react";
 import { apiPost } from "@/lib/api/client";
 import { trackEvent } from "@/lib/analytics";
 
-export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function UpgradeButton({
+  isLoggedIn,
+  interval = "monthly",
+  value = 15,
+}: {
+  isLoggedIn: boolean;
+  interval?: "monthly" | "annual";
+  value?: number;
+}) {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
@@ -15,10 +23,10 @@ export function UpgradeButton({ isLoggedIn }: { isLoggedIn: boolean }) {
       return;
     }
 
-    trackEvent("begin_checkout", { currency: "EUR", value: 15 });
+    trackEvent("begin_checkout", { currency: "EUR", value, interval });
     setLoading(true);
     try {
-      const { url } = await apiPost<{ url?: string }>("/api/stripe/checkout");
+      const { url } = await apiPost<{ url?: string }>("/api/stripe/checkout", { interval });
       if (url) window.location.href = url;
     } finally {
       setLoading(false);
