@@ -9,6 +9,7 @@ import { STRENGTH_PAIR_SYMBOLS, strengthPairToSlug } from "@/lib/strength-pairs"
 import { StrengthBarList } from "@/components/strength/StrengthBarList";
 import ScrollRevealSection from "@/components/ui/ScrollRevealSection";
 import { LatestFromBlog } from "@/components/blog/LatestFromBlog";
+import { NewsletterSignup } from "@/components/marketing/NewsletterSignup";
 
 const URL = "https://intellitrade.tech/currency-strength";
 
@@ -353,6 +354,10 @@ export default async function Page() {
               </Link>
             </div>
           </section>
+        </ScrollRevealSection>
+
+        <ScrollRevealSection className="mt-8">
+          <NewsletterSignup source="currency-strength" />
         </ScrollRevealSection>
 
         <LatestFromBlog />
