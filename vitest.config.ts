@@ -8,7 +8,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["**/__tests__/**/*.test.ts", "**/*.test.ts"],
-    exclude: ["node_modules", ".next", "IntelliConflict-Map"],
+    // claudeLoad holds session artifacts incl. donor codebases with their own
+    // test suites and bundled node_modules — never part of this app's suite.
+    exclude: ["**/node_modules/**", "**/.next*/**", "IntelliConflict-Map/**", "claudeLoad/**"],
   },
   resolve: {
     alias: {
