@@ -105,11 +105,17 @@ def test_invalid_reference_price_raises():
         evaluator.compute_metrics(0.0, _forward([1.0]), direction=1)
 
 
-def test_contiguous_forward_stops_at_gap():
+def test_contiguous_forward_counts_actual_candles_skipping_closures():
+    # Bar counting: a missing bar (weekend/holiday/closure) is not a gap that
+    # blocks; the Nth forward bar is the Nth actual candle. Dropping one candle
+    # from ten leaves nine forward bars, in time order.
     closes = [1.0 + i for i in range(10)]
     forward = _forward(closes)
     candle_map = {timeutil.parse_ts(b["open_time"]): b for b in forward}
-    # drop bar 6 -> only 5 contiguous
-    del candle_map[timeutil.parse_ts(forward[5]["open_time"])]
+    dropped = forward[5]
+    del candle_map[timeutil.parse_ts(dropped["open_time"])]
     got, verified = evaluator.contiguous_forward(candle_map, REF_CLOSE_TIME, want=10)
-    assert verified == 5
+    assert verified == 9
+    assert dropped not in got  # the closed/absent bar simply does not appear
+    times = [timeutil.parse_ts(b["open_time"]) for b in got]
+    assert times == sorted(times)  # still in chronological order

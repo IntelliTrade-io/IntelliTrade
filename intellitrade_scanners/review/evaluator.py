@@ -52,14 +52,17 @@ def forward_open_times(reference_close_time: dt.datetime, count: int) -> list[dt
 
 def contiguous_forward(candle_map: dict, reference_close_time: dt.datetime,
                        want: int = LONG_BARS) -> tuple[list[dict], int]:
-    """Return (forward_candles, verified_bars) walking the weekday grid from
-    forward bar 1, stopping at the first missing bar."""
-    forward: list[dict] = []
-    for open_time in forward_open_times(reference_close_time, want):
-        candle = candle_map.get(open_time)
-        if candle is None:
-            break
-        forward.append(candle)
+    """Return (forward_candles, verified_bars): the next `want` ACTUAL closed
+    candles at/after forward bar 1's open, in time order.
+
+    Bar counting per the horizon convention (§3.5/§4.7): forward bar N is the Nth
+    real closed candle after the reference. Weekends AND market closures (holidays
+    like Dec 25 / Jan 1) have no candle and simply vanish through bar counting -
+    they are not gaps and must not block. `want` bars available => complete;
+    fewer means the window has not fully closed yet. Genuine multi-day feed
+    outages surface via the candles-stage gap detection + watchdog, not here."""
+    forward_times = sorted(t for t in candle_map if t >= reference_close_time)
+    forward = [candle_map[t] for t in forward_times[:want]]
     return forward, len(forward)
 
 
