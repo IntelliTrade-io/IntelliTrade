@@ -14,7 +14,7 @@ CORE_INFO = {
     "last_bos_tf1": 1.1, "last_bos_tf1_time": "2024-01-01",
     "last_bos_tf2": 1.2, "last_bos_tf2_time": "2024-01-02",
     "last_candle_tf1_time": "2024-01-03", "last_candle_tf2_time": "2024-01-03",
-    "last_candle_tf1_close": 1.15,
+    "last_candle_tf1_close": 1.15, "last_candle_tf2_close": 1.16,
 }
 
 
@@ -45,6 +45,9 @@ def test_vps_d1h4_remap_contract():
         "d1": "bullish", "h4": "bearish", "pair": "neutral", "confidence": 42.0,
         "last_bos_d1": 1.1, "last_bos_d1_time": "2024-01-01",
         "last_bos_h4": 1.2, "last_bos_h4_time": "2024-01-02",
+        # Additive candle metadata kept for the CSM review lineage.
+        "last_candle_d1_time": "2024-01-03", "last_candle_d1_close": 1.15,
+        "last_candle_h4_time": "2024-01-03", "last_candle_h4_close": 1.16,
         "error": "",
     }
 

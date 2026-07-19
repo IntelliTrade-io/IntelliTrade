@@ -17,6 +17,7 @@ Environment (INTELLITRADE_HOME\config\.env, default C:\IntelliTrade — see conf
 import os
 import sys
 import json
+import uuid
 import logging
 import datetime as dt
 from logging.handlers import TimedRotatingFileHandler
@@ -53,12 +54,22 @@ def setup_logging() -> None:
 
 
 def remap_pair(info: dict) -> dict:
-    """Remap generic tf1/tf2 keys to d1/h4 for frontend compatibility."""
+    """Remap generic tf1/tf2 keys to d1/h4 for frontend compatibility.
+
+    Additive for the CSM review lineage: the last fully-closed candle time/close
+    for both timeframes are kept in the uploaded payload (previously dropped) so
+    the downstream review pipeline has a per-pair reference price. Existing
+    frontend fields are unchanged; these are extra JSONB keys.
+    """
     return {
         "d1": info.get("tf1"), "h4": info.get("tf2"),
         "pair": info.get("pair"), "confidence": info.get("confidence", 0.0),
         "last_bos_d1": info.get("last_bos_tf1"), "last_bos_d1_time": info.get("last_bos_tf1_time"),
         "last_bos_h4": info.get("last_bos_tf2"), "last_bos_h4_time": info.get("last_bos_tf2_time"),
+        "last_candle_d1_time": info.get("last_candle_tf1_time"),
+        "last_candle_d1_close": info.get("last_candle_tf1_close"),
+        "last_candle_h4_time": info.get("last_candle_tf2_time"),
+        "last_candle_h4_close": info.get("last_candle_tf2_close"),
         "error": info.get("error", ""),
     }
 
@@ -128,7 +139,7 @@ def main() -> int:
                 "tf1": "neutral", "tf2": "neutral", "pair": "neutral",
                 "confidence": 0.0, "error": str(e),
                 "last_candle_tf1_time": None, "last_candle_tf2_time": None,
-                "last_candle_tf1_close": 0.0,
+                "last_candle_tf1_close": 0.0, "last_candle_tf2_close": 0.0,
             }
             symbols_fail += 1
             log.error(f"  {sym}: FAILED — {e}")
@@ -160,6 +171,9 @@ def main() -> int:
         "scanner": SCANNER_NAME,
         "feed": feed_name,
         "version": strength_core.SCANNER_VERSION,
+        # Additive lineage metadata for the CSM review pipeline (no calc impact).
+        "run_id": uuid.uuid4().hex,
+        "model_version": strength_core.MODEL_VERSION,
         "tf1": TF1_KEY, "tf2": TF2_KEY,
         "symbols_ok": symbols_ok, "symbols_fail": symbols_fail,
     }

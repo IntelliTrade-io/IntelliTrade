@@ -152,7 +152,8 @@ def test_scan_pair_output_keys():
     assert set(info) == {
         "tf1", "tf2", "pair", "confidence",
         "last_bos_tf1", "last_bos_tf1_time", "last_bos_tf2", "last_bos_tf2_time",
-        "last_candle_tf1_time", "last_candle_tf2_time", "last_candle_tf1_close",
+        "last_candle_tf1_time", "last_candle_tf2_time",
+        "last_candle_tf1_close", "last_candle_tf2_close",
     }
 
 
