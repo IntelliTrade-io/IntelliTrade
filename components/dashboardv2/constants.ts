@@ -104,10 +104,9 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     comingSoon: true,
   },
   journal: {
-    label: "IntelliJournal",
-    description: "Journal overview with equity pulse and recent executions.",
+    label: "Trading journal",
+    description: "Log trades with auto-captured market context; realized stats.",
     icon: FileText,
-    comingSoon: true,
   },
   macro: {
     label: "Macro Mastery",

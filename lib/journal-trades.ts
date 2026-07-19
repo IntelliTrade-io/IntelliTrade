@@ -419,6 +419,17 @@ export function tradeStatus(bias: TradeBias, legs: MathLeg[]): TradeStatus {
   return "partial";
 }
 
+/**
+ * Units still open on a trade, derived from its legs and bias. Long exposure is
+ * buys minus sells; short exposure is sells minus buys. Clamped at zero so a
+ * fully- or over-closed trade reports 0 (used to prefill a closing leg's qty).
+ */
+export function remainingOpenQty(bias: TradeBias, legs: MathLeg[]): number {
+  const agg = aggregateTrade(legs);
+  const remaining = bias === "long" ? agg.netPosition : -agg.netPosition;
+  return remaining > EPS ? remaining : 0;
+}
+
 export interface RealizedStats {
   totalTrades: number;
   openTrades: number;

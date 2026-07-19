@@ -14,7 +14,7 @@ const FEATURES = [
   { icon: CalendarDays,    label: "Economic calendar",        soon: false },
   { icon: Calculator,      label: "Position size calculator", soon: false },
   { icon: Radar,           label: "Currency strength meter",  soon: false },
-  { icon: FileText,        label: "Trading journal",          soon: true  },
+  { icon: FileText,        label: "Trading journal",          soon: false },
   { icon: BookOpen,        label: "Macro Mastery module",     soon: true  },
   { icon: Gamepad2,        label: "Bull vs Bear game",        soon: false },
   { icon: Globe2,          label: "Conflict map",             soon: true  },

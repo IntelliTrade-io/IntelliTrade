@@ -4,6 +4,7 @@ import {
   matchedQuantity,
   realizedPnl,
   realizedStats,
+  remainingOpenQty,
   rMultiple,
   tradeStatus,
   tradeFromRow,
@@ -376,5 +377,48 @@ describe("tradeFromRow", () => {
     expect(trade.context).toEqual({});
     expect(trade.legs).toEqual([]);
     expect(trade.riskPerTrade).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// remainingOpenQty — used by the journal UI to prefill a closing leg.
+// ---------------------------------------------------------------------------
+
+describe("remainingOpenQty", () => {
+  it("returns the full opening size for an untouched long trade", () => {
+    expect(remainingOpenQty("long", [{ side: "buy", qty: 2, price: 1.1 }])).toBeCloseTo(2, 9);
+  });
+
+  it("returns the full opening size for an untouched short trade", () => {
+    expect(remainingOpenQty("short", [{ side: "sell", qty: 3, price: 200 }])).toBeCloseTo(3, 9);
+  });
+
+  it("nets partial closes off a long position", () => {
+    const legs: MathLeg[] = [
+      { side: "buy", qty: 2, price: 1.1 },
+      { side: "sell", qty: 0.5, price: 1.12 },
+    ];
+    expect(remainingOpenQty("long", legs)).toBeCloseTo(1.5, 9);
+  });
+
+  it("nets partial closes off a short position", () => {
+    const legs: MathLeg[] = [
+      { side: "sell", qty: 3, price: 200 },
+      { side: "buy", qty: 1, price: 190 },
+    ];
+    expect(remainingOpenQty("short", legs)).toBeCloseTo(2, 9);
+  });
+
+  it("clamps a fully- or over-closed trade to zero", () => {
+    const closed: MathLeg[] = [
+      { side: "buy", qty: 1, price: 1.1 },
+      { side: "sell", qty: 1, price: 1.2 },
+    ];
+    expect(remainingOpenQty("long", closed)).toBe(0);
+    const over: MathLeg[] = [
+      { side: "sell", qty: 1, price: 200 },
+      { side: "buy", qty: 1.5, price: 190 },
+    ];
+    expect(remainingOpenQty("short", over)).toBe(0);
   });
 });

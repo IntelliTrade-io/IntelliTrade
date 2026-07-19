@@ -32,7 +32,7 @@ const PANEL_TABS = [
   { id: "strength",        label: "Strength",     icon: Radar,           comingSoon: false },
   { id: "game",            label: "Bull vs Bear", icon: Gamepad2,        comingSoon: false },
   { id: "conflict",        label: "Conflict Map", icon: Globe2,          comingSoon: true  },
-  { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: true  },
+  { id: "journal",         label: "Journal",      icon: FileText,        comingSoon: false },
   { id: "macro",           label: "Macro Mastery",icon: BookOpen,        comingSoon: true  },
 ] as const;
 
