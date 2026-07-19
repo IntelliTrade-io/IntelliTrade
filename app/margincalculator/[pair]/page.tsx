@@ -12,6 +12,7 @@ import {
   pairToSlug,
   slugToPair,
 } from "@/lib/pair-meta";
+import { strengthPairFromSlug } from "@/lib/strength-pairs";
 
 const BASE = "https://intellitrade.tech";
 
@@ -76,6 +77,10 @@ export default async function PerPairMarginPage({
       : "";
 
   const siblings = PER_PAIR_SYMBOLS.filter((s) => s !== m.pair).slice(0, 6);
+
+  // Free strength pages only exist for the 28 standard major pairs (no
+  // metals/crypto/reversed majors), so only link where the page exists.
+  const hasStrengthPage = strengthPairFromSlug(m.slug) !== null;
 
   const softwareAppSchema = {
     "@context": "https://schema.org",
@@ -297,7 +302,7 @@ export default async function PerPairMarginPage({
                   })}
                 </div>
 
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <div className={`mt-8 grid gap-4 ${hasStrengthPage ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
                   <Link
                     href={`/lotsizecalculator/${m.slug}`}
                     className="group rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.07]"
@@ -325,6 +330,21 @@ export default async function PerPairMarginPage({
                       What one pip of {m.display} is worth in your account currency, per lot.
                     </p>
                   </Link>
+
+                  {hasStrengthPage && (
+                    <Link
+                      href={`/currency-strength/${m.slug}`}
+                      className="group rounded-2xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl transition hover:border-white/20 hover:bg-white/[0.07]"
+                    >
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-brand-300/90">Free</p>
+                      <p className="mt-2 text-[15px] font-medium text-slate-100 group-hover:text-white">
+                        {m.display} Currency Strength
+                      </p>
+                      <p className="mt-1 text-[13px] text-slate-400/80">
+                        Which side of {m.display} read stronger in yesterday&apos;s daily reading.
+                      </p>
+                    </Link>
+                  )}
                 </div>
 
                 <div className="mt-4 text-center">
