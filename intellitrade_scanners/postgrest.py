@@ -77,11 +77,15 @@ class Postgrest:
     def _request(self, method: str, table: str,
                  params: list[tuple[str, str]],
                  json_body: object = None,
-                 prefer: str = "return=representation") -> list[dict]:
+                 prefer: str = "return=representation",
+                 extra_headers: Mapping | None = None) -> list[dict]:
+        headers = {"Prefer": prefer}
+        if extra_headers:
+            headers.update(extra_headers)
         resp = self._session.request(
             method, f"{self._rest}/{table}",
             params=params, json=json_body,
-            headers={"Prefer": prefer},
+            headers=headers,
             timeout=self._timeout,
         )
         if not (200 <= resp.status_code < 300):
@@ -95,9 +99,30 @@ class Postgrest:
     def _rows(rows: Mapping | list) -> list:
         return [dict(rows)] if isinstance(rows, Mapping) else list(rows)
 
+    _PAGE = 1000
+
     def select(self, table: str, columns: str = "*",
                filters: Iterable[Filter] = ()) -> list[dict]:
-        return self._request("GET", table, [("select", columns), *filters])
+        """Fetch all matching rows, paginating past PostgREST's default row cap.
+
+        PostgREST returns at most ~1000 rows per response (and in no guaranteed
+        order). Paginate with the Range header so callers always get the complete
+        set. Filters/params are unchanged, so the request shape callers see is
+        identical to a single-page fetch."""
+        params = [("select", columns), *filters]
+        rows: list[dict] = []
+        start = 0
+        while True:
+            batch = self._request(
+                "GET", table, params,
+                extra_headers={"Range-Unit": "items",
+                               "Range": f"{start}-{start + self._PAGE - 1}"},
+            )
+            rows.extend(batch)
+            if len(batch) < self._PAGE:
+                break
+            start += self._PAGE
+        return rows
 
     def insert(self, table: str, rows: Mapping | list) -> list[dict]:
         return self._request("POST", table, [], self._rows(rows))
