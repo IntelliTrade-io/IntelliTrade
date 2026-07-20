@@ -499,6 +499,30 @@ export function rMultiple(netPnl: number, riskAmount?: number | null): number | 
   return netPnl / riskAmount;
 }
 
+/**
+ * Volume-weighted average entry and exit prices for display.
+ *   long:  entry = avg of buy legs (opening), exit = avg of sell legs (closing).
+ *   short: entry = avg of sell legs (opening), exit = avg of buy legs (closing).
+ * `entry` is null only when the opening side has no volume; `exit` is null until
+ * something has closed.
+ */
+export function entryExitAvg(
+  bias: TradeBias,
+  legs: MathLeg[],
+): { entry: number | null; exit: number | null } {
+  const agg = aggregateTrade(legs);
+  if (bias === "long") {
+    return {
+      entry: agg.buyQty > 0 ? agg.avgBuy : null,
+      exit: agg.sellQty > 0 ? agg.avgSell : null,
+    };
+  }
+  return {
+    entry: agg.sellQty > 0 ? agg.avgSell : null,
+    exit: agg.buyQty > 0 ? agg.avgBuy : null,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Row mappers — Supabase snake_case rows → domain camelCase.
 // ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { RefreshCw, Plus, Trash2, X } from "lucide-react";
 import { apiGet, apiPost, apiPatch, apiDelete, ApiError } from "@/lib/api/client";
 import {
+  entryExitAvg,
   remainingOpenQty,
   tradeStatus,
   type JournalTrade,
@@ -51,6 +52,11 @@ function parseTags(raw: string): string[] {
 function fmtPnl(n: number): string {
   const v = Math.abs(n) < 0.005 ? 0 : n;
   return `${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
+}
+
+/** Price with up to 5 decimals, trailing zeros trimmed (1.09200 → "1.092"). */
+function fmtPrice(n: number): string {
+  return Number(n.toFixed(5)).toString();
 }
 
 /** Score with an explicit sign, rounded to an integer (matches the meters). */
@@ -386,6 +392,7 @@ function TradeRow({ trade, canEdit, onChanged }: { trade: ClientTrade; canEdit: 
   const ctx = contextLine(trade.context);
   const showPnl = trade.status !== "open" && Math.abs(trade.netPnl) >= 0.005;
   const canClose = trade.status === "open" || trade.status === "partial";
+  const { entry, exit } = entryExitAvg(trade.bias, trade.legs);
 
   async function doDelete() {
     setRowError(null);
@@ -420,6 +427,18 @@ function TradeRow({ trade, canEdit, onChanged }: { trade: ClientTrade; canEdit: 
           <span className="font-mono text-[10px] text-white/38">{fmtDay(trade.openedAt)}</span>
         </div>
       </div>
+
+      {entry !== null && (
+        <div className="mt-1 flex items-center gap-2 font-mono text-[10px] text-white/45">
+          <span title="Volume-weighted average entry price">
+            <span className="text-white/30">entry</span> {fmtPrice(entry)}
+          </span>
+          <span className="text-white/20">→</span>
+          <span title="Volume-weighted average exit price (once closed)">
+            <span className="text-white/30">exit</span> {exit !== null ? fmtPrice(exit) : "—"}
+          </span>
+        </div>
+      )}
 
       {trade.setup && <div className="mt-1 text-[11px] leading-snug text-white/55">{trade.setup}</div>}
 

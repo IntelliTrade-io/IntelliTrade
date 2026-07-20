@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   aggregateTrade,
   buildLegInsertRows,
+  entryExitAvg,
   matchedQuantity,
   realizedPnl,
   realizedStats,
@@ -455,5 +456,32 @@ describe("remainingOpenQty", () => {
       { side: "buy", qty: 1.5, price: 190 },
     ];
     expect(remainingOpenQty("short", over)).toBe(0);
+  });
+});
+
+describe("entryExitAvg", () => {
+  it("long: entry from buys, exit null until a sell closes", () => {
+    expect(entryExitAvg("long", [{ side: "buy", qty: 2, price: 1.1 }])).toEqual({ entry: 1.1, exit: null });
+  });
+
+  it("short: entry from sells, exit null until a buy closes", () => {
+    expect(entryExitAvg("short", [{ side: "sell", qty: 1, price: 200 }])).toEqual({ entry: 200, exit: null });
+  });
+
+  it("volume-weights both sides on a closed long", () => {
+    const legs: MathLeg[] = [
+      { side: "buy", qty: 1, price: 1.0 },
+      { side: "buy", qty: 1, price: 1.2 }, // avg entry 1.1
+      { side: "sell", qty: 2, price: 1.3 }, // exit 1.3
+    ];
+    expect(entryExitAvg("long", legs)).toEqual({ entry: 1.1, exit: 1.3 });
+  });
+
+  it("maps entry/exit to the correct sides for a short", () => {
+    const legs: MathLeg[] = [
+      { side: "sell", qty: 2, price: 200 },
+      { side: "buy", qty: 2, price: 190 },
+    ];
+    expect(entryExitAvg("short", legs)).toEqual({ entry: 200, exit: 190 });
   });
 });
