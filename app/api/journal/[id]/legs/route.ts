@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireSubscription } from "@/lib/auth/requireSubscription";
 import {
+  buildLegInsertRows,
   tradeFromRow,
   validateReplaceLegs,
   type JournalTrade,
@@ -77,18 +78,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Could not replace trade legs" }, { status: 500 });
   }
 
-  const legInserts = validated.value.legs.map((leg) => {
-    const row: Record<string, unknown> = {
-      trade_id: id,
-      user_id: user.id,
-      side: leg.side,
-      qty: leg.qty,
-      price: leg.price,
-      fee: leg.fee,
-    };
-    if (leg.executedAt) row.executed_at = leg.executedAt;
-    return row;
-  });
+  // Uniform key set across all rows (PGRST102 guard): executed_at is always
+  // present, defaulting to now for the fresh closing leg while existing legs
+  // keep their preserved timestamp.
+  const legInserts = buildLegInsertRows(validated.value.legs, id, user.id, new Date().toISOString());
 
   const { error: insertError } = await supabase.from("journal_trade_legs").insert(legInserts).select("id");
   if (insertError) {

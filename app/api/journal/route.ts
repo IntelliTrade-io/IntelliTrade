@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requireSubscription } from "@/lib/auth/requireSubscription";
 import { buildTradeContext } from "@/lib/server/journal-context";
 import {
+  buildLegInsertRows,
   tradeFromRow,
   validateNewTrade,
   tradeStatus,
@@ -140,18 +141,8 @@ export async function POST(req: Request) {
   }
   const tradeRow = tradeData as JournalTradeRow;
 
-  const legInserts = input.legs.map((leg) => {
-    const row: Record<string, unknown> = {
-      trade_id: tradeRow.id,
-      user_id: user.id,
-      side: leg.side,
-      qty: leg.qty,
-      price: leg.price,
-      fee: leg.fee,
-    };
-    if (leg.executedAt) row.executed_at = leg.executedAt;
-    return row;
-  });
+  // Uniform key set across all rows (PGRST102 guard) — executed_at always present.
+  const legInserts = buildLegInsertRows(input.legs, tradeRow.id, user.id, new Date().toISOString());
 
   const { data: legData, error: legError } = await supabase
     .from("journal_trade_legs")

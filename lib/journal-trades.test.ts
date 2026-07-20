@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   aggregateTrade,
+  buildLegInsertRows,
   matchedQuantity,
   realizedPnl,
   realizedStats,
@@ -11,9 +12,43 @@ import {
   validateNewTrade,
   validateReplaceLegs,
   validateTradeUpdate,
+  type LegInput,
   type MathLeg,
   type StatsTrade,
 } from "./journal-trades";
+
+// ---------------------------------------------------------------------------
+// buildLegInsertRows — must emit a UNIFORM key set (PostgREST PGRST102 guard)
+// ---------------------------------------------------------------------------
+
+describe("buildLegInsertRows", () => {
+  const NOW = "2026-07-20T15:00:00.000Z";
+
+  it("gives every row an identical key set even when executedAt is mixed", () => {
+    const legs: LegInput[] = [
+      { side: "buy", qty: 1, price: 1.09, fee: 0, executedAt: "2026-07-19T10:00:00Z" },
+      { side: "sell", qty: 1, price: 1.1, fee: 0 }, // no executedAt (the close leg)
+    ];
+    const rows = buildLegInsertRows(legs, "trade-1", "user-1", NOW);
+    const keySets = rows.map((r) => Object.keys(r).sort().join(","));
+    expect(new Set(keySets).size).toBe(1); // all rows share one key set
+    expect(rows[0]!.executed_at).toBe("2026-07-19T10:00:00Z"); // preserved
+    expect(rows[1]!.executed_at).toBe(NOW); // defaulted
+  });
+
+  it("stamps trade_id/user_id and carries fee through", () => {
+    const rows = buildLegInsertRows([{ side: "buy", qty: 2, price: 5, fee: 1.5 }], "t", "u", NOW);
+    expect(rows[0]).toEqual({
+      trade_id: "t",
+      user_id: "u",
+      side: "buy",
+      qty: 2,
+      price: 5,
+      fee: 1.5,
+      executed_at: NOW,
+    });
+  });
+});
 
 // ---------------------------------------------------------------------------
 // PnL math (ported from donor lib/trades/math.test.ts, slippage removed)

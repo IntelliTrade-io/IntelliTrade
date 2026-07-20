@@ -564,3 +564,42 @@ export function tradeFromRow(row: JournalTradeRow, legRows: JournalTradeLegRow[]
     legs: legRows.map(legFromRow),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Leg-insert row builder.
+//
+// PostgREST bulk insert requires EVERY object in the array to have an identical
+// key set (error PGRST102 "All object keys must match" otherwise). Legs that
+// carry a preserved executed_at (e.g. existing legs re-sent during a close)
+// mixed with legs that omit it (a fresh closing leg) previously produced a
+// mixed key set and failed the whole batch. This builder guarantees a uniform
+// key set: executed_at is ALWAYS present, defaulting to `nowIso` when the leg
+// has none (which matches the column's DEFAULT now()).
+// ---------------------------------------------------------------------------
+
+export interface LegInsertRow {
+  trade_id: string;
+  user_id: string;
+  side: LegSide;
+  qty: number;
+  price: number;
+  fee: number;
+  executed_at: string;
+}
+
+export function buildLegInsertRows(
+  legs: LegInput[],
+  tradeId: string,
+  userId: string,
+  nowIso: string,
+): LegInsertRow[] {
+  return legs.map((leg) => ({
+    trade_id: tradeId,
+    user_id: userId,
+    side: leg.side,
+    qty: leg.qty,
+    price: leg.price,
+    fee: leg.fee,
+    executed_at: leg.executedAt ?? nowIso,
+  }));
+}
