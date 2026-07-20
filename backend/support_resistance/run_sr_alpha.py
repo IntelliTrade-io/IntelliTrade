@@ -25,7 +25,7 @@ import os
 import sys
 import uuid
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 # Load VPS env (C:\IntelliTrade\config\.env) — same convention as the strength
 # scanners. Harmless locally: if dotenv or the file is absent, env vars set at
@@ -82,6 +82,38 @@ def _latest_context(ctx_frames: dict) -> MarketContext:
     ), m15_atr
 
 
+def _floor_epoch_minutes(ts, minutes: int) -> int:
+    """Floor a tz-aware timestamp to a `minutes` boundary, in epoch minutes.
+    Convention-independent (ignores the resample label/closed setting) so it is a
+    reliable probe of how many M15 bars have formed in the current HTF period."""
+    epoch_min = int(ts.timestamp() // 60)
+    return epoch_min - (epoch_min % minutes)
+
+
+def _candle_completeness(m15_times: list, now_utc: datetime) -> dict:
+    """Observability only: report whether the final M15 bar is closed and how
+    many M15 bars have formed in the current (developing) H1 / H4 period. Does
+    NOT change any scoring input — it exposes the pre-existing partial-bucket
+    behaviour of the H1/H4 resample so a run's HTF inputs are auditable."""
+    if not m15_times:
+        return {}
+    last = m15_times[-1]
+    m15_closed = (last + timedelta(minutes=15)) <= now_utc
+    h1_key = _floor_epoch_minutes(last, 60)
+    h4_key = _floor_epoch_minutes(last, 240)
+    h1_bars = sum(1 for t in m15_times if _floor_epoch_minutes(t, 60) == h1_key)
+    h4_bars = sum(1 for t in m15_times if _floor_epoch_minutes(t, 240) == h4_key)
+    return {
+        "now_utc": now_utc.isoformat(),
+        "last_m15_utc": last.isoformat(),
+        "m15_closed": bool(m15_closed),
+        "last_h1_m15_bars": h1_bars,      # of 4 expected in a complete H1
+        "h1_bucket_complete": h1_bars >= 4,
+        "last_h4_m15_bars": h4_bars,      # of 16 expected in a complete H4
+        "h4_bucket_complete": h4_bars >= 16,
+    }
+
+
 def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
         dry_run: bool = False, max_zones: int = None) -> dict:
     symbol = config.symbol()
@@ -105,6 +137,15 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
     # 2/3. context + indicators
     ctx, m15_atr = _latest_context(frames)
     m15_seq = candle_store.to_sequences(frames["m15"])
+
+    # Candle-completeness audit (observability only — does not alter scoring).
+    # Proves the final M15 bar is closed (F1) and exposes the developing H1/H4
+    # bucket state that the resample produces.
+    completeness = _candle_completeness(m15_seq["time"], datetime.now(timezone.utc))
+    if completeness and not completeness["m15_closed"]:
+        log.warning("Final M15 bar %s is NOT closed relative to now %s — "
+                    "forming-candle exclusion did not apply (unexpected on the MT5 path).",
+                    completeness["last_m15_utc"], completeness["now_utc"])
 
     # 4. zones
     zones = zone_detector.detect_support_zones(m15_seq, m15_atr)
@@ -170,6 +211,7 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
         "persisted": persisted,
         "current_session": ctx.session,
         "m15_return_12_atr": round(ctx.m15_return_12_atr, 4),
+        **completeness,
     }
     return summary
 
@@ -194,6 +236,11 @@ def _print_summary(s: dict) -> None:
              s["stale_opps_deleted"], s["stale_zones_deactivated"])
     log.info("current session       : %s", s["current_session"])
     log.info("m15_return_12_atr     : %s", s["m15_return_12_atr"])
+    if "m15_closed" in s:
+        log.info("now_utc               : %s", s["now_utc"])
+        log.info("last M15 (closed=%s)  : %s", s["m15_closed"], s["last_m15_utc"])
+        log.info("last H1 bucket M15s   : %s/4 (complete=%s)", s["last_h1_m15_bars"], s["h1_bucket_complete"])
+        log.info("last H4 bucket M15s   : %s/16 (complete=%s)", s["last_h4_m15_bars"], s["h4_bucket_complete"])
 
 
 def main(argv=None) -> int:

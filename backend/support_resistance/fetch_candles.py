@@ -57,6 +57,56 @@ def _shift_to_utc(df: pd.DataFrame) -> pd.DataFrame:
         log.info(f"Corrected broker->UTC offset of {offset:+d}h on candle timestamps")
     return df
 
+
+# ── Forming-candle exclusion (F1 fix, S&R production path only) ───────────────
+# The MT5 feed returns the still-forming newest bar at position 0
+# (feed_adapter.copy_rates_from_pos(..., 0, bars)); nothing downstream dropped
+# it, so the whole global MarketContext (session, m15_return_12_atr, EMA200-above
+# flags) and close_reclaim_state repainted intra-bar. Only COMPLETED M15 bars may
+# enter the scoring / reclaim calculation. This is scoped to the S&R candle layer
+# on purpose: feed_adapter is shared with the currency-strength scanners, whose
+# own forming-candle handling is a separate, independently-validated change.
+# The OANDA adapter already returns complete-only candles (complete==True filter);
+# this brings the S&R MT5 path in line with that principle.
+
+M15_MINUTES = 15
+
+
+def _bar_is_closed(bar_open_utc, now_utc, tf_minutes: int) -> bool:
+    """A bar that OPENS at bar_open_utc on a tf_minutes timeframe is closed once
+    bar_open + tf_minutes <= now (MT5 stamps bars by open time)."""
+    return (bar_open_utc + dt.timedelta(minutes=tf_minutes)) <= now_utc
+
+
+def drop_forming_m15(df: pd.DataFrame, now_utc: dt.datetime,
+                     tf_minutes: int = M15_MINUTES) -> tuple[pd.DataFrame, bool]:
+    """Drop ONLY the last row when it is still forming relative to now_utc.
+
+    Returns (df_out, dropped). Never touches any earlier bar: MT5 returns exactly
+    one in-progress bar (the newest), and every prior bar is closed. Chronological
+    order and all candle values are preserved; at most one trailing row is removed.
+    Empty input is returned unchanged.
+    """
+    if df.empty:
+        return df, False
+    last_open = pd.Timestamp(df["time"].iloc[-1]).to_pydatetime()
+    if last_open.tzinfo is None:
+        last_open = last_open.replace(tzinfo=dt.timezone.utc)
+    if _bar_is_closed(last_open, now_utc, tf_minutes):
+        return df, False
+    return df.iloc[:-1].reset_index(drop=True), True
+
+
+def last_m15_is_closed(df: pd.DataFrame, now_utc: dt.datetime,
+                       tf_minutes: int = M15_MINUTES) -> bool:
+    """Explicit validation hook: is the final M15 bar closed relative to now_utc?"""
+    if df.empty:
+        return False
+    last_open = pd.Timestamp(df["time"].iloc[-1]).to_pydatetime()
+    if last_open.tzinfo is None:
+        last_open = last_open.replace(tzinfo=dt.timezone.utc)
+    return _bar_is_closed(last_open, now_utc, tf_minutes)
+
 # The MT5 feed adapter lives in the intellitrade_scanners package (repo root).
 # Fallback paths cover source checkouts without `pip install -e .` and the
 # pre-package VPS layout (flat scripts/vps) until the 6.7 git-based deploy.
@@ -147,10 +197,28 @@ def fetch_from_mt5(symbol: str = "EURUSD", bars: int = 1500,
 
     feed_adapter.initialize(server=mt5_server, login=mt5_login, password=mt5_password)
     symbol_map = load_symbol_map()  # None -> feed_adapter uses its 1:1 default
-    df = feed_adapter.fetch_df(symbol, timeframe_key, bars, symbol_map=symbol_map)
+    # Request one extra bar so that after excluding the still-forming newest bar
+    # we still return `bars` COMPLETED candles (preserves the historical count).
+    df = feed_adapter.fetch_df(symbol, timeframe_key, bars + 1, symbol_map=symbol_map)
     # MT5 bar times are broker-server time mislabelled as UTC -> correct to true UTC
     # so session bucketing and calculated_at are accurate.
-    return _shift_to_utc(_normalize(df))
+    df = _shift_to_utc(_normalize(df))
+
+    # F1: exclude the forming bar so only completed candles enter scoring /
+    # reclaim. Only the M15 execution feed is close-sensitive; the H1/H4 context
+    # is derived by resampling M15 downstream (candle_store), so fixing M15 here
+    # also stabilises the resampled higher-timeframe inputs against intra-bar
+    # repaint. (It does NOT make the last H1/H4 *bucket* complete — that partial-
+    # bucket behaviour is pre-existing and unchanged; see the run summary logs.)
+    now_utc = dt.datetime.now(dt.timezone.utc)
+    df, dropped = drop_forming_m15(df, now_utc)
+    if dropped:
+        log.info("Excluded forming M15 bar; newest completed bar now %s",
+                 df["time"].iloc[-1] if not df.empty else "n/a")
+    # Trim to exactly `bars` completed candles (chronological, newest last).
+    if len(df) > bars:
+        df = df.iloc[-bars:].reset_index(drop=True)
+    return df
 
 
 # ── Source 2: CSV (offline dev) ───────────────────────────────────────────────
