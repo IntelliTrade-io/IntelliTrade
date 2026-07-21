@@ -6,7 +6,7 @@ Zone detection
 --------------
 detect_support_zones() now uses the FAITHFUL port of the locked research zone
 engine (research_zone_engine.generate_zones), verified to reproduce
-zone_research_io.generate_zones 1:1 on identical candles (18486/18486 events
+zone_research_io.generate_zones 1:1 on identical candles (18488/18488 events
 identical, labels included). Locked research params: swing_lookback=4,
 min_touches=3, merge_tolerance_atr=0.30, zone_width_atr=0.35.
 
