@@ -152,6 +152,33 @@ def test_h1h4_resample_convention_diverges_from_research_default():
     assert prod_labels[0] != research_labels[0]
 
 
+# ── dry-run makes ZERO Supabase writes (automated proof, not just guard-reading)
+def test_dry_run_performs_no_supabase_writes(monkeypatch):
+    from unittest.mock import MagicMock
+    from support_resistance import supabase_writer
+
+    # Pretend Supabase IS configured, so the ONLY thing that can stop a write is
+    # the dry_run guard itself. Any mutation OR client access during a dry run
+    # raises and fails this test.
+    monkeypatch.setattr(supabase_writer, "is_configured", lambda: True)
+    guarded = ["upsert_candles", "upsert_zone", "upsert_opportunity", "prune_stale",
+               "get_client", "_postgrest"]
+    mocks = {}
+    for name in guarded:
+        m = MagicMock(side_effect=AssertionError(f"supabase_writer.{name} called during --dry-run"))
+        monkeypatch.setattr(supabase_writer, name, m)
+        mocks[name] = m
+
+    summary = runner.run(source="mock", dry_run=True)
+
+    for name, m in mocks.items():
+        m.assert_not_called()
+    assert summary["persisted"] is False
+    assert summary["opportunities_written"] == 0
+    assert summary["stale_opps_deleted"] == 0
+    assert summary["stale_zones_deactivated"] == 0
+
+
 # ── completeness probe surfaces developing H1/H4 buckets (observability)
 def test_completeness_probe_flags_partial_buckets():
     # last M15 opens at 10:15 -> H1 (10:00) has 2 of 4 bars; H4 (08:00) developing.
