@@ -1,122 +1,146 @@
-# F1 — closed-M15 fix: VPS verification, rollback & evidence preservation
+# F1 - closed-M15 fix: VPS verification, rollback and evidence preservation
 
-**Status: prepared, NOT deployed. Do not deploy to the VPS or write production
-Supabase data until the founder approves.**
+STATUS: prepared, NOT deployed. Do not deploy to the VPS or write production
+Supabase data until the founders approve. ASCII-only on purpose so every command
+copy-pastes cleanly into a Windows console (no smart quotes, em-dashes or box
+characters).
 
-Scope of the fix (see the commit): exclude the still-forming M15 bar from the
-S&R production candle input, in the S&R candle layer only (`fetch_candles.py`),
-plus observability logging in `run_sr_alpha.py`. Nothing else changed — see the
-"not changed" list in the PR/report.
+Fix scope: exclude the still-forming M15 bar from the S&R production candle
+input, in the S&R candle layer only (backend/support_resistance/fetch_candles.py),
+plus observability logging in run_sr_alpha.py. Nothing else changed (see the
+"not changed" list in the audit). Separate follow-ups NOT in this fix:
+independent zone grading, H1/H4 research parity, close-reclaim timing.
+
+VPS facts (from scripts/vps/bootstrap.ps1 + scripts/vps/DEPLOY.md):
+  - Repo (sparse checkout):   C:\IntelliTrade\repo
+  - Package install:          pip install -e .[mt5]  (so `support_resistance` is importable)
+  - Scheduled task name:      "IntelliTrade SR Alpha"
+  - Task command:             python -m support_resistance.run_sr_alpha --source mt5
+  - Task working directory:   C:\IntelliTrade\repo
+  - Cadence:                   every 15 minutes
 
 ---
 
-## 0. Preserve evidence FIRST (before any deploy or cleanup)
+## Step 1 - Preserve current production evidence FIRST (read-only, pre-deploy)
 
-Run on the VPS, capture output to a file, keep it. This is the pre-fix baseline
-and the forming-candle-sensitivity evidence for the already-run week.
+Run on the VPS before anything changes. Capture to a folder and keep it.
 
-```powershell
-# On the VPS (C:\IntelliTrade\repo), pre-deploy:
-$ts = Get-Date -Format "yyyyMMdd_HHmmss"
-$out = "C:\IntelliTrade\out\f1_evidence_$ts"; New-Item -ItemType Directory -Force $out | Out-Null
+```
+$ts  = Get-Date -Format "yyyyMMdd_HHmmss"
+$out = "C:\IntelliTrade\out\f1_evidence_$ts"
+New-Item -ItemType Directory -Force $out | Out-Null
 
-# a) Deployed code identity (prove what has been running)
-git -C C:\IntelliTrade\repo rev-parse HEAD              | Tee-Object "$out\deployed_sha.txt"
-git -C C:\IntelliTrade\repo status --porcelain          | Tee-Object "$out\worktree_dirty.txt"
-Get-FileHash C:\IntelliTrade\repo\backend\support_resistance\fetch_candles.py -Algorithm SHA256 | Tee-Object "$out\fetch_candles_hash.txt"
+# a) Deployed code identity (what has actually been running)
+git -C C:\IntelliTrade\repo rev-parse HEAD                    | Out-File "$out\deployed_sha.txt"
+git -C C:\IntelliTrade\repo status --porcelain               | Out-File "$out\worktree_dirty.txt"
+Get-FileHash C:\IntelliTrade\repo\backend\support_resistance\fetch_candles.py -Algorithm SHA256 | Out-File "$out\fetch_candles_hash.txt"
+Get-FileHash C:\IntelliTrade\repo\backend\support_resistance\run_sr_alpha.py  -Algorithm SHA256 | Out-File "$out\run_sr_alpha_hash.txt"
 
-# b) VPS task logs (whatever the SR Alpha task writes)
-Copy-Item C:\IntelliTrade\logs\*sr*alpha* "$out\" -ErrorAction SilentlyContinue
-Get-ScheduledTask -TaskName "IntelliTrade SR Alpha" | Get-ScheduledTaskInfo | Format-List * | Out-File "$out\task_info.txt"
+# b) Current scheduled-task state + last run
+Get-ScheduledTask     -TaskName "IntelliTrade SR Alpha" | Format-List * | Out-File "$out\task_def.txt"
+Get-ScheduledTaskInfo -TaskName "IntelliTrade SR Alpha" | Format-List * | Out-File "$out\task_lastrun.txt"
+
+# c) Current candle input archive (do NOT delete - needed for replay audit)
+Copy-Item C:\IntelliTrade\out\eurusd_m15_archive.csv "$out\" -ErrorAction SilentlyContinue
 ```
 
-```bash
-# c) Supabase rows (service role; read-only). Preserve current + inactive.
-#    Uses the same env the scanners use (SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).
-curl -s "$SUPABASE_URL/rest/v1/sr_opportunities?select=*&order=calculated_at.desc&limit=2000" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" > sr_opportunities_snapshot.json
-curl -s "$SUPABASE_URL/rest/v1/sr_zones?select=*&limit=2000" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" > sr_zones_snapshot.json
-curl -s "$SUPABASE_URL/rest/v1/market_candles?symbol=eq.EURUSD&order=time.desc&limit=2000" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" > market_candles_tail.json
+Supabase rows (service role, read-only). Set the two env vars first, then:
+
+```
+$H = @{ apikey = $env:SUPABASE_SERVICE_ROLE_KEY; Authorization = "Bearer $($env:SUPABASE_SERVICE_ROLE_KEY)" }
+Invoke-WebRequest -UseBasicParsing -Headers $H -OutFile "$out\sr_opportunities.json" `
+  "$($env:SUPABASE_URL)/rest/v1/sr_opportunities?select=*&order=calculated_at.desc&limit=2000"
+Invoke-WebRequest -UseBasicParsing -Headers $H -OutFile "$out\sr_zones.json" `
+  "$($env:SUPABASE_URL)/rest/v1/sr_zones?select=*&limit=2000"
+Invoke-WebRequest -UseBasicParsing -Headers $H -OutFile "$out\market_candles_tail.json" `
+  "$($env:SUPABASE_URL)/rest/v1/market_candles?symbol=eq.EURUSD&order=time.desc&limit=2000"
 ```
 
-Do NOT delete the local M15 archive (`C:\IntelliTrade\out\eurusd_m15_archive.csv`)
-— it is the closed-candle history needed for the replay audit.
+Also record the current run_id / calculated_at from the most recent task log (in
+C:\IntelliTrade\logs) into the evidence folder.
 
-**Labeling rule:** the previous week's displayed grades are **unverified for
-forming-candle sensitivity**, NOT proven wrong. Only the replay audit (re-scoring
+Labeling rule: the previous week's displayed grades are UNVERIFIED for
+forming-candle sensitivity, NOT proven wrong. Only the replay audit (re-scoring
 the archived closed candles and diffing vs the stored rows) can prove whether any
 displayed grade actually differed from its closed-candle value.
 
----
+## Step 2 - Pause the scheduler (so the fix cannot auto-write during verification)
 
-## 1. Deploy (only after approval)
+```
+Disable-ScheduledTask -TaskName "IntelliTrade SR Alpha"
+```
 
-```powershell
+## Step 3 - Deploy the approved merge commit
+
+The branch is merged to main by an owner; the VPS then checks out exactly that
+merge commit (record the SHA).
+
+```
 git -C C:\IntelliTrade\repo fetch origin
-git -C C:\IntelliTrade\repo checkout <approved-sha>
-git -C C:\IntelliTrade\repo rev-parse HEAD   # record the deployed SHA
+git -C C:\IntelliTrade\repo checkout <merge-commit-sha>
+git -C C:\IntelliTrade\repo rev-parse HEAD                    # record deployed SHA
+Get-FileHash C:\IntelliTrade\repo\backend\support_resistance\fetch_candles.py -Algorithm SHA256
+# only if dependencies changed (they did not for F1): pip install -e "C:\IntelliTrade\repo[mt5]"
 ```
 
-## 2. Controlled verification run (dry-run first — writes nothing)
+## Step 4 - Dry run (writes NOTHING - proven in code)
 
-```powershell
-$env:TZ="UTC"
-python -m support_resistance.run_sr_alpha --source mt5 --dry-run 2>&1 | Tee-Object "C:\IntelliTrade\out\f1_postfix_dryrun.txt"
+In run_sr_alpha.py every Supabase write is inside
+`if not dry_run and supabase_writer.is_configured():` (upsert_candles,
+upsert_zone, upsert_opportunity, prune_stale). With --dry-run the branch is not
+entered, so no row is created, updated or deleted.
+
+```
+cd C:\IntelliTrade\repo
+python -m support_resistance.run_sr_alpha --source mt5 --dry-run *>&1 | Tee-Object "C:\IntelliTrade\out\f1_postfix_dryrun.txt"
 ```
 
-Record from the run summary (all now emitted by the runner):
+Confirm in the run summary:
+  - "last M15 (closed=True)"                 <- MUST be True
+  - now_utc, run_id, calculated_at            (calculated_at == last closed M15 open)
+  - "last H1 bucket M15s : x/4", "last H4 bucket M15s : x/16"  (developing HTF is expected; now logged)
+  - candles processed, zones detected, active support zones, strength distribution
+  - grade distribution
+  - persisted=False (dry run wrote nothing)
 
-- deployed commit SHA + `fetch_candles.py` SHA256 (from step 0a, re-confirm)
-- python command executed + data source (`mt5`)
-- current UTC time (`now_utc` in the summary)
-- `run_id`, `calculated_at`
-- **`last_m15_utc` and `m15_closed` — MUST be `True`**
-- `last_h1_m15_bars` /4 and `last_h4_m15_bars` /16 (expected: last H1/H4 bucket
-  developing — this is the pre-existing, unchanged behaviour, now visible)
-- `candles_processed`, `zones_detected`, `active_support_zones`, `strength_dist`
-- `grade_dist`, `opportunities_built`
-- (live run only) `opportunities_written`, `stale_opps_deleted`,
-  `stale_zones_deactivated`, `persisted`
+## Step 5 - One controlled live run (writes Supabase) - only if the dry run is clean
 
-## 3. Live run (writes Supabase) — only after the dry-run looks right
-
-```powershell
-python -m support_resistance.run_sr_alpha --source mt5 2>&1 | Tee-Object "C:\IntelliTrade\out\f1_postfix_live.txt"
+```
+cd C:\IntelliTrade\repo
+python -m support_resistance.run_sr_alpha --source mt5 *>&1 | Tee-Object "C:\IntelliTrade\out\f1_postfix_live.txt"
 ```
 
-Then confirm every current row belongs to the one latest run:
+Then verify all current rows belong to the one latest run:
 
-```bash
-curl -s "$SUPABASE_URL/rest/v1/sr_opportunities?select=calculated_at&order=calculated_at.desc&limit=50" \
-  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
-# expect a single distinct calculated_at == the run's calculated_at
+```
+$H = @{ apikey = $env:SUPABASE_SERVICE_ROLE_KEY; Authorization = "Bearer $($env:SUPABASE_SERVICE_ROLE_KEY)" }
+Invoke-RestMethod -Headers $H `
+  "$($env:SUPABASE_URL)/rest/v1/sr_opportunities?select=calculated_at&order=calculated_at.desc&limit=50"
+# expect a single distinct calculated_at == this run's calculated_at
 ```
 
-Keep both `f1_prefix` (step 0) and `f1_postfix` outputs side by side for the diff.
+Also confirm from the live summary: opportunities_written > 0, stale_opps_deleted
+and stale_zones_deactivated as expected, no mock data (source=mt5), and the
+dashboard chart / scanner / detail panel are consistent with the stored rows.
 
-## 4. Success criteria
+## Step 6 - Re-enable the scheduler
 
-- `m15_closed == True` on the fix run (and stays True across repeated runs within
-  the same M15 period — no intra-bar movement).
-- Two runs inside the same M15 period (no new closed bar, no session change)
-  produce identical `calculated_at`, identical `grade_dist`, identical rows.
-- A run after a new M15 close incorporates exactly one more closed bar.
-- Geometry/score unaffected (they never used live candles): the golden 50/50,
-  Phase 39 428/428, and 18488/18488 geometry validations remain green locally.
-
-## 5. Rollback
-
-The change is confined to two files and writes no schema. To roll back:
-
-```powershell
-git -C C:\IntelliTrade\repo checkout <previous-sha>   # the SHA recorded in step 0a
-# re-run the SR Alpha task once to repopulate rows under the old code
-python -m support_resistance.run_sr_alpha --source mt5
+```
+Enable-ScheduledTask -TaskName "IntelliTrade SR Alpha"
 ```
 
-No migration, no data backfill, no frontend deploy is involved. `sr_opportunities`
-/ `sr_zones` are fully regenerated every run (prune_stale), so a rollback run
-restores the prior behaviour immediately. The preserved snapshots (step 0) allow
+## Rollback
+
+Two files, no schema, no frontend, no data migration.
+
+```
+Disable-ScheduledTask -TaskName "IntelliTrade SR Alpha"
+git -C C:\IntelliTrade\repo checkout <previous-sha>          # from Step 1a
+cd C:\IntelliTrade\repo
+python -m support_resistance.run_sr_alpha --source mt5       # regenerate rows under old code
+Enable-ScheduledTask  -TaskName "IntelliTrade SR Alpha"
+```
+
+sr_opportunities / sr_zones are fully regenerated every run (prune_stale), so a
+rollback run restores the prior behaviour immediately. The Step 1 snapshots allow
 after-the-fact comparison either way.

@@ -143,7 +143,7 @@ def run(source: str = "auto", bars: int = 1500, csv_path: str = None,
     # bucket state that the resample produces.
     completeness = _candle_completeness(m15_seq["time"], datetime.now(timezone.utc))
     if completeness and not completeness["m15_closed"]:
-        log.warning("Final M15 bar %s is NOT closed relative to now %s — "
+        log.warning("Final M15 bar %s is NOT closed relative to now %s; "
                     "forming-candle exclusion did not apply (unexpected on the MT5 path).",
                     completeness["last_m15_utc"], completeness["now_utc"])
 
