@@ -2,7 +2,7 @@
 
 ## Scope
 
-Source application: `Canonical standalone Journal source (read-only reference; not required at runtime)`  
+Source application: `Canonical standalone Journal source (read-only reference; not required at runtime)`
 Integration target: `repository root` at `f327cd1cbed06cc04ecd12e2cca62e449e107cff`
 
 This matrix is the acceptance ledger for integration. A row is not complete until its verification method passes against IntelliTrade. "Reusable" means behavior and tests are reusable; it does not authorize copying the standalone app shell, auth, middleware, or configuration.

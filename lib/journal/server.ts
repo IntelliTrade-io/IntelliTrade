@@ -1172,4 +1172,3 @@ export function getTradeUpdatePayload(body: TradeUpdatePayloadInput) {
     }).filter(([, value]) => value !== undefined),
   );
 }
-

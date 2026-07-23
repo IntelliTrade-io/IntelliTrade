@@ -115,7 +115,7 @@ CREATE TABLE reviews (
 
 -- Create materialized view for trade statistics
 CREATE MATERIALIZED VIEW trade_stats_mv AS
-SELECT 
+SELECT
     t.id,
     t.user_id,
     t.account_id,
@@ -127,35 +127,35 @@ SELECT
     t.opened_at,
     t.closed_at,
     -- Calculate P&L
-    CASE 
-        WHEN t.bias = 'long' THEN 
+    CASE
+        WHEN t.bias = 'long' THEN
             COALESCE(SUM(CASE WHEN tl.side = 'sell' THEN tl.qty * tl.price ELSE -tl.qty * tl.price END), 0)
-        WHEN t.bias = 'short' THEN 
+        WHEN t.bias = 'short' THEN
             COALESCE(SUM(CASE WHEN tl.side = 'buy' THEN -tl.qty * tl.price ELSE tl.qty * tl.price END), 0)
     END AS pnl_gross,
     -- Calculate total fees
     COALESCE(SUM(tl.fee), 0) AS fees_total,
     -- Calculate net P&L
-    CASE 
-        WHEN t.bias = 'long' THEN 
+    CASE
+        WHEN t.bias = 'long' THEN
             COALESCE(SUM(CASE WHEN tl.side = 'sell' THEN tl.qty * tl.price ELSE -tl.qty * tl.price END), 0) - COALESCE(SUM(tl.fee), 0)
-        WHEN t.bias = 'short' THEN 
+        WHEN t.bias = 'short' THEN
             COALESCE(SUM(CASE WHEN tl.side = 'buy' THEN -tl.qty * tl.price ELSE tl.qty * tl.price END), 0) - COALESCE(SUM(tl.fee), 0)
     END AS pnl_net,
     -- Calculate R-multiple
-    CASE 
+    CASE
         WHEN t.risk_per_trade > 0 THEN
-            (CASE 
-                WHEN t.bias = 'long' THEN 
+            (CASE
+                WHEN t.bias = 'long' THEN
                     COALESCE(SUM(CASE WHEN tl.side = 'sell' THEN tl.qty * tl.price ELSE -tl.qty * tl.price END), 0) - COALESCE(SUM(tl.fee), 0)
-                WHEN t.bias = 'short' THEN 
+                WHEN t.bias = 'short' THEN
                     COALESCE(SUM(CASE WHEN tl.side = 'buy' THEN -tl.qty * tl.price ELSE tl.qty * tl.price END), 0) - COALESCE(SUM(tl.fee), 0)
             END) / t.risk_per_trade
         ELSE NULL
     END AS r_multiple,
     -- Calculate duration in minutes
-    CASE 
-        WHEN t.closed_at IS NOT NULL THEN 
+    CASE
+        WHEN t.closed_at IS NOT NULL THEN
             EXTRACT(EPOCH FROM (t.closed_at - t.opened_at)) / 60
         ELSE NULL
     END AS duration_min,
@@ -171,7 +171,7 @@ FROM trades t
 LEFT JOIN trade_legs tl ON t.id = tl.trade_id
 LEFT JOIN instruments i ON t.instrument_id = i.id
 LEFT JOIN strategies s ON t.strategy_id = s.id
-GROUP BY t.id, t.user_id, t.account_id, t.instrument_id, t.strategy_id, t.setup, t.bias, t.tags, 
+GROUP BY t.id, t.user_id, t.account_id, t.instrument_id, t.strategy_id, t.setup, t.bias, t.tags,
          t.opened_at, t.closed_at, t.risk_per_trade, i.symbol, i.asset_class, s.name;
 
 -- Create function to refresh materialized view
