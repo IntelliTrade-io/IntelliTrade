@@ -107,7 +107,6 @@ export const WIDGET_CATALOG: Record<WidgetType, WidgetCatalogEntry> = {
     label: "IntelliJournal",
     description: "Journal overview with equity pulse and recent executions.",
     icon: FileText,
-    comingSoon: true,
   },
   macro: {
     label: "Macro Mastery",

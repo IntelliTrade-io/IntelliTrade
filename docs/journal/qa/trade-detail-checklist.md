@@ -1,0 +1,23 @@
+# Trade Detail Checklist
+
+- Open `/journal/trades/[id]` from the trades table.
+- Confirm the page loads live authenticated trade data rather than scaffold copy.
+- Confirm the header shows the symbol or trade identifier and back-to-journal navigation.
+- Confirm headline metrics render avg entry, avg exit, net PnL, and R when available.
+- Confirm the edit form renders with authenticated account, instrument, and strategy options.
+- Confirm missing account or instrument prerequisites explain why reassignment cannot continue for the current user.
+- Confirm missing strategies do not block the top-level edit form and the UI explains that strategy is optional.
+- Confirm supported top-level fields can be edited and saved successfully.
+- Confirm validation, auth, and API update errors are visible and honest.
+- Confirm screenshots remain editable only through the dedicated screenshot upload form.
+- Confirm the delete section requires explicit confirmation before the trade can be removed.
+- Confirm successful delete returns the user to `/journal`.
+- Confirm a storage-cleanup warning is shown on `/journal` if screenshot object removal could not be confirmed after delete.
+- Confirm the execution-leg editor can replace the full leg set and refresh the detail metrics.
+- Confirm invalid leg values show validation errors before save.
+- Confirm failed leg replacement surfaces the API error instead of silently clearing legs.
+- Confirm execution legs are listed in chronological order.
+- Confirm setup, thesis, and tags render honestly when present or absent.
+- Confirm uploaded screenshots render read-only or show an honest unavailable state.
+- Confirm an invalid or unavailable trade ID shows the honest "not found or unavailable" state.
+- Confirm generic detail load failures surface the retryable error state.
